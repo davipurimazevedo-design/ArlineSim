@@ -31,7 +31,10 @@ export interface Airport {
   paved: boolean;
 }
 
-export type ModelKey = 'AT7' | 'E295' | 'A20N' | 'B38M' | 'A339';
+// prettier-ignore
+export type ModelKey =
+  | 'AT7' | 'E295' | 'A20N' | 'B38M' | 'A339'
+  | 'C208' | 'PC12' | 'DHC6' | 'C408' | 'L410' | 'AT4' | 'E175';
 export type LicenseTier = 0 | 1 | 2;
 export type ServiceLevel = 0 | 1 | 2;
 

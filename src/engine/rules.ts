@@ -6,7 +6,13 @@ import { blockHours, slotCost, slotFee } from './formulas';
 import type { AirportCode, GameState, ModelKey } from './types';
 
 export function rules(s: GameState): Rules {
-  return (BUSINESS_MODELS[s.businessModel] ?? BUSINESS_MODELS.tradicional).rules;
+  const bm = BUSINESS_MODELS[s.businessModel] ?? BUSINESS_MODELS.tradicional;
+  return bm.evolved && hasRegionalCert(s) ? bm.evolved : bm.rules;
+}
+
+/** O Pequeno porte já tem a certificação regional? */
+export function hasRegionalCert(s: GameState): boolean {
+  return s.flags.cert_regional !== undefined;
 }
 
 /** Idas e voltas por dia do modelo na distância, com o bônus de utilização do modelo de negócio. */

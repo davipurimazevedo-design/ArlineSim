@@ -159,10 +159,12 @@ export const AIRPORT_CODES = Object.keys(AIRPORTS) as AirportCode[];
 /** porte mínimo de um hub na fundação */
 export const HUB_MIN_SIZE = 3;
 
-/** Aeroportos que podem ser hub na fundação: domésticos de porte ≥ 3. */
-export const HUBS: AirportCode[] = AIRPORT_CODES.filter(
-  (c) => !AIRPORTS[c].intl && AIRPORTS[c].size >= HUB_MIN_SIZE,
-);
+/** Aeroportos que podem ser hub na fundação: domésticos a partir do porte mínimo (padrão 3). */
+export function hubsFor(minSize = HUB_MIN_SIZE): AirportCode[] {
+  return AIRPORT_CODES.filter((c) => !AIRPORTS[c].intl && AIRPORTS[c].size >= minSize);
+}
+
+export const HUBS: AirportCode[] = hubsFor();
 
 export type Difficulty = 'Fácil' | 'Médio' | 'Difícil';
 

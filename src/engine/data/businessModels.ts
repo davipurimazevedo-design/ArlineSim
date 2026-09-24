@@ -1,4 +1,5 @@
 // Modelos de negócio (Fase 3): escolhidos na fundação, mudam regras do motor via rules(s).
+import { SMALL_MODELS } from './aircraft';
 import type { Airport, BusinessModelId, LicenseTier, ModelKey, ServiceLevel } from '../types';
 
 export type { BusinessModelId };
@@ -39,6 +40,12 @@ export interface BusinessModel {
   /** false enquanto o modelo ainda não está no jogo */
   available: boolean;
   rules: Rules;
+  /** capital inicial fixo (senão, pela dificuldade do hub) */
+  startCash?: number;
+  /** porte mínimo do aeroporto para ser hub na fundação (padrão 3) */
+  hubMinSize?: number;
+  /** regras depois da certificação regional (só Pequeno porte) */
+  evolved?: Rules;
 }
 
 const NEUTRAL: Rules = {
@@ -129,11 +136,35 @@ export const BUSINESS_MODELS: Record<BusinessModelId, BusinessModel> = {
     id: 'pequeno',
     name: 'Pequeno porte',
     tagline: 'Começar de baixo, com aviões pequenos e destinos remotos.',
-    gains: ['Destinos de pista curta', 'Custo baixo por avião', 'Evolui para o regional'],
-    losses: ['Capital inicial menor', 'Poucos assentos por voo'],
-    available: false, // chega na etapa 3 da Fase 3
-    rules: NEUTRAL,
+    gains: [
+      'Hub em qualquer cidade, inclusive as pequenas',
+      'Aviões baratos que pousam em pista curta e de terra',
+      'Estrutura 80% mais barata e slots a 25% (até a certificação)',
+      'Evolui para o regional com a certificação',
+    ],
+    losses: [
+      'Capital inicial de R$ 5 mi',
+      'Só aviões de até 19 lugares até a certificação regional',
+      'Nacional e Internacional só depois da certificação',
+    ],
+    available: true,
+    startCash: 5e6,
+    hubMinSize: 1,
+    // estrutura de táxi aéreo: bem menor que a de uma companhia regular
+    rules: {
+      ...NEUTRAL,
+      models: SMALL_MODELS,
+      maxLicense: 0,
+      overheadFactor: 0.2,
+      // taxas aeroportuárias reais são por pouso e peso: avião leve paga uma fração
+      slotCostFactor: () => 0.25,
+      slotFeeFactor: () => 0.25,
+    },
+    evolved: NEUTRAL,
   },
 };
 
 export const BUSINESS_MODEL_IDS = Object.keys(BUSINESS_MODELS) as BusinessModelId[];
+
+/** Custo da certificação regional do Pequeno porte (libera ATR e o caminho das licenças). */
+export const REGIONAL_CERT_COST = 10e6;

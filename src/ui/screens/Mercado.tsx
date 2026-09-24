@@ -16,6 +16,8 @@ import {
   slotCostFor,
   rules,
   modelAllowed,
+  hasRegionalCert,
+  REGIONAL_CERT_COST,
   BUSINESS_MODELS,
   type AirportCode,
   slotFeeFor,
@@ -65,59 +67,66 @@ function Aeronaves() {
           </tr>
         </thead>
         <tbody>
-          {MODEL_KEYS.map((k, i) => {
-            const m = MODELS[k];
-            const outOfModel = !modelAllowed(g, k);
-            const locked = outOfModel || m.tier > g.license;
-            const dep = leaseDeposit(k);
-            return (
-              <tr key={k} className={`row ${locked ? 'locked' : 's-good'}${i % 2 ? ' zebra' : ''}`}>
-                <td>
-                  <b>{m.name}</b>
-                  <small>
-                    {m.kind}
-                    {outOfModel
-                      ? ` · fora do modelo ${BUSINESS_MODELS[g.businessModel].name}`
-                      : m.tier > g.license
-                        ? ` · requer licença ${LICENSES[m.tier].name}`
-                        : ''}
-                    {CABINS[k] ? ' · cabine configurável' : ''}
-                  </small>
-                </td>
-                <td className="c num">{m.j ? `${m.j}J + ${m.y}Y` : m.y}</td>
-                <td>
-                  <CellBar
-                    v={(m.range / MAX_RANGE) * 100}
-                    tone="blue"
-                    label="Alcance"
-                    text={`${fmtInt(m.range)} km`}
-                  />
-                </td>
-                <td className="r">
-                  <b className="num">{fmtMoney(m.lease)}/dia</b>
-                  <small>depósito {fmtMoney(dep)}</small>
-                </td>
-                <td className="r num">{fmtMoney(m.price)}</td>
-                <td className="r actions">
-                  <Btn
-                    small
-                    kind="primary"
-                    disabled={locked || g.cash < dep}
-                    onClick={() => act((s) => actions.lease(s, k))}
-                  >
-                    Arrendar
-                  </Btn>
-                  <Btn
-                    small
-                    disabled={locked || g.cash < m.price}
-                    onClick={() => act((s) => actions.buy(s, k))}
-                  >
-                    Comprar
-                  </Btn>
-                </td>
-              </tr>
-            );
-          })}
+          {[...MODEL_KEYS]
+            .sort(
+              (a, b) =>
+                MODELS[a].tier - MODELS[b].tier || MODELS[a].y + MODELS[a].j - (MODELS[b].y + MODELS[b].j),
+            )
+            .map((k, i) => {
+              const m = MODELS[k];
+              const outOfModel = !modelAllowed(g, k);
+              const locked = outOfModel || m.tier > g.license;
+              const dep = leaseDeposit(k);
+              return (
+                <tr key={k} className={`row ${locked ? 'locked' : 's-good'}${i % 2 ? ' zebra' : ''}`}>
+                  <td>
+                    <b>{m.name}</b>
+                    <small>
+                      {m.kind}
+                      {outOfModel
+                        ? g.businessModel === 'pequeno' && !hasRegionalCert(g)
+                          ? ' · requer certificação regional'
+                          : ` · fora do modelo ${BUSINESS_MODELS[g.businessModel].name}`
+                        : m.tier > g.license
+                          ? ` · requer licença ${LICENSES[m.tier].name}`
+                          : ''}
+                      {CABINS[k] ? ' · cabine configurável' : ''}
+                    </small>
+                  </td>
+                  <td className="c num">{m.j ? `${m.j}J + ${m.y}Y` : m.y}</td>
+                  <td>
+                    <CellBar
+                      v={(m.range / MAX_RANGE) * 100}
+                      tone="blue"
+                      label="Alcance"
+                      text={`${fmtInt(m.range)} km`}
+                    />
+                  </td>
+                  <td className="r">
+                    <b className="num">{fmtMoney(m.lease)}/dia</b>
+                    <small>depósito {fmtMoney(dep)}</small>
+                  </td>
+                  <td className="r num">{fmtMoney(m.price)}</td>
+                  <td className="r actions">
+                    <Btn
+                      small
+                      kind="primary"
+                      disabled={locked || g.cash < dep}
+                      onClick={() => act((s) => actions.lease(s, k))}
+                    >
+                      Arrendar
+                    </Btn>
+                    <Btn
+                      small
+                      disabled={locked || g.cash < m.price}
+                      onClick={() => act((s) => actions.buy(s, k))}
+                    >
+                      Comprar
+                    </Btn>
+                  </td>
+                </tr>
+              );
+            })}
         </tbody>
       </table>
     </div>
@@ -212,20 +221,60 @@ function Slots() {
 function Licencas() {
   const g = useGameState();
   const act = useGame((s) => s.act);
+  const pequeno = g.businessModel === 'pequeno';
+  const cert = hasRegionalCert(g);
   return (
     <ol className="licenses">
+      {pequeno && (
+        <li className="has">
+          <div>
+            <b>Táxi aéreo</b>
+            <small>Aviões de até 19 lugares, pistas curtas e de terra</small>
+          </div>
+          <Pill tone="ok">Ativa</Pill>
+        </li>
+      )}
+      {pequeno && !cert && (
+        <li className="next">
+          <div>
+            <b>Certificação regional</b>
+            <small>Libera o ATR e o caminho das licenças Nacional e Internacional</small>
+          </div>
+          <div className="lic-buy">
+            <Bar
+              v={(Math.max(0, g.cash) / REGIONAL_CERT_COST) * 100}
+              tone="teal"
+              label={`Caixa até ${fmtMoney(REGIONAL_CERT_COST)}`}
+            />
+            <Btn
+              kind="primary"
+              small
+              disabled={g.cash < REGIONAL_CERT_COST}
+              onClick={() => act((s) => actions.buyRegionalCert(s))}
+            >
+              Obter {fmtMoney(REGIONAL_CERT_COST)}
+            </Btn>
+          </div>
+        </li>
+      )}
       {LICENSES.map((L) => {
-        const has = g.license >= L.tier;
+        // no Pequeno porte, a licença Regional só vale depois da certificação
+        const has = g.license >= L.tier && (!pequeno || cert);
         const next = L.tier === g.license + 1;
-        const blocked = L.tier > rules(g).maxLicense;
+        const waitingCert = pequeno && !cert;
+        const blocked = !waitingCert && L.tier > rules(g).maxLicense;
         return (
-          <li key={L.tier} className={has ? 'has' : next ? 'next' : ''}>
+          <li key={L.tier} className={has ? 'has' : next && !waitingCert ? 'next' : ''}>
             <div>
               <b>{L.name}</b>
               <small>{L.desc}</small>
             </div>
             {has ? (
               <Pill tone="ok">Ativa</Pill>
+            ) : waitingCert ? (
+              <small>
+                {L.tier === 0 ? 'Vem com a certificação regional' : 'Depois da certificação regional'}
+              </small>
             ) : blocked ? (
               <small>Fora do modelo {BUSINESS_MODELS[g.businessModel].name}</small>
             ) : next ? (

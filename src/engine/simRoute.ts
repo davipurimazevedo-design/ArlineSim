@@ -6,8 +6,8 @@ import {
   FEE_INTL,
   J_DEMAND_SHARE,
   blockHours,
-  fairPrice,
-  fairPriceJ,
+  routeFair,
+  routeFairJ,
   freqFactor,
   isIntlPair,
   leaseCost,
@@ -62,7 +62,7 @@ export function simRoute(s: GameState, r: Route): SimResult {
   if (opsHalted(s)) return emptyResult(r, 'Operações suspensas');
 
   const d = r.dist;
-  const fp = fairPrice(d);
+  const fp = routeFair(r.from, r.to, d);
   const intl = isIntlPair(r.from, r.to);
   const svc = SERVICE[r.service];
 
@@ -99,7 +99,7 @@ export function simRoute(s: GameState, r: Route): SimResult {
   let paxJ = 0;
   let rev = 0;
   if (capJ > 0 && s.license >= 2) {
-    const fpJ = fairPriceJ(d);
+    const fpJ = routeFairJ(r.from, r.to, d);
     const pj = (r.priceJ || fpJ) * fare;
     const AJ = Math.pow(fpJ / pj, 1.8) * q * freqF;
     paxJ = Math.round(Math.min(capJ, (demand * J_DEMAND_SHARE * AJ) / (AJ + r.ai)));

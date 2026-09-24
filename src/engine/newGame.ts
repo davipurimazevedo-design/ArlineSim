@@ -1,5 +1,6 @@
 import { AIRPORTS } from './data/airports';
 import { hubDifficulty } from './data/airports';
+import { BUSINESS_MODELS } from './data/businessModels';
 import { START_CASH_BY_DIFFICULTY } from './formulas';
 import { toSeed } from './rng';
 import type { AirportCode, BusinessModelId, GameState } from './types';
@@ -22,7 +23,7 @@ export function newGame(
     name,
     hub,
     day: 1,
-    cash: START_CASH_BY_DIFFICULTY[hubDifficulty(hub)],
+    cash: BUSINESS_MODELS[businessModel].startCash ?? START_CASH_BY_DIFFICULTY[hubDifficulty(hub)],
     debt: 0,
     reputation: 50,
     fuelIdx: 1,

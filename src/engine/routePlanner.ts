@@ -5,7 +5,7 @@ import { MODELS } from './data/aircraft';
 import { REGIONAL_MAX_KM } from './data/licenses';
 import { BUSINESS_MODELS } from './data/businessModels';
 import * as actions from './actions';
-import { baseDemand, dist, fairPrice, runwayIssue } from './formulas';
+import { baseDemand, dist, routeFair, runwayIssue } from './formulas';
 import { fmtInt, fmtMoney } from './format';
 import { findPlane } from './helpers';
 import { maxFreqFor, modelAllowed, slotCostFor, slotFeeFor } from './rules';
@@ -76,7 +76,7 @@ export function planRoute(s: GameState, a: RoutePlanArgs): RoutePlan {
     error: validate(s, a, d),
     dist: d,
     demand: d ? baseDemand(a.from, a.to) : 0,
-    fair: d ? fairPrice(d) : 0,
+    fair: d ? routeFair(a.from, a.to, d) : 0,
     slots,
     deposit,
     total,

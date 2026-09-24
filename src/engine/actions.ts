@@ -9,20 +9,20 @@ import {
   clamp,
   creditLimit,
   baseCompetition,
-  defaultPriceJ,
   dist,
-  fairPrice,
+  routeFair,
+  routeFairJ,
   LEASE_DEPOSIT_DAYS,
   maintCost,
   maintDays,
   planeValue,
   runwayIssue,
 } from './formulas';
-import { addLog, changeRep, findPlane, unassignPlane } from './helpers';
+import { addLog, changeRep, findPlane, setFlag, unassignPlane } from './helpers';
 import { rivalsFor } from './rivals';
-import { maxFreqFor, modelAllowed, rules, slotCostFor } from './rules';
+import { hasRegionalCert, maxFreqFor, modelAllowed, rules, slotCostFor } from './rules';
 import { randInt, uid } from './rng';
-import { BUSINESS_MODELS } from './data/businessModels';
+import { BUSINESS_MODELS, REGIONAL_CERT_COST } from './data/businessModels';
 import type {
   ActionResult,
   AirportCode,
@@ -165,6 +165,17 @@ export function buySlot(s: GameState, code: AirportCode): ActionResult {
   return null;
 }
 
+/** Pequeno porte: certificação regional (ATR, jatos regionais e caminho das licenças). */
+export function buyRegionalCert(s: GameState): ActionResult {
+  if (s.businessModel !== 'pequeno') return 'Só o Pequeno porte precisa de certificação regional.';
+  if (hasRegionalCert(s)) return 'A companhia já tem a certificação regional.';
+  if (s.cash < REGIONAL_CERT_COST) return 'Caixa insuficiente.';
+  s.cash -= REGIONAL_CERT_COST;
+  setFlag(s, 'cert_regional');
+  addLog(s, 'Certificação regional concedida pela ANAC: ATR e o caminho das licenças liberados.', 'good');
+  return null;
+}
+
 export function buyLicense(s: GameState, tier: LicenseTier): ActionResult {
   if (tier !== s.license + 1) return 'Inválido.';
   if (tier > rules(s).maxLicense)
@@ -209,8 +220,8 @@ export function openRoute(s: GameState, { from, to, planeId }: OpenRouteArgs): A
     to,
     dist: d,
     planes: p ? [{ id: p.id, freq: defaultFreq(s, p, d) }] : [],
-    price: fairPrice(d),
-    priceJ: defaultPriceJ(d),
+    price: routeFair(from, to, d),
+    priceJ: Math.round(routeFairJ(from, to, d) / 10) * 10,
     service: rules(s).services[0]!,
     ai: baseCompetition(from, to),
     rivals: rivalsFor(from, to),

@@ -92,7 +92,8 @@ describe('simRoute', () => {
       ['BSB', 'GYN'],
       ['GRU', 'CWB'],
     ];
-    for (const key of MODEL_KEYS) {
+    for (const key of MODEL_KEYS.slice(0, 5)) {
+      // os 5 aviões do protótipo
       for (const [a, b] of pairs) {
         // paridade só onde as regras não mudaram: rotas domésticas até 1.500 km, sem executiva
         for (const lic of [0, 1] as const) {

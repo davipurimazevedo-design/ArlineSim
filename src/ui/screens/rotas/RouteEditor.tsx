@@ -1,8 +1,8 @@
 import { useId, useState } from 'react';
 import {
   actions,
-  fairPrice,
-  fairPriceJ,
+  routeFair,
+  routeFairJ,
   fmtInt,
   fmtMoney,
   maxFreqFor,
@@ -39,7 +39,7 @@ export function RouteEditor({ r }: { r: Route }) {
   const [adding, setAdding] = useState<string | null>(null);
 
   const assigned = routePlanes(g, r);
-  const fp = fairPrice(r.dist);
+  const fp = routeFair(r.from, r.to, r.dist);
   // previsão ao vivo: simRoute sobre o estado atual
   const prev = assigned.length ? simRoute(g, r) : null;
   const prevProfit = prev?.flying ? routeProfit(g, r, prev) : null;
@@ -135,7 +135,7 @@ export function RouteEditor({ r }: { r: Route }) {
         <label className="field wide" htmlFor={uid + 'priceJ'}>
           <span>
             Tarifa executiva <b className="num">{fmtMoney(r.priceJ)}</b>{' '}
-            <small>referência {fmtMoney(fairPriceJ(r.dist))}</small>
+            <small>referência {fmtMoney(routeFairJ(r.from, r.to, r.dist))}</small>
           </span>
           <input
             id={uid + 'priceJ'}

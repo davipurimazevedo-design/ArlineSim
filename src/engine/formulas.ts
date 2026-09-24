@@ -177,3 +177,20 @@ export function runwayIssue(model: ModelKey, codes: AirportCode[]): string | nul
   }
   return null;
 }
+
+/** Destinos remotos (porte ≤ 2) têm tarifa de referência maior: há pouca alternativa de transporte. */
+export function remoteFareFactor(a: AirportCode, b: AirportCode): number {
+  const small = Math.min(AIRPORTS[a].size, AIRPORTS[b].size);
+  // porte 2: +50%; porte 1: +100% (voos regionais para cidades remotas custam 2–3× mais por km)
+  return small <= 2 ? 1 + 0.5 * (3 - small) : 1;
+}
+
+/** Tarifa de referência da econômica numa rota (distância + prêmio de destino remoto), múltiplo de R$ 5. */
+export function routeFair(a: AirportCode, b: AirportCode, d = dist(a, b)): number {
+  return Math.round((fairPrice(d) * remoteFareFactor(a, b)) / 5) * 5;
+}
+
+/** Tarifa de referência da executiva numa rota. */
+export function routeFairJ(a: AirportCode, b: AirportCode, d = dist(a, b)): number {
+  return routeFair(a, b, d) * J_PRICE_FACTOR;
+}

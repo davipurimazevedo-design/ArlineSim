@@ -5,7 +5,7 @@ import {
   BUSINESS_MODELS,
   type BusinessModelId,
   fmtMoney,
-  HUBS,
+  hubsFor,
   hubDifficulty,
   START_CASH_BY_DIFFICULTY,
   type AirportCode,
@@ -27,6 +27,8 @@ export function NewGame() {
   const [hub, setHub] = useState<AirportCode>('BSB');
   const [model, setModel] = useState<BusinessModelId>('tradicional');
   const bm = BUSINESS_MODELS[model];
+  const hubs = hubsFor(bm.hubMinSize);
+  const cash = bm.startCash ?? START_CASH_BY_DIFFICULTY[hubDifficulty(hub)];
   const ok = name.trim().length > 0;
 
   return (
@@ -43,8 +45,10 @@ export function NewGame() {
         </span>
         <h1>Fundar companhia aérea</h1>
         <p>
-          Você começa com {fmtMoney(START_CASH_BY_DIFFICULTY[hubDifficulty(hub)])}, uma licença regional e
-          slots no hub. Hubs menores dão mais capital inicial. Um dia de operação passa a cada segundo.
+          Você começa com {fmtMoney(cash)},{' '}
+          {bm.id === 'pequeno' ? 'uma licença de táxi aéreo' : 'uma licença regional'} e slots no hub.{' '}
+          {bm.startCash ? '' : 'Hubs menores dão mais capital inicial. '}Um dia de operação passa a cada
+          segundo.
         </p>
         <label>
           <span>Nome</span>
@@ -60,7 +64,11 @@ export function NewGame() {
               type="button"
               role="radio"
               aria-checked={model === id}
-              onClick={() => setModel(id)}
+              onClick={() => {
+                setModel(id);
+                // o hub escolhido pode não valer no novo modelo (cidades pequenas só no Pequeno porte)
+                if (!hubsFor(BUSINESS_MODELS[id].hubMinSize).includes(hub)) setHub('BSB');
+              }}
             >
               <b>{BUSINESS_MODELS[id].name}</b>
               <small>{BUSINESS_MODELS[id].tagline}</small>
@@ -90,7 +98,7 @@ export function NewGame() {
           label="Hub (cidade-base da companhia)"
           value={hub}
           onChange={setHub}
-          only={HUBS}
+          only={hubs}
           placeholder="Busque a cidade ou o código"
         />
         <div className="hubs" role="radiogroup" aria-label="Hubs sugeridos">
@@ -111,7 +119,7 @@ export function NewGame() {
           </b>{' '}
           · porte {AIRPORTS[hub].size} ·{' '}
           <span className={DIFF_CLASS[hubDifficulty(hub)]}>{hubDifficulty(hub)}</span> · capital inicial{' '}
-          {fmtMoney(START_CASH_BY_DIFFICULTY[hubDifficulty(hub)])}
+          {fmtMoney(cash)}
         </p>
         <Btn kind="primary" type="submit" disabled={!ok}>
           Iniciar operações

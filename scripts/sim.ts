@@ -2,6 +2,7 @@
 //   npm run sim                         → estratégia básica (referência da seção 11) + resumo de todas
 //   npm run sim -- --strategy expansao  → só uma estratégia, com detalhe por hub
 //   opções: --seed 2026 --days 600 --seeds 10 --strategy basica|esperta|expansao|todas
+//           --model tradicional|lowcost|regional|pequeno --hubs BSB,GRU,SLZ
 //
 // Estratégias:
 // - basica   (seção 11 do CLAUDE.md): ATR, destino de maior demanda base entre 350 e 1.500 km do hub,
@@ -14,12 +15,14 @@ import {
   actions,
   AIRPORT_CODES,
   baseDemand,
-  defaultPriceJ,
   dist,
-  fairPrice,
+  routeFair,
+  routeFairJ,
   fmtMoney,
   LICENSES,
-  maxFreq,
+  maxFreqFor,
+  modelAllowed,
+  runwayIssue,
   MODEL_KEYS,
   MODELS,
   newGame,
@@ -27,10 +30,11 @@ import {
   routeProfit,
   simRoute,
   slotAllowed,
-  slotCost,
-  slotFee,
+  slotCostFor,
+  slotFeeFor,
   tick,
   type AirportCode,
+  type BusinessModelId,
   type GameState,
   type ModelKey,
   type Plane,
@@ -40,7 +44,7 @@ import { rand, type Seeded } from '../src/engine/rng.ts';
 
 type StrategyId = 'basica' | 'esperta' | 'expansao';
 const STRATEGIES: StrategyId[] = ['basica', 'esperta', 'expansao'];
-const HUBS: AirportCode[] = ['BSB', 'GRU', 'SLZ'];
+const DEFAULT_HUBS: AirportCode[] = ['BSB', 'GRU', 'SLZ'];
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
@@ -50,6 +54,8 @@ const SEED = Number(arg('seed') ?? 2026);
 const DAYS = Number(arg('days') ?? 600);
 const SEEDS = Number(arg('seeds') ?? 10);
 const ONLY = (arg('strategy') ?? 'todas') as StrategyId | 'todas';
+const MODEL = (arg('model') ?? 'tradicional') as BusinessModelId;
+const HUB_LIST = arg('hubs')?.split(',') as AirportCode[] | undefined;
 
 // ---------------------------------------------------------------- avaliação de rotas hipotéticas
 
@@ -68,8 +74,8 @@ function estimate(
 ): { profit: number; freq: number } | null {
   const m = MODELS[model];
   const d = dist(from, to);
-  const mf = maxFreq(m, d);
-  if (d > m.range || mf < 1) return null;
+  const mf = maxFreqFor(s, model, d);
+  if (d > m.range || mf < 1 || runwayIssue(model, [from, to])) return null;
   const plane: Plane = {
     id: TMP_PLANE,
     reg: 'PR-SIM',
@@ -106,8 +112,8 @@ function estimate(
       opened: s.day,
       last: null,
     };
-    route.price = fairPrice(d);
-    route.priceJ = defaultPriceJ(d);
+    route.price = routeFair(from, to, d);
+    route.priceJ = Math.round(routeFairJ(from, to, d) / 10) * 10;
     s.routes.push(route);
   }
   let best: { profit: number; freq: number } | null = null;
@@ -127,8 +133,13 @@ function estimate(
   return best;
 }
 
+/**
+ * Aeronaves que o robô considera. Fora do Pequeno porte, só as 5 do protótipo, para a linha de base
+ * continuar comparável (o robô ainda não sabe combinar aviões pequenos e grandes; revisão no fim da Fase 3).
+ */
 function modelsAvailable(s: GameState): ModelKey[] {
-  return MODEL_KEYS.filter((k) => MODELS[k].tier <= s.license);
+  const pool = s.businessModel === 'pequeno' ? MODEL_KEYS : MODEL_KEYS.slice(0, 5);
+  return pool.filter((k) => MODELS[k].tier <= s.license && modelAllowed(s, k));
 }
 
 // ---------------------------------------------------------------- estratégias
@@ -142,11 +153,13 @@ interface Bot {
 function basica(s: GameState): void {
   if (s.cash <= 8e6 && s.routes.length > 0) return;
   // só os 26 aeroportos do protótipo, para continuar comparável com a referência da seção 11
-  const to = AIRPORT_CODES.slice(0, 26).filter((c) => {
-    if (s.slots.includes(c) || !slotAllowed(s, c)) return false;
-    const d = dist(s.hub, c);
-    return d >= 350 && d <= 1500;
-  }).sort((a, b) => baseDemand(s.hub, b) - baseDemand(s.hub, a))[0];
+  const to = AIRPORT_CODES.slice(0, 26)
+    .filter((c) => {
+      if (s.slots.includes(c) || !slotAllowed(s, c)) return false;
+      const d = dist(s.hub, c);
+      return d >= 350 && d <= 1500;
+    })
+    .sort((a, b) => baseDemand(s.hub, b) - baseDemand(s.hub, a))[0];
   if (!to || actions.buySlot(s, to) || actions.lease(s, 'AT7')) return;
   actions.openRoute(s, { from: s.hub, to, planeId: s.fleet.at(-1)!.id });
 }
@@ -167,12 +180,13 @@ function bestMove(s: GameState, bot: Bot) {
     for (const to of AIRPORT_CODES) {
       if (to === s.hub || s.slots.includes(to) || !slotAllowed(s, to)) continue;
       if (s.license === 0 && dist(s.hub, to) > 1500) continue;
-      const cost = slotCost(to) + deposit;
+      const cost = slotCostFor(s, to) + deposit;
       if (s.cash - cost < bot.reserve) continue;
       const e = estimate(s, s.hub, to, model);
       if (!e) continue;
-      const profit = e.profit - slotFee(to);
-      if (profit <= 10000) continue;
+      const profit = e.profit - slotFeeFor(s, to);
+      // lucro proporcional ao avião (35% do leasing diário) e que pague slot + depósito em até 2 anos
+      if (profit <= 0.35 * MODELS[model].lease || profit * 730 < cost) continue;
       const score = profit / Math.sqrt(cost); // lucro diário, com peso para o investimento
       if (!best || score > best.score) best = { kind: 'new', to, model, freq: e.freq, score };
     }
@@ -181,13 +195,13 @@ function bestMove(s: GameState, bot: Bot) {
       // só escala outro avião quando os atuais já voam o máximo
       const saturated = r.planes.every((x) => {
         const p = s.fleet.find((f) => f.id === x.id);
-        return !p || x.freq >= maxFreq(MODELS[p.model], r.dist);
+        return !p || x.freq >= maxFreqFor(s, p.model, r.dist);
       });
       if (!saturated) continue;
       if (s.cash - deposit < bot.reserve) continue;
       const to = r.from === s.hub ? r.to : r.from;
       const e = estimate(s, r.from, r.to, model, r);
-      if (!e || e.profit <= 10000) continue;
+      if (!e || e.profit <= 0.35 * MODELS[model].lease || e.profit * 730 < deposit) continue;
       const score = e.profit / Math.sqrt(deposit);
       if (!best || score > best.score) best = { kind: 'add', to, model, freq: e.freq, score, route: r };
     }
@@ -216,7 +230,7 @@ function tuneFreq(s: GameState): void {
       if (!p || p.maint > 0) continue; // parado, todas as frequências empatam
       const m = MODELS[p.model];
       let best = { f: x.freq, v: -Infinity };
-      for (let f = 1; f <= maxFreq(m, r.dist); f++) {
+      for (let f = 1; f <= maxFreqFor(s, p.model, r.dist); f++) {
         x.freq = f;
         const sim = simRoute(s, r);
         const upkeep = (sim.planeHours[p.id] ?? 0) * m.wearH * m.price * 0.00015;
@@ -248,6 +262,8 @@ function esperta(s: GameState, bot: Bot): void {
 }
 
 function expansao(s: GameState, bot: Bot): void {
+  // Pequeno porte: certificação regional quando sobra caixa
+  if (s.businessModel === 'pequeno' && !s.flags.cert_regional && s.cash > 20e6) actions.buyRegionalCert(s);
   // licenças quando sobra caixa além da reserva
   const next = LICENSES[s.license + 1];
   if (next && s.cash > next.cost + 15e6 && s.routes.length >= 4) {
@@ -270,7 +286,7 @@ interface RunResult {
 }
 
 function simulate(strategy: StrategyId, hub: AirportCode, seed: number, days: number): RunResult {
-  const s = newGame('Simulação', hub, seed);
+  const s = newGame('Simulação', hub, seed, 0, MODEL);
   const bot: Bot = { seeded: { seed: (seed ^ 0x9e3779b9) >>> 0 }, reserve: 4e6 };
   const cashAt: Record<number, number> = {};
   const licenseDay: [number | null, number | null] = [null, null];
@@ -300,7 +316,7 @@ const median = (xs: number[]) => {
 
 function detail(strategy: StrategyId): void {
   console.log(`\n=== Estratégia ${strategy} · semente ${SEED} · ${DAYS} dias ===`);
-  for (const hub of HUBS) {
+  for (const hub of HUB_LIST ?? DEFAULT_HUBS) {
     const { s, cashAt } = simulate(strategy, hub, SEED, DAYS);
     console.log(`\nHub ${hub}`);
     console.log(`${pad('dia', 5)} ${pad('caixa', 14)}`);
@@ -323,7 +339,7 @@ function summary(): void {
       `${pad('falências', 9)} ${pad('Nacional', 9)} ${pad('Intern.', 8)}`,
   );
   for (const strategy of ONLY === 'todas' ? STRATEGIES : [ONLY]) {
-    for (const hub of HUBS) {
+    for (const hub of HUB_LIST ?? DEFAULT_HUBS) {
       const runs = Array.from({ length: SEEDS }, (_, i) => simulate(strategy, hub, SEED + i, DAYS));
       const cash = runs.map((r) => r.s.cash);
       const broke = runs.filter((r) => r.s.gameOver).length;

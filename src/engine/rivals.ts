@@ -2,7 +2,7 @@
 // só como ele se divide, então não mexem no balanceamento.
 import { AIRPORTS } from './data/airports';
 import { COMPETITORS, MAX_RIVALS_PER_ROUTE, type RivalId } from './data/competitors';
-import { clamp, fairPrice, isIntlPair } from './formulas';
+import { clamp, isIntlPair, routeFair } from './formulas';
 import { routeFreq } from './helpers';
 import type { AirportCode, Route, RouteRival } from './types';
 
@@ -30,7 +30,7 @@ function pressure(id: RivalId, r: Route): number {
   switch (id) {
     case 'aerovia':
       // tarifa acima da referência abre espaço para a low-cost
-      return 1 + 0.15 * clamp((r.price / fairPrice(r.dist) - 1) * 2, 0, 1);
+      return 1 + 0.15 * clamp((r.price / routeFair(r.from, r.to, r.dist) - 1) * 2, 0, 1);
     case 'ipe':
       return r.service === 0 ? 1.15 : r.service === 2 ? 0.9 : 1;
     case 'sabia':

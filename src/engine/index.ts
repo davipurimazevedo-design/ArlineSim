@@ -20,6 +20,12 @@ export * from './offline';
 export * from './newGame';
 export * from './rules';
 export * from './routePlanner';
-export { BUSINESS_MODELS, BUSINESS_MODEL_IDS, type BusinessModel, type Rules } from './data/businessModels';
+export {
+  BUSINESS_MODELS,
+  BUSINESS_MODEL_IDS,
+  REGIONAL_CERT_COST,
+  type BusinessModel,
+  type Rules,
+} from './data/businessModels';
 export * from './goals';
 export { GOALS, GOALS_BY_ID, type Goal, type Progress } from './data/goals';
