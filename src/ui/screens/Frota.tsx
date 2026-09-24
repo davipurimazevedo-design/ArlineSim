@@ -2,6 +2,7 @@ import {
   actions,
   buyoutCost,
   routeOfPlane,
+  fmtDec,
   fmtMoney,
   maintCostFor,
   maintDaysFor,
@@ -100,7 +101,14 @@ export function Frota() {
                     <CabinCell p={p} />
                   </td>
                   <td className="r">
-                    {p.owned ? (
+                    {p.loan ? (
+                      <>
+                        <b className="num">{fmtMoney(p.loan.payment)}/dia</b>
+                        <small>
+                          financiada · saldo {fmtMoney(p.loan.balance)} · {fmtDec(p.loan.left / 365)} anos
+                        </small>
+                      </>
+                    ) : p.owned ? (
                       <>
                         <b>Própria</b>
                         <small>vale {fmtMoney(value)}</small>
@@ -122,6 +130,15 @@ export function Frota() {
                     >
                       Manutenção {fmtMoney(maintCostFor(g, p))}
                     </Btn>
+                    {p.loan && (
+                      <Btn
+                        small
+                        disabled={g.cash < p.loan.balance}
+                        onClick={() => act((s) => actions.payoffLoan(s, p.id))}
+                      >
+                        Quitar {fmtMoney(p.loan.balance)}
+                      </Btn>
+                    )}
                     {!p.owned && (
                       <Btn
                         small
@@ -136,9 +153,11 @@ export function Frota() {
                       kind="ghost danger"
                       onClick={() =>
                         ask({
-                          text: p.owned
-                            ? `Vender ${p.reg} por ${fmtMoney(value)}?`
-                            : `Devolver ${p.reg} ao arrendador? O depósito não é reembolsado.`,
+                          text: p.loan
+                            ? `Vender ${p.reg} por ${fmtMoney(value)}? O saldo de ${fmtMoney(p.loan.balance)} do financiamento é quitado com a venda (${value >= p.loan.balance ? `sobram ${fmtMoney(value - p.loan.balance)}` : `faltam ${fmtMoney(p.loan.balance - value)} do caixa`}).`
+                            : p.owned
+                              ? `Vender ${p.reg} por ${fmtMoney(value)}?`
+                              : `Devolver ${p.reg} ao arrendador? O depósito não é reembolsado.`,
                           okLabel: p.owned ? 'Vender' : 'Devolver',
                           danger: true,
                           onOk: () => act((s) => actions.release(s, p.id)),

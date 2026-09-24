@@ -44,6 +44,11 @@ const MIGRATIONS: Record<number, (g: Raw) => Raw> = {
   }),
   // v6 → v7: lista de hubs (começa só com o da fundação)
   6: (g) => ({ ...g, hubs: Array.isArray(g.hubs) ? g.hubs : [g.hub] }),
+  // v7 → v8: parcelas de financiamento no relatório do dia (aviões sem `loan` não têm financiamento)
+  7: (g) => ({
+    ...g,
+    lastDay: g.lastDay && typeof g.lastDay === 'object' ? { loans: 0, ...(g.lastDay as Raw) } : null,
+  }),
 };
 
 /** Valida e migra um save cru. Devolve null se não for aproveitável. */

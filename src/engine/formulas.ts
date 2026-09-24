@@ -124,7 +124,10 @@ export function leaseCost(p: Plane): number {
 }
 
 export function creditLimit(s: GameState): number {
-  const owned = s.fleet.filter((p) => p.owned).reduce((a, p) => a + planeValue(p), 0);
+  // só conta o que já é da companhia: valor do avião menos o saldo financiado
+  const owned = s.fleet
+    .filter((p) => p.owned)
+    .reduce((a, p) => a + Math.max(0, planeValue(p) - (p.loan?.balance ?? 0)), 0);
   return Math.round((10e6 + owned * 0.5) / 1e6) * 1e6;
 }
 

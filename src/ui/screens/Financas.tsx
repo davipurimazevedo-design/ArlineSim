@@ -1,4 +1,13 @@
-import { actions, creditLimit, dailyInterest, fmtMoney, LOAN_STEP } from '../../engine';
+import {
+  actions,
+  creditLimit,
+  dailyInterest,
+  financedBalance,
+  financeLimit,
+  financePayments,
+  fmtMoney,
+  LOAN_STEP,
+} from '../../engine';
 import { useGame, useGameState } from '../../store/gameStore';
 import { Bar } from '../components/Bar';
 import { Btn } from '../components/Btn';
@@ -18,6 +27,7 @@ export function Financas() {
           ['Combustível', d.fuel],
           ['Tripulação', d.crew],
           ['Leasing', d.lease],
+          ['Parcelas de aeronaves', d.loans],
           ['Taxas aeroportuárias', d.fees],
           ['Serviço de bordo', d.svc],
           ['Slots', d.slots],
@@ -88,9 +98,27 @@ export function Financas() {
             </Btn>
           </div>
         </div>
+        <div className="credit">
+          <div>
+            <small>Aeronaves financiadas</small>
+            <b className="num">{g.fleet.filter((p) => p.loan).length}</b>
+          </div>
+          <div>
+            <small>Saldo financiado</small>
+            <b className="num">{fmtMoney(financedBalance(g))}</b>
+          </div>
+          <div>
+            <small>Parcelas/dia</small>
+            <b className="num">{fmtMoney(financePayments(g))}</b>
+          </div>
+          <div>
+            <small>Limite de financiamento</small>
+            <b className="num">{fmtMoney(financeLimit(g))}</b>
+          </div>
+        </div>
         <p className="note">
-          O limite cresce com o valor da frota própria. Com o caixa abaixo de −R$ 15 mi, os credores assumem a
-          companhia.
+          O limite de crédito cresce com a parte já paga da frota própria. O de financiamento, com o lucro
+          médio dos últimos 30 dias. Com o caixa abaixo de −R$ 15 mi, os credores assumem a companhia.
         </p>
       </div>
     </section>

@@ -106,6 +106,17 @@ export interface Plane {
   hours: number;
   /** dia em que entrou na frota */
   since: number;
+  /** financiamento em aberto (só em aeronave própria) */
+  loan?: PlaneLoan;
+}
+
+export interface PlaneLoan {
+  /** saldo devedor */
+  balance: number;
+  /** parcela diária fixa */
+  payment: number;
+  /** parcelas restantes */
+  left: number;
 }
 
 export interface RouteLast {
@@ -156,6 +167,8 @@ export interface DayReport {
   fuel: number;
   crew: number;
   lease: number;
+  /** parcelas de aeronaves financiadas */
+  loans: number;
   fees: number;
   svc: number;
   slots: number;

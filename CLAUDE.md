@@ -444,7 +444,7 @@ Decisões de 2026-09-24 (segunda rodada):
 - **Hubs:** o hub vale por **conexões** (rotas que saem de um hub ganham demanda extra conforme o número de rotas da companhia naquele hub) e por ser **base de manutenção e tripulação** (manutenção mais barata e rápida; tripulação baseada não paga pernoite). **Hubs adicionais** custam uma implantação proporcional ao porte e estrutura diária, sem desconto de slot.
 - **Rotas ponto a ponto** (sem tocar hub) continuam permitidas, mas pagam **pernoite** de tripulação; a Low-cost é isenta.
 - **Pequeno porte:** R$ 5 mi de capital, hub em qualquer cidade doméstica (inclusive porte 1 e 2), licença inicial Táxi aéreo que evolui para a Regional.
-- **Financiamento de aeronaves:** comprar com entrada e parcelas com juros.
+- **Financiamento de aeronaves:** comprar com entrada e parcelas com juros. Implementado (etapa 3c, `src/engine/finance.ts`, save v8): entrada de 20%, prazos de 3, 5 ou 8 anos, juros de 0,03% ao dia (~11,6% a.a., metade da linha de crédito), parcela fixa diária (tabela Price) cobrada no tick. O avião é próprio desde o início; o limite de crédito só conta valor − saldo. Saldo financiado total limitado a R$ 50 mi + 365 × lucro médio dos últimos 30 dias. Quitação antecipada pelo saldo; a venda quita o saldo primeiro (se não cobrir, a diferença sai do caixa). Pendente no rebalanceamento: nos aviões pequenos a parcela de 5 anos sai mais barata que o leasing (a razão leasing/preço deles é maior que a do ATR 72), e os robôs da simulação ainda não financiam.
 - **Idade e mercado de usados:** depois da Fase 3.
 - **Rebalanceamento:** uma vez, no fim da Fase 3.
 - **Cargas:** incluir o **Caravan Cargo** (Cessna 208B cargueiro) junto com ATR 72-600F, 737-800BCF e 767-300F (pedido do usuário).

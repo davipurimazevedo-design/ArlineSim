@@ -19,6 +19,7 @@ import {
 import { addLog, changeRep, findPlane, setFlag, unassignPlane } from './helpers';
 import { rivalsFor } from './rivals';
 import { hasRegionalCert, maxFreqFor, modelAllowed, rules, slotCostFor } from './rules';
+import { FINANCE_TERMS, financedBalance, financeLimit, financeQuote, type FinanceTerm } from './finance';
 import { hubSetupCost, maintCostFor, maintDaysFor } from './hubs';
 import { randInt, uid } from './rng';
 import { BUSINESS_MODELS, REGIONAL_CERT_COST } from './data/businessModels';
@@ -95,6 +96,40 @@ export function buy(s: GameState, model: ModelKey): ActionResult {
   return null;
 }
 
+/** Comprar com financiamento: entrada à vista e parcelas diárias pelo prazo escolhido. */
+export function finance(s: GameState, model: ModelKey, days: FinanceTerm): ActionResult {
+  const m = MODELS[model];
+  if (!modelAllowed(s, model))
+    return `O modelo ${BUSINESS_MODELS[s.businessModel].name} não opera o ${m.name}.`;
+  if (m.tier > s.license) return 'Licença insuficiente.';
+  if (!FINANCE_TERMS.includes(days)) return 'Prazo inválido.';
+  const q = financeQuote(model, days);
+  if (financedBalance(s) + q.principal > financeLimit(s))
+    return `Limite de financiamento atingido (${fmtMoney(financeLimit(s))}).`;
+  if (s.cash < q.down) return 'Caixa insuficiente para a entrada.';
+  s.cash -= q.down;
+  const p = addPlane(s, model, true);
+  p.loan = { balance: q.principal, payment: q.payment, left: days };
+  addLog(
+    s,
+    `${m.name} ${p.reg} financiado em ${Math.round(days / 365)} anos (${fmtMoney(q.payment)}/dia).`,
+    'good',
+  );
+  return null;
+}
+
+/** Quitar o saldo devedor de um avião financiado. */
+export function payoffLoan(s: GameState, id: string): ActionResult {
+  const p = findPlane(s, id);
+  if (!p?.loan) return 'Inválido.';
+  const b = Math.round(p.loan.balance);
+  if (s.cash < b) return 'Caixa insuficiente.';
+  s.cash -= b;
+  delete p.loan;
+  addLog(s, `Financiamento do ${p.reg} quitado antecipadamente.`, 'good');
+  return null;
+}
+
 /** Comprar um avião arrendado por 90% do preço. */
 export function buyOut(s: GameState, id: string): ActionResult {
   const p = findPlane(s, id);
@@ -111,7 +146,10 @@ export function buyOut(s: GameState, id: string): ActionResult {
 export function release(s: GameState, id: string): ActionResult {
   const p = findPlane(s, id);
   if (!p) return 'Inválido.';
-  if (p.owned) s.cash += planeValue(p);
+  // avião financiado: a venda quita o saldo primeiro
+  const net = p.owned ? planeValue(p) - (p.loan?.balance ?? 0) : 0;
+  if (s.cash + net < 0) return 'A venda não cobre o saldo do financiamento.';
+  s.cash += net;
   unassignPlane(s, id);
   s.fleet = s.fleet.filter((x) => x.id !== id);
   addLog(s, p.owned ? `${p.reg} vendido.` : `${p.reg} devolvido ao arrendador.`, 'info');

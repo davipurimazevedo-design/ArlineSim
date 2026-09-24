@@ -1,6 +1,7 @@
 import { MODELS } from './data/aircraft';
 import { EVENT_GAP_MIN, EVENT_GAP_SPREAD, pickEvent } from './events';
 import { checkGoals } from './goals';
+import { payInstallment } from './finance';
 import { extraHubsDailyCost, maintCostFor, maintDaysFor } from './hubs';
 import { BANKRUPTCY_CASH, clamp, dailyInterest, baseCompetition, modVal } from './formulas';
 import { addLog, changeRep, routeOfPlane } from './helpers';
@@ -31,6 +32,7 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
     fuel: 0,
     crew: 0,
     lease: 0,
+    loans: 0,
     fees: 0,
     svc: 0,
     slots: 0,
@@ -77,6 +79,10 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
   for (const p of s.fleet) {
     const m = MODELS[p.model];
     if (!p.owned) day.lease += m.lease;
+    if (p.loan) {
+      day.loans += payInstallment(p);
+      if (!p.loan) addLog(s, `Financiamento do ${p.reg} quitado.`, 'good');
+    }
     if (p.maint > 0) {
       p.maint--;
       if (p.maint === 0) {
@@ -111,6 +117,7 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
     day.fuel +
     day.crew +
     day.lease +
+    day.loans +
     day.fees +
     day.svc +
     day.slots +

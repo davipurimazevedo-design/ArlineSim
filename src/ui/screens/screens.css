@@ -756,6 +756,17 @@
 .model-detail .loss {
   color: var(--alert-t);
 }
+.finance-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+.finance-bar small {
+  color: var(--muted);
+}
 .slot-search {
   max-width: 320px;
   margin-bottom: 10px;

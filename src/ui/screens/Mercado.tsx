@@ -26,6 +26,11 @@ import {
   BUSINESS_MODELS,
   type AirportCode,
   slotFeeFor,
+  FINANCE_TERMS,
+  financeQuote,
+  financedBalance,
+  financeLimit,
+  type FinanceTerm,
 } from '../../engine';
 import { useGame, useGameState } from '../../store/gameStore';
 import { Bar, CellBar } from '../components/Bar';
@@ -63,88 +68,126 @@ export function Mercado() {
   );
 }
 
+const TERM_OPTIONS = FINANCE_TERMS.map((d) => [d, `${Math.round(d / 365)} anos`] as const);
+
 function Aeronaves() {
   const g = useGameState();
   const act = useGame((s) => s.act);
+  const ask = useGame((s) => s.ask);
+  const [term, setTerm] = useState<FinanceTerm>(1825);
+  const finLeft = financeLimit(g) - financedBalance(g);
   return (
-    <div className="table-wrap">
-      <table className="tbl">
-        <thead>
-          <tr>
-            <th>Modelo</th>
-            <th className="c">Assentos</th>
-            <th>Alcance</th>
-            <th className="r">Leasing</th>
-            <th className="r">Compra</th>
-            <th className="r">
-              <span className="sr-only">Ações</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {[...MODEL_KEYS]
-            .sort(
-              (a, b) =>
-                MODELS[a].tier - MODELS[b].tier || MODELS[a].y + MODELS[a].j - (MODELS[b].y + MODELS[b].j),
-            )
-            .map((k, i) => {
-              const m = MODELS[k];
-              const outOfModel = !modelAllowed(g, k);
-              const locked = outOfModel || m.tier > g.license;
-              const dep = leaseDeposit(k);
-              return (
-                <tr key={k} className={`row ${locked ? 'locked' : 's-good'}${i % 2 ? ' zebra' : ''}`}>
-                  <td>
-                    <b>{m.name}</b>
-                    <small>
-                      {m.kind}
-                      {outOfModel
-                        ? g.businessModel === 'pequeno' && !hasRegionalCert(g)
-                          ? ' · requer certificação regional'
-                          : ` · fora do modelo ${BUSINESS_MODELS[g.businessModel].name}`
-                        : m.tier > g.license
-                          ? ` · requer licença ${LICENSES[m.tier].name}`
-                          : ''}
-                      {CABINS[k] ? ' · cabine configurável' : ''}
-                    </small>
-                  </td>
-                  <td className="c num">{m.j ? `${m.j}J + ${m.y}Y` : m.y}</td>
-                  <td>
-                    <CellBar
-                      v={(m.range / MAX_RANGE) * 100}
-                      tone="blue"
-                      label="Alcance"
-                      text={`${fmtInt(m.range)} km`}
-                    />
-                  </td>
-                  <td className="r">
-                    <b className="num">{fmtMoney(m.lease)}/dia</b>
-                    <small>depósito {fmtMoney(dep)}</small>
-                  </td>
-                  <td className="r num">{fmtMoney(m.price)}</td>
-                  <td className="r actions">
-                    <Btn
-                      small
-                      kind="primary"
-                      disabled={locked || g.cash < dep}
-                      onClick={() => act((s) => actions.lease(s, k))}
-                    >
-                      Arrendar
-                    </Btn>
-                    <Btn
-                      small
-                      disabled={locked || g.cash < m.price}
-                      onClick={() => act((s) => actions.buy(s, k))}
-                    >
-                      Comprar
-                    </Btn>
-                  </td>
-                </tr>
-              );
-            })}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <div className="finance-bar">
+        <span>Prazo do financiamento</span>
+        <Segmented label="Prazo do financiamento" value={term} options={TERM_OPTIONS} onChange={setTerm} />
+        <small>
+          Entrada de 20%, juros de ~11,6% ao ano. Disponível para financiar:{' '}
+          <b className="num">{fmtMoney(Math.max(0, finLeft))}</b>
+        </small>
+      </div>
+      <div className="table-wrap">
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th>Modelo</th>
+              <th className="c">Assentos</th>
+              <th>Alcance</th>
+              <th className="r">Leasing</th>
+              <th className="r">Compra</th>
+              <th className="r">Financiamento</th>
+              <th className="r">
+                <span className="sr-only">Ações</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...MODEL_KEYS]
+              .sort(
+                (a, b) =>
+                  MODELS[a].tier - MODELS[b].tier || MODELS[a].y + MODELS[a].j - (MODELS[b].y + MODELS[b].j),
+              )
+              .map((k, i) => {
+                const m = MODELS[k];
+                const outOfModel = !modelAllowed(g, k);
+                const locked = outOfModel || m.tier > g.license;
+                const dep = leaseDeposit(k);
+                const q = financeQuote(k, term);
+                const canFinance = !locked && g.cash >= q.down && q.principal <= finLeft;
+                return (
+                  <tr key={k} className={`row ${locked ? 'locked' : 's-good'}${i % 2 ? ' zebra' : ''}`}>
+                    <td>
+                      <b>{m.name}</b>
+                      <small>
+                        {m.kind}
+                        {outOfModel
+                          ? g.businessModel === 'pequeno' && !hasRegionalCert(g)
+                            ? ' · requer certificação regional'
+                            : ` · fora do modelo ${BUSINESS_MODELS[g.businessModel].name}`
+                          : m.tier > g.license
+                            ? ` · requer licença ${LICENSES[m.tier].name}`
+                            : ''}
+                        {CABINS[k] ? ' · cabine configurável' : ''}
+                      </small>
+                    </td>
+                    <td className="c num">{m.j ? `${m.j}J + ${m.y}Y` : m.y}</td>
+                    <td>
+                      <CellBar
+                        v={(m.range / MAX_RANGE) * 100}
+                        tone="blue"
+                        label="Alcance"
+                        text={`${fmtInt(m.range)} km`}
+                      />
+                    </td>
+                    <td className="r">
+                      <b className="num">{fmtMoney(m.lease)}/dia</b>
+                      <small>depósito {fmtMoney(dep)}</small>
+                    </td>
+                    <td className="r num">{fmtMoney(m.price)}</td>
+                    <td className="r">
+                      <b className="num">{fmtMoney(q.payment)}/dia</b>
+                      <small>entrada {fmtMoney(q.down)}</small>
+                    </td>
+                    <td className="r actions">
+                      <Btn
+                        small
+                        kind="primary"
+                        disabled={locked || g.cash < dep}
+                        onClick={() => act((s) => actions.lease(s, k))}
+                      >
+                        Arrendar
+                      </Btn>
+                      <Btn
+                        small
+                        disabled={locked || g.cash < m.price}
+                        onClick={() => act((s) => actions.buy(s, k))}
+                      >
+                        Comprar
+                      </Btn>
+                      <Btn
+                        small
+                        disabled={!canFinance}
+                        title={
+                          !locked && q.principal > finLeft ? 'Acima do limite de financiamento' : undefined
+                        }
+                        onClick={() =>
+                          ask({
+                            text: `Financiar o ${m.name}? Entrada de ${fmtMoney(q.down)} e ${fmtMoney(q.payment)}/dia por ${Math.round(term / 365)} anos (total de ${fmtMoney(q.down + q.total)}). O avião já é seu, mas só entra no limite de crédito o que estiver pago.`,
+                            okLabel: 'Financiar',
+                            onOk: () => act((s) => actions.finance(s, k, term)),
+                          })
+                        }
+                      >
+                        Financiar
+                      </Btn>
+                    </td>
+                  </tr>
+                );
+              })}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 
