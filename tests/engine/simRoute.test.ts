@@ -107,6 +107,7 @@ describe('simRoute', () => {
             { type: 'fuel', value: 0.9, until: 100 },
           ];
           const p = addTestPlane(s, key, { condition: 45 });
+          s.hubs = [a]; // rota saindo do hub: sem pernoite, sem outras rotas para conexão
           const r = addTestRoute(s, a, b, p.id, { freq: 1, price: fairPrice(0) + 333, service: 2, ai: 1.4 });
           const mine = simRoute(s, r);
           const theirs = proto.simRoute(JSON.parse(JSON.stringify(s)), toProtoRoute(r));

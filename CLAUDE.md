@@ -447,3 +447,4 @@ Decisões de 2026-09-24 (segunda rodada):
 - **Financiamento de aeronaves:** comprar com entrada e parcelas com juros.
 - **Idade e mercado de usados:** depois da Fase 3.
 - **Rebalanceamento:** uma vez, no fim da Fase 3.
+- **Cargas:** incluir o **Caravan Cargo** (Cessna 208B cargueiro) junto com ATR 72-600F, 737-800BCF e 767-300F (pedido do usuário).

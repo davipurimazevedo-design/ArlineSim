@@ -777,3 +777,19 @@
 .hub-info b {
   color: var(--text);
 }
+
+/* hubs */
+.hub-rules {
+  margin: 0 0 14px;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+  max-width: 760px;
+}
+.hub-open-title {
+  margin: 20px 0 10px;
+}
+.editor .hub-note {
+  margin: 0;
+}

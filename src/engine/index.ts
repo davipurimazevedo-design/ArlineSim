@@ -20,6 +20,7 @@ export * from './offline';
 export * from './newGame';
 export * from './rules';
 export * from './routePlanner';
+export * from './hubs';
 export {
   BUSINESS_MODELS,
   BUSINESS_MODEL_IDS,

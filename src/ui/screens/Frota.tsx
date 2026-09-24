@@ -3,8 +3,8 @@ import {
   buyoutCost,
   routeOfPlane,
   fmtMoney,
-  maintCost,
-  maintDays,
+  maintCostFor,
+  maintDaysFor,
   MODELS,
   planeValue,
   seatsOf,
@@ -118,9 +118,9 @@ export function Frota() {
                       kind={p.condition < 40 ? 'warn' : ''}
                       disabled={p.maint > 0 || p.condition > 97}
                       onClick={() => act((s) => actions.maintain(s, p.id))}
-                      title={`${maintDays(p)} dias fora de operação`}
+                      title={`${maintDaysFor(g, p)} dias fora de operação`}
                     >
-                      Manutenção {fmtMoney(maintCost(p))}
+                      Manutenção {fmtMoney(maintCostFor(g, p))}
                     </Btn>
                     {!p.owned && (
                       <Btn

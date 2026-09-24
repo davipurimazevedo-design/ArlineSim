@@ -11,6 +11,8 @@ import {
   routeFreq,
   routePlanes,
   routeProfit,
+  routeTouchesHub,
+  connectionFactor,
   overlapsOf,
   rivalShares,
   seatsOf,
@@ -148,6 +150,13 @@ export function RouteEditor({ r }: { r: Route }) {
           />
         </label>
       )}
+      <p className="note full hub-note">
+        {routeTouchesHub(g, r)
+          ? `Rota de hub: conexões +${Math.round((connectionFactor(g, r) - 1) * 100)}% de demanda e manutenção na base.`
+          : g.businessModel === 'lowcost'
+            ? 'Rota ponto a ponto, sem pernoite (Low-cost).'
+            : 'Rota ponto a ponto: sem conexões e com pernoite (tripulação +20%). Abra um hub numa das pontas para evitar.'}
+      </p>
       {prev?.flying && prev.overlap < 0.995 && (
         <p className="warn-line full" role="note">
           Divide passageiros com {overlapNames(overlapsOf(g, r))}: demanda −

@@ -1,15 +1,8 @@
 import { MODELS } from './data/aircraft';
 import { EVENT_GAP_MIN, EVENT_GAP_SPREAD, pickEvent } from './events';
 import { checkGoals } from './goals';
-import {
-  BANKRUPTCY_CASH,
-  clamp,
-  dailyInterest,
-  baseCompetition,
-  maintCost,
-  maintDays,
-  modVal,
-} from './formulas';
+import { extraHubsDailyCost, maintCostFor, maintDaysFor } from './hubs';
+import { BANKRUPTCY_CASH, clamp, dailyInterest, baseCompetition, modVal } from './formulas';
 import { addLog, changeRep, routeOfPlane } from './helpers';
 import { chance, randInt, randRange } from './rng';
 import { driftRivals } from './rivals';
@@ -99,8 +92,8 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
       p.hours += h;
     }
     if (p.condition < 25 && chance(s, 0.06)) {
-      const cost = Math.round(maintCost(p) * 1.5);
-      p.maint = maintDays(p) + 2;
+      const cost = Math.round(maintCostFor(s, p) * 1.5);
+      p.maint = maintDaysFor(s, p) + 2;
       p.restore = true;
       day.maint += cost;
       changeRep(s, -3);
@@ -110,7 +103,7 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
 
   // 7. custos fixos
   day.slots = s.slots.reduce((a, c) => a + slotFeeFor(s, c), 0);
-  day.overhead = (8000 + 2500 * s.fleet.length) * rules(s).overheadFactor;
+  day.overhead = (8000 + 2500 * s.fleet.length) * rules(s).overheadFactor + extraHubsDailyCost(s);
   day.interest = dailyInterest(s.debt);
 
   // 8. relatório do dia

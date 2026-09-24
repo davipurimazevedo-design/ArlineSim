@@ -42,6 +42,8 @@ const MIGRATIONS: Record<number, (g: Raw) => Raw> = {
     businessModel: typeof g.businessModel === 'string' ? g.businessModel : 'tradicional',
     divisions: Array.isArray(g.divisions) ? g.divisions : [],
   }),
+  // v6 → v7: lista de hubs (começa só com o da fundação)
+  6: (g) => ({ ...g, hubs: Array.isArray(g.hubs) ? g.hubs : [g.hub] }),
 };
 
 /** Valida e migra um save cru. Devolve null se não for aproveitável. */

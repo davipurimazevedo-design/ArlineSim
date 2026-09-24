@@ -4,7 +4,7 @@ import {
   routeOfPlane,
   fmtInt,
   fmtMoney,
-  maintCost,
+  maintCostFor,
   MODELS,
   type ModType,
   type Tone,
@@ -76,7 +76,7 @@ export function Painel() {
         sub: 'risco de pane',
         btn: (
           <Btn small kind="warn" onClick={() => act((s) => actions.maintain(s, p.id))}>
-            Manutenção {fmtMoney(maintCost(p))}
+            Manutenção {fmtMoney(maintCostFor(g, p))}
           </Btn>
         ),
       });

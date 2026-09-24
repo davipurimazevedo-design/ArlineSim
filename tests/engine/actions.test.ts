@@ -68,8 +68,9 @@ describe('frota', () => {
   it('manutenção cobra e tira de operação', () => {
     const s = makeGame();
     const p = addTestPlane(s, 'AT7', { condition: 50 });
-    const cost = maintCost(p);
-    const days = maintDays(p);
+    // parado, o avião fica na base do hub: manutenção 20% mais barata e 1 dia mais rápida
+    const cost = Math.round((maintCost(p) * 0.8) / 1000) * 1000;
+    const days = maintDays(p) - 1;
     expect(actions.maintain(s, p.id)).toBeNull();
     expect(s.cash).toBe(12e6 - cost);
     expect(p.maint).toBe(days);

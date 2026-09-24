@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import {
   actions,
+  CONN_MAX,
+  CONN_PER_ROUTE,
+  hubDailyCost,
+  hubSetupCost,
+  routesAt,
   searchKey,
   CABINS,
   AIRPORT_CODES,
@@ -25,13 +30,15 @@ import {
 import { useGame, useGameState } from '../../store/gameStore';
 import { Bar, CellBar } from '../components/Bar';
 import { Btn } from '../components/Btn';
+import { Empty } from '../components/Empty';
 import { Pill } from '../components/Pill';
 import { Segmented } from '../components/Segmented';
 
-type Sub = 'avioes' | 'slots' | 'licencas';
+type Sub = 'avioes' | 'slots' | 'hubs' | 'licencas';
 const SUBS = [
   ['avioes', 'Aeronaves'],
   ['slots', 'Slots'],
+  ['hubs', 'Hubs'],
   ['licencas', 'Licenças'],
 ] as const;
 
@@ -43,7 +50,15 @@ export function Mercado() {
         <h1>Mercado</h1>
         <Segmented label="Categoria" value={sub} options={SUBS} onChange={setSub} />
       </div>
-      {sub === 'avioes' ? <Aeronaves /> : sub === 'slots' ? <Slots /> : <Licencas />}
+      {sub === 'avioes' ? (
+        <Aeronaves />
+      ) : sub === 'slots' ? (
+        <Slots />
+      ) : sub === 'hubs' ? (
+        <Hubs />
+      ) : (
+        <Licencas />
+      )}
     </section>
   );
 }
@@ -196,7 +211,7 @@ function Slots() {
                   <td className="r num">{fmtMoney(slotFeeFor(g, c))}</td>
                   <td className="r">
                     {mine ? (
-                      <Pill tone="ok">Seu</Pill>
+                      <Pill tone="ok">{g.hubs.includes(c) ? 'Hub' : 'Seu'}</Pill>
                     ) : (
                       <Btn
                         small
@@ -215,6 +230,118 @@ function Slots() {
         </table>
       </div>
     </>
+  );
+}
+
+function Hubs() {
+  const g = useGameState();
+  const act = useGame((s) => s.act);
+  const ask = useGame((s) => s.ask);
+  const candidates = g.slots.filter((c) => !AIRPORTS[c].intl && !g.hubs.includes(c));
+  const bonus = (c: AirportCode) => Math.min(CONN_MAX, CONN_PER_ROUTE * Math.max(0, routesAt(g, c) - 1));
+  return (
+    <div className="hubs-tab">
+      <ul className="hub-rules">
+        <li>
+          <b>Conexões:</b> rotas que saem de um hub ganham +{Math.round(CONN_PER_ROUTE * 100)}% de demanda por
+          outra rota sua no mesmo hub, até +{Math.round(CONN_MAX * 100)}%.
+        </li>
+        <li>
+          <b>Base:</b> aviões que voam a partir de um hub fazem manutenção 20% mais barata e 1 dia mais
+          rápida.
+        </li>
+        <li>
+          <b>Pernoite:</b> rotas que não tocam nenhum hub pagam 20% a mais de tripulação
+          {g.businessModel === 'lowcost' ? ' (a Low-cost é isenta)' : ''}.
+        </li>
+      </ul>
+      <div className="table-wrap">
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th>Seus hubs</th>
+              <th className="c">Rotas</th>
+              <th>Conexões</th>
+              <th className="r">Estrutura/dia</th>
+            </tr>
+          </thead>
+          <tbody>
+            {g.hubs.map((c, i) => (
+              <tr key={c} className={`row s-good${i % 2 ? ' zebra' : ''}`}>
+                <td>
+                  <b>{c}</b>
+                  <small>
+                    {AIRPORTS[c].city} · {c === g.hub ? 'hub da fundação' : 'hub adicional'}
+                  </small>
+                </td>
+                <td className="c num">{routesAt(g, c)}</td>
+                <td>
+                  <CellBar
+                    v={(bonus(c) / CONN_MAX) * 100}
+                    tone="teal"
+                    label={`Conexões em ${c}`}
+                    text={`+${Math.round(bonus(c) * 100)}%`}
+                  />
+                </td>
+                <td className="r num">{c === g.hub ? 'incluída' : fmtMoney(hubDailyCost(g, c))}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <h2 className="hub-open-title">Abrir hub</h2>
+      {candidates.length === 0 ? (
+        <Empty>Abra rotas ou compre slots numa cidade do Brasil para poder transformá-la em hub.</Empty>
+      ) : (
+        <div className="table-wrap">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Cidade</th>
+                <th className="c">Rotas</th>
+                <th className="r">Estrutura/dia</th>
+                <th className="r">
+                  <span className="sr-only">Ações</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {candidates.map((c, i) => {
+                const cost = hubSetupCost(c);
+                return (
+                  <tr key={c} className={`row${i % 2 ? ' zebra' : ''}`}>
+                    <td>
+                      <b>{c}</b>
+                      <small>
+                        {AIRPORTS[c].city} · porte {AIRPORTS[c].size}
+                      </small>
+                    </td>
+                    <td className="c num">{routesAt(g, c)}</td>
+                    <td className="r num">{fmtMoney(hubDailyCost(g, c))}</td>
+                    <td className="r">
+                      <Btn
+                        small
+                        kind="primary"
+                        disabled={g.cash < cost}
+                        onClick={() =>
+                          ask({
+                            text: `Abrir hub em ${AIRPORTS[c].city}? Implantação de ${fmtMoney(cost)} e estrutura de ${fmtMoney(hubDailyCost(g, c))} por dia.`,
+                            okLabel: 'Abrir hub',
+                            onOk: () => act((s) => actions.openHub(s, c)),
+                          })
+                        }
+                      >
+                        Abrir · {fmtMoney(cost)}
+                      </Btn>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
 

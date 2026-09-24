@@ -13,14 +13,13 @@ import {
   routeFair,
   routeFairJ,
   LEASE_DEPOSIT_DAYS,
-  maintCost,
-  maintDays,
   planeValue,
   runwayIssue,
 } from './formulas';
 import { addLog, changeRep, findPlane, setFlag, unassignPlane } from './helpers';
 import { rivalsFor } from './rivals';
 import { hasRegionalCert, maxFreqFor, modelAllowed, rules, slotCostFor } from './rules';
+import { hubSetupCost, maintCostFor, maintDaysFor } from './hubs';
 import { randInt, uid } from './rng';
 import { BUSINESS_MODELS, REGIONAL_CERT_COST } from './data/businessModels';
 import type {
@@ -122,10 +121,10 @@ export function release(s: GameState, id: string): ActionResult {
 export function maintain(s: GameState, id: string): ActionResult {
   const p = findPlane(s, id);
   if (!p || p.maint > 0) return 'Inválido.';
-  const c = maintCost(p);
+  const c = maintCostFor(s, p);
   if (s.cash < c) return 'Caixa insuficiente.';
   s.cash -= c;
-  p.maint = maintDays(p);
+  p.maint = maintDaysFor(s, p);
   p.restore = true;
   addLog(s, `${p.reg} entrou em manutenção por ${p.maint} dias.`, 'warn');
   return null;
@@ -173,6 +172,20 @@ export function buyRegionalCert(s: GameState): ActionResult {
   s.cash -= REGIONAL_CERT_COST;
   setFlag(s, 'cert_regional');
   addLog(s, 'Certificação regional concedida pela ANAC: ATR e o caminho das licenças liberados.', 'good');
+  return null;
+}
+
+/** Abre um hub adicional numa cidade doméstica onde a companhia tem slot. */
+export function openHub(s: GameState, code: AirportCode): ActionResult {
+  const a = AIRPORTS[code];
+  if (s.hubs.includes(code)) return `${a.city} já é hub.`;
+  if (a.intl) return 'Hubs no exterior chegam com a divisão Base internacional.';
+  if (!s.slots.includes(code)) return `Compre slots em ${a.city} antes de abrir um hub.`;
+  const cost = hubSetupCost(code);
+  if (s.cash < cost) return 'Caixa insuficiente.';
+  s.cash -= cost;
+  s.hubs.push(code);
+  addLog(s, `Hub aberto em ${a.city}: base de manutenção, tripulações e conexões.`, 'good');
   return null;
 }
 

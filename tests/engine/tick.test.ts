@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { MODELS } from '../../src/engine/data/aircraft';
-import { maintCost, slotFee } from '../../src/engine/formulas';
+import { slotFee } from '../../src/engine/formulas';
 import { simRoute } from '../../src/engine/simRoute';
+import { maintCostFor } from '../../src/engine/hubs';
 import { tick } from '../../src/engine/tick';
 import { addTestPlane, addTestRoute, makeGame } from './helpers';
 
@@ -83,13 +84,13 @@ describe('tick', () => {
     const p = addTestPlane(s, 'AT7', { condition: 20 });
     let days = 0;
     while (p.maint === 0 && days < 500) {
-      const expectedCost = Math.round(maintCost(p) * 1.5);
+      const expectedCost = Math.round(maintCostFor(s, p) * 1.5);
       const rep = s.reputation;
       tick(s);
       days++;
       if (p.maint > 0) {
         expect(s.lastDay?.maint).toBe(expectedCost);
-        expect(p.maint).toBe(2 + Math.ceil(80 / 20) + 2);
+        expect(p.maint).toBe(2 + Math.ceil(80 / 20) - 1 + 2); // base do hub: 1 dia a menos
         expect(s.reputation).toBeCloseTo(rep - 3);
         expect(s.log[0]?.text).toContain('Pane no');
       }

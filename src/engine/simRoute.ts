@@ -19,6 +19,7 @@ import {
 import { AIRPORTS } from './data/airports';
 import { findPlane } from './helpers';
 import { rules } from './rules';
+import { connectionFactor, crewFactor } from './hubs';
 import { overlapFactor } from './overlap';
 import type { GameState, Plane, Route, SimResult } from './types';
 
@@ -85,6 +86,7 @@ export function simRoute(s: GameState, r: Route): SimResult {
     modVal(s, 'demand') *
     seasonality(s.day) *
     overlap *
+    connectionFactor(s, r) *
     R.demandFactor(AIRPORTS[r.from], AIRPORTS[r.to]);
   const fare = modVal(s, 'fare');
   const price = r.price * fare;
@@ -126,7 +128,7 @@ export function simRoute(s: GameState, r: Route): SimResult {
     paxJ,
     rev,
     fuel: fuel * s.fuelIdx * modVal(s, 'fuel'),
-    crew: crew * modVal(s, 'salary'),
+    crew: crew * modVal(s, 'salary') * crewFactor(s, r),
     fees: (pax + paxJ) * (intl ? FEE_INTL : FEE_DOMESTIC),
     svc: pax * svc.cost + paxJ * svc.cost * SERVICE_J_MULT,
     share,

@@ -50,6 +50,7 @@ O jogo atual, sem mudanças. Serve de referência para o balanceamento.
 - **Demanda em toneladas por dia,** por par de aeroportos. Usa o porte e um peso logístico por aeroporto: GRU e VCP são grandes centros de carga, MAO tem a Zona Franca.
 - **Receita por tonelada-km,** sem efeito de reputação nem de serviço de bordo. Pontualidade (condição da frota) e frequência pesam.
 - **Cargueiros (dados a conferir):** ATR 72-600F (~8 t), 737-800BCF (~23 t), 767-300F (~52 t); um widebody cargueiro com a licença Internacional.
+- **Caravan Cargo** (pedido do usuário em 2026-09-24): versão cargueira do Cessna 208B, para a carga de pequeno porte e o Pequeno porte com a divisão Cargas. Pesquisar dados reais antes de entrar.
 - **Contratos:** cartas especiais oferecem receita fixa por N dias, desde que a companhia mantenha capacidade numa rota (por exemplo, contrato postal ou e-commerce).
 - **Interface:** filtro Passageiros/Cargas na aba Rotas; cargueiros no Mercado; linha de cargas separada em Finanças.
 

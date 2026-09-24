@@ -5,7 +5,7 @@ import { START_CASH_BY_DIFFICULTY } from './formulas';
 import { toSeed } from './rng';
 import type { AirportCode, BusinessModelId, GameState } from './types';
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 export const FIRST_EVENT_DAY = 25;
 
 export function newGame(
@@ -19,6 +19,7 @@ export function newGame(
     v: SAVE_VERSION,
     businessModel,
     divisions: [],
+    hubs: [hub],
     seed: toSeed(seed),
     name,
     hub,

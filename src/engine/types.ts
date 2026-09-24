@@ -193,6 +193,8 @@ export interface GameState {
   businessModel: BusinessModelId;
   /** divisões compradas depois (Fase 3) */
   divisions: DivisionId[];
+  /** hubs da companhia; o primeiro é o da fundação */
+  hubs: AirportCode[];
   /** estado do RNG (uint32) */
   seed: number;
   name: string;
