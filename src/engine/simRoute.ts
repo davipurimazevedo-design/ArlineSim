@@ -2,6 +2,9 @@ import { MODELS } from './data/aircraft';
 import { SERVICE, SERVICE_J_MULT } from './data/service';
 import {
   baseDemand,
+  FEE_DOMESTIC,
+  FEE_INTL,
+  J_DEMAND_SHARE,
   blockHours,
   fairPrice,
   fairPriceJ,
@@ -75,7 +78,9 @@ export function simRoute(s: GameState, r: Route): SimResult {
 
   const overlap = overlapFactor(s, r);
   const demand = baseDemand(r.from, r.to) * modVal(s, 'demand') * seasonality(s.day) * overlap;
-  const priceF = Math.pow(fp / r.price, 2.2);
+  const fare = modVal(s, 'fare');
+  const price = r.price * fare;
+  const priceF = Math.pow(fp / price, 2.2);
   // com um avião só, equivale ao protótipo: −0,1 se a condição estiver abaixo de 50
   const q = 0.75 + 0.5 * (s.reputation / 100) + svc.q - 0.1 * (worn / (capY + capJ));
   const freqF = freqFactor(freq);
@@ -87,12 +92,12 @@ export function simRoute(s: GameState, r: Route): SimResult {
   let rev = 0;
   if (capJ > 0 && s.license >= 2) {
     const fpJ = fairPriceJ(d);
-    const pj = r.priceJ || fpJ;
+    const pj = (r.priceJ || fpJ) * fare;
     const AJ = Math.pow(fpJ / pj, 1.8) * q * freqF;
-    paxJ = Math.round(Math.min(capJ, (demand * 0.12 * AJ) / (AJ + r.ai)));
+    paxJ = Math.round(Math.min(capJ, (demand * J_DEMAND_SHARE * AJ) / (AJ + r.ai)));
     rev += paxJ * pj;
   }
-  rev += pax * r.price;
+  rev += pax * price;
 
   let hours = 0;
   let fuel = 0;
@@ -114,7 +119,7 @@ export function simRoute(s: GameState, r: Route): SimResult {
     rev,
     fuel: fuel * s.fuelIdx * modVal(s, 'fuel'),
     crew: crew * modVal(s, 'salary'),
-    fees: (pax + paxJ) * (intl ? 80 : 25),
+    fees: (pax + paxJ) * (intl ? FEE_INTL : FEE_DOMESTIC),
     svc: pax * svc.cost + paxJ * svc.cost * SERVICE_J_MULT,
     share,
     lf: (pax + paxJ) / (capY + capJ),

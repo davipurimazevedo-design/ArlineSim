@@ -364,6 +364,8 @@ Pontos a decidir no plano da Fase 3:
 
 ## 14. Problemas conhecidos no protótipo
 
+> Situação em 2026-09-24: todos os itens abaixo foram tratados nas Fases 1 e 2 (ver seções 16 e 17).
+
 - O evento "Guerra tarifária" reduz todas as tarifas permanentemente em 15%; o jogador precisa reajustar à mão. Avaliar se deve ser temporário.
 - Cada rota aceita um único avião.
 - Rotas muito curtas (menos de 300 km) com frequência alta dão prejuízo. Isso é intencional, mas a interface poderia sinalizar melhor.
@@ -414,3 +416,12 @@ Plano aprovado em 2026-09-23. Ordem: (1) várias aeronaves por rota, (2) configu
   - cadeias via `GameState.flags` (save v4); o acordo do sindicato bloqueia a greve de pilotos por 365 dias.
 - **Objetivos (etapa 6):** 18 objetivos em ordem de progressão (`src/engine/data/goals.ts`), conferidos no fim de cada dia (inclusive offline). Cumprido, vira conquista (`GameState.achievements`, save v5), dá de 1 a 4 de reputação — nunca dinheiro — e aparece em toast e no diário. O Painel mostra os 3 próximos com progresso e a lista de conquistas.
 - **Roadmap (2026-09-24):** entrou a Fase 3 — Modelos de negócio (branches: low-cost, regional, pequeno porte, cargas, multinacional). O Polimento virou Fase 4. Por isso, na etapa 7 a simulação deve aceitar mais de uma estratégia automática, para depois ganhar uma por caminho.
+- **Balanceamento (etapa 7).** Mudanças em relação às seções 5 a 7 (as tabelas de lá continuam descrevendo o protótipo):
+  - Correções: modificador de N dias vale N dias (ativo enquanto `until >= dia`); licença regional vale também para rota aberta sem aeronave e ao escalar; IA reage a cada 30 dias de vida de cada rota; guerra tarifária virou o modificador `fare` (−15% na tarifa cobrada por 30 dias, sem mexer na tarifa definida pelo jogador).
+  - Capital inicial por dificuldade do hub: Fácil R$ 12 mi, Médio R$ 14 mi, Difícil R$ 18 mi.
+  - Concorrência base por par: `clamp(0,7 + 0,0625 × menor porte, 0,85, 1,2)`; 1,2 entre aeroportos de porte ≥ 8 (como antes), menor em mercados pequenos. A IA volta para esse valor.
+  - Tarifa de referência: igual até 1.500 km; depois +0,30/km até 3.500 km e +0,20/km acima (era 0,45 e 0,25).
+  - Executiva: 8% da demanda do par (era 12%). Taxa aeroportuária internacional: R$ 150 por passageiro (era 80).
+  - Licenças: Nacional R$ 40 mi (era 25), Internacional R$ 250 mi (era 120).
+  - Leasing dos jatos +30%: E195-E2 R$ 68 mil, A320neo R$ 88 mil, 737 MAX 8 R$ 94 mil, A330-900 R$ 230 mil por dia (preços de compra iguais). O ATR não mudou.
+  - `npm run sim` ganhou três estratégias (básica = referência da seção 11; esperta; expansão com licenças, jatos e exterior).

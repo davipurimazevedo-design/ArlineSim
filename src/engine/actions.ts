@@ -8,7 +8,7 @@ import {
   BUYOUT_FACTOR,
   clamp,
   creditLimit,
-  DEFAULT_AI,
+  baseCompetition,
   defaultPriceJ,
   dist,
   fairPrice,
@@ -183,12 +183,12 @@ export function openRoute(s: GameState, { from, to, planeId }: OpenRouteArgs): A
   if (!s.slots.includes(from) || !s.slots.includes(to)) return 'Você precisa de slots nos dois aeroportos.';
   if (routeExists(s, from, to)) return 'Rota já existe.';
   const d = dist(from, to);
+  // vale com ou sem aeronave (o protótipo só checava com aeronave)
+  if (s.license === 0 && d > REGIONAL_MAX_KM) return 'Licença regional limita rotas a 1.500 km.';
   const p = findPlane(s, planeId);
-  // Como no protótipo: sem aeronave, alcance e limite regional não são checados.
   if (p) {
     const m = MODELS[p.model];
     if (d > m.range) return `Fora do alcance do ${m.name}.`;
-    if (s.license === 0 && d > REGIONAL_MAX_KM) return 'Licença regional limita rotas a 1.500 km.';
     if (maxFreq(m, d) < 1) return 'Rota longa demais para a utilização diária da aeronave.';
     unassignPlane(s, p.id);
   }
@@ -201,7 +201,7 @@ export function openRoute(s: GameState, { from, to, planeId }: OpenRouteArgs): A
     price: fairPrice(d),
     priceJ: defaultPriceJ(d),
     service: 1,
-    ai: DEFAULT_AI,
+    ai: baseCompetition(from, to),
     rivals: rivalsFor(from, to),
     opened: s.day,
     last: null,
@@ -239,6 +239,7 @@ export function assignPlane(s: GameState, routeId: string, planeId: string): Act
   if (!r || !p) return 'Inválido.';
   if (r.planes.some((x) => x.id === planeId)) return 'Aeronave já escalada nesta rota.';
   const m = MODELS[p.model];
+  if (s.license === 0 && r.dist > REGIONAL_MAX_KM) return 'Licença regional limita rotas a 1.500 km.';
   if (r.dist > m.range) return `Fora do alcance do ${m.name}.`;
   if (maxFreq(m, r.dist) < 1) return 'Rota longa demais para essa aeronave.';
   unassignPlane(s, planeId);

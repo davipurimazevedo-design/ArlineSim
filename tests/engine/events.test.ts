@@ -173,7 +173,9 @@ describe('resolveEvent', () => {
 
   it('guerra', () => {
     let { s, before } = run('guerra', 'L');
-    expect(s.routes[0]!.price).toBe(Math.round(before.routes[0]!.price * 0.85));
+    // temporária: a tarifa definida pelo jogador não muda; um modificador baixa a cobrada por 30 dias
+    expect(s.routes[0]!.price).toBe(before.routes[0]!.price);
+    expect(mod(s, 'fare')).toMatchObject({ value: 0.85, until: 80 });
     ({ s } = run('guerra', 'R'));
     expect(mod(s, 'share')).toMatchObject({ value: 0.8, until: 80 });
     expect(s.reputation).toBe(52);

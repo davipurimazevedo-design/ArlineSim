@@ -5,7 +5,7 @@ import {
   BANKRUPTCY_CASH,
   clamp,
   dailyInterest,
-  DEFAULT_AI,
+  baseCompetition,
   maintCost,
   maintDays,
   modVal,
@@ -18,6 +18,7 @@ import { routeProfit, simRoute } from './simRoute';
 import type { DayReport, GameState, SimResult } from './types';
 
 export const HISTORY_MAX = 120;
+export const AI_REACTION_DAYS = 30;
 export const LOG_MAX = 60;
 
 export interface TickOptions {
@@ -70,9 +71,11 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
       reason: x.reason,
       flying: x.flying,
     };
-    if (s.day % 30 === 0) {
+    // a cada 30 dias de vida da rota (o protótipo usava o calendário global)
+    const age = s.day - r.opened;
+    if (age > 0 && age % AI_REACTION_DAYS === 0) {
       if (x.share > 0.55) r.ai = clamp(r.ai + 0.06, 0.8, 2.2);
-      else r.ai += (DEFAULT_AI - r.ai) * 0.2;
+      else r.ai += (baseCompetition(r.from, r.to) - r.ai) * 0.2;
       driftRivals(r);
     }
   }

@@ -53,7 +53,7 @@ describe('concorrentes com nome', () => {
     const s = makeGame();
     const p = addTestPlane(s, 'AT7');
     const r = addTestRoute(s, 'BSB', 'CNF', p.id, { price: 200 });
-    s.day = 29;
+    s.day = 30; // rota aberta no dia 1: reage no dia 31 (30 dias de vida)
     s.nextEvent = 9999;
     tick(s);
     expect(r.ai).toBeCloseTo(1.26);

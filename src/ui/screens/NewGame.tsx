@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { AIRPORTS, HUBS, hubDifficulty, type AirportCode, type Difficulty } from '../../engine';
+import {
+  AIRPORTS,
+  fmtMoney,
+  HUBS,
+  hubDifficulty,
+  START_CASH_BY_DIFFICULTY,
+  type AirportCode,
+  type Difficulty,
+} from '../../engine';
 import { useGame } from '../../store/gameStore';
 import { Btn } from '../components/Btn';
 import { Icon } from '../components/Icon';
@@ -26,8 +34,8 @@ export function NewGame() {
         </span>
         <h1>Fundar companhia aérea</h1>
         <p>
-          Você começa com R$ 12 milhões, uma licença regional e slots no hub. Um dia de operação passa a cada
-          segundo.
+          Você começa com {fmtMoney(START_CASH_BY_DIFFICULTY[hubDifficulty(hub)])}, uma licença regional e
+          slots no hub. Hubs menores dão mais capital inicial. Um dia de operação passa a cada segundo.
         </p>
         <label>
           <span>Nome</span>
@@ -43,7 +51,9 @@ export function NewGame() {
               <button key={c} type="button" role="radio" aria-checked={hub === c} onClick={() => setHub(c)}>
                 <b>{c}</b>
                 <small>{AIRPORTS[c].city}</small>
-                <em className={DIFF_CLASS[diff]}>{diff}</em>
+                <em className={DIFF_CLASS[diff]}>
+                  {diff} · {fmtMoney(START_CASH_BY_DIFFICULTY[diff])}
+                </em>
               </button>
             );
           })}

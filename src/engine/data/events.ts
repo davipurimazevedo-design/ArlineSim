@@ -184,8 +184,9 @@ const BASE_EVENTS: GameEvent[] = [
       label: 'Acompanhar os preços',
       fx: { cash: -1 },
       apply: (s) => {
-        for (const r of s.routes) r.price = Math.round(r.price * 0.85);
-        return 'Todas as tarifas reduzidas em 15%. Revise-as em Rotas quando a poeira baixar.';
+        // temporário (no protótipo o corte era permanente e o jogador tinha de reajustar à mão)
+        addMod(s, 'fare', 0.85, 30);
+        return 'Tarifas 15% menores por 30 dias. Depois voltam ao que você definiu.';
       },
     },
     R: {

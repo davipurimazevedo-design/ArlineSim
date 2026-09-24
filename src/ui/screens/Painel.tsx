@@ -23,6 +23,7 @@ const MOD_LABEL: Record<ModType, string> = {
   share: 'Atratividade',
   halt: 'Operações suspensas',
   wear: 'Desgaste',
+  fare: 'Tarifas',
 };
 
 const TONE_DOT: Record<Tone, string> = {

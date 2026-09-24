@@ -4,6 +4,8 @@ import { CABINS } from './data/cabins';
 import type { AircraftModel, AirportCode, GameState, ModType, Plane } from './types';
 
 export const START_CASH = 12e6;
+/** Capital inicial por dificuldade do hub: hubs pequenos começam com mais caixa. */
+export const START_CASH_BY_DIFFICULTY = { Fácil: 12e6, Médio: 14e6, Difícil: 18e6 } as const;
 export const BANKRUPTCY_CASH = -15e6;
 export const INTEREST_RATE = 0.0006;
 export const LOAN_STEP = 5e6;
@@ -11,6 +13,11 @@ export const LEASE_DEPOSIT_DAYS = 10;
 export const BUYOUT_FACTOR = 0.9;
 export const J_PRICE_FACTOR = 3.5;
 export const DEFAULT_AI = 1.2;
+/** fatia da demanda do par que procura executiva (protótipo: 0,12) */
+export const J_DEMAND_SHARE = 0.08;
+/** taxa aeroportuária por passageiro (protótipo: 25 doméstico, 80 internacional) */
+export const FEE_DOMESTIC = 25;
+export const FEE_INTL = 150;
 
 export const clamp = (v: number, a: number, b: number): number => Math.max(a, Math.min(b, v));
 
@@ -32,8 +39,12 @@ export function isIntlPair(a: AirportCode, b: AirportCode): boolean {
 
 /** Tarifa de referência da econômica, múltiplo de R$ 5. */
 export function fairPrice(d: number): number {
-  const base = d <= 3500 ? 150 + 0.45 * d : 150 + 0.45 * 3500 + 0.25 * (d - 3500);
-  return Math.round(base / 5) * 5;
+  // Até 1.500 km, igual ao protótipo. Acima, cresce mais devagar (protótipo: 0,45/km até 3.500 e 0,25 depois),
+  // para jatos em rotas longas e voos internacionais não dispararem o fim de jogo.
+  const a = Math.min(d, 1500);
+  const b = clamp(d - 1500, 0, 2000);
+  const c = Math.max(0, d - 3500);
+  return Math.round((150 + 0.45 * a + 0.3 * b + 0.2 * c) / 5) * 5;
 }
 
 /** Tarifa de referência da executiva (sem arredondamento, como no simulador). */
@@ -121,13 +132,30 @@ export function dailyInterest(debt: number): number {
   return debt * INTEREST_RATE;
 }
 
+/**
+ * Modificador criado no dia D com N dias vale nos dias D+1 a D+N (N dias de efeito).
+ * O protótipo usava `until > dia`, o que dava só N−1 dias.
+ */
+export function modActive(m: { until: number }, day: number): boolean {
+  return m.until >= day;
+}
+
 /** Produto de todos os modificadores ativos do tipo. */
 export function modVal(s: GameState, type: ModType): number {
-  return s.mods.filter((m) => m.type === type && m.until > s.day).reduce((a, m) => a * m.value, 1);
+  return s.mods.filter((m) => m.type === type && modActive(m, s.day)).reduce((a, m) => a * m.value, 1);
 }
 
 export function opsHalted(s: GameState): boolean {
-  return s.mods.some((m) => m.type === 'halt' && m.until > s.day);
+  return s.mods.some((m) => m.type === 'halt' && modActive(m, s.day));
+}
+
+/**
+ * Força base da concorrência num par: 1,2 entre aeroportos grandes (porte ≥ 8, como no protótipo)
+ * e menor em mercados pequenos, onde há menos concorrentes. A IA sempre volta para esse valor.
+ */
+export function baseCompetition(a: AirportCode, b: AirportCode): number {
+  const small = Math.min(AIRPORTS[a].size, AIRPORTS[b].size);
+  return clamp(0.7 + 0.0625 * small, 0.85, DEFAULT_AI);
 }
 
 /** Aeroporto ao qual a companhia pode comprar slot (licença permitindo). */

@@ -5,8 +5,11 @@ import { rivalsFor } from '../../src/engine/rivals';
 import type { AirportCode, GameState, ModelKey, Plane, Route } from '../../src/engine/types';
 import { dist, fairPrice, defaultPriceJ } from '../../src/engine/formulas';
 
+/** Jogo de teste com caixa fixo de R$ 12 mi (o capital real depende da dificuldade do hub). */
 export function makeGame(hub: AirportCode = 'BSB', seed = 1): GameState {
-  return newGame('Teste', hub, seed, 0);
+  const s = newGame('Teste', hub, seed, 0);
+  s.cash = 12e6;
+  return s;
 }
 
 let n = 0;

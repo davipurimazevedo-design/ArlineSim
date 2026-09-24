@@ -57,7 +57,8 @@ export interface Service {
   q: number;
 }
 
-export type ModType = 'fuel' | 'demand' | 'salary' | 'share' | 'halt' | 'wear';
+/** fare: multiplica as tarifas cobradas (as definidas pelo jogador não mudam) */
+export type ModType = 'fuel' | 'demand' | 'salary' | 'share' | 'halt' | 'wear' | 'fare';
 
 export interface Modifier {
   type: ModType;

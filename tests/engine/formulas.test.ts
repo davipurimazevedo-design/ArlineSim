@@ -37,15 +37,17 @@ describe('dist', () => {
 });
 
 describe('fairPrice', () => {
-  it('segue as duas faixas e arredonda para múltiplo de 5', () => {
+  it('segue as três faixas e arredonda para múltiplo de 5', () => {
     expect(fairPrice(0)).toBe(150);
     expect(fairPrice(1000)).toBe(600);
-    expect(fairPrice(3500)).toBe(1725);
-    expect(fairPrice(5500)).toBe(2225);
+    expect(fairPrice(1500)).toBe(825);
+    expect(fairPrice(3500)).toBe(1425); // 825 + 0,30 × 2.000
+    expect(fairPrice(5500)).toBe(1825); // 1.425 + 0,20 × 2.000
     expect(fairPrice(333) % 5).toBe(0);
   });
-  it('é idêntica ao protótipo', () => {
-    for (let d = 0; d < 14000; d += 37) expect(fairPrice(d)).toBe(proto.fairPrice(d));
+  it('é idêntica ao protótipo até 1.500 km e menor acima (balanceamento da Fase 2)', () => {
+    for (let d = 0; d <= 1500; d += 37) expect(fairPrice(d)).toBe(proto.fairPrice(d));
+    for (let d = 1600; d < 14000; d += 137) expect(fairPrice(d)).toBeLessThan(proto.fairPrice(d));
   });
 });
 
@@ -117,13 +119,13 @@ describe('manutenção, revenda e crédito', () => {
 });
 
 describe('modificadores', () => {
-  it('multiplica os ativos do mesmo tipo e ignora vencidos', () => {
+  it('multiplica os ativos do mesmo tipo e ignora vencidos (ativo até o dia until, inclusive)', () => {
     const s = makeGame();
     s.day = 10;
     s.mods = [
       { type: 'fuel', value: 1.25, until: 20 },
       { type: 'fuel', value: 0.9, until: 11 },
-      { type: 'fuel', value: 2, until: 10 },
+      { type: 'fuel', value: 2, until: 9 },
       { type: 'demand', value: 1.5, until: 30 },
     ];
     expect(modVal(s, 'fuel')).toBeCloseTo(1.125);
@@ -148,5 +150,23 @@ describe('formatação', () => {
     expect(fmtInt(1500)).toBe('1.500');
     expect(fmtInt(1234567)).toBe('1.234.567');
     expect(fmtInt(12)).toBe('12');
+  });
+});
+
+describe('balanceamento da Fase 2', () => {
+  it('capital inicial por dificuldade do hub', async () => {
+    const { newGame } = await import('../../src/engine/newGame');
+    expect(newGame('x', 'GRU', 1).cash).toBe(12e6); // Fácil
+    expect(newGame('x', 'BSB', 1).cash).toBe(14e6); // Médio
+    expect(newGame('x', 'SLZ', 1).cash).toBe(18e6); // Difícil
+  });
+
+  it('concorrência base menor em mercados pequenos, 1,2 entre aeroportos grandes', async () => {
+    const { baseCompetition } = await import('../../src/engine/formulas');
+    expect(baseCompetition('GRU', 'GIG')).toBe(1.2);
+    expect(baseCompetition('GRU', 'BSB')).toBe(1.2);
+    expect(baseCompetition('SLZ', 'FOR')).toBeCloseTo(0.95);
+    expect(baseCompetition('SLZ', 'THE')).toBeCloseTo(0.8875);
+    expect(baseCompetition('GRU', 'CWB')).toBeLessThan(baseCompetition('GRU', 'GIG'));
   });
 });

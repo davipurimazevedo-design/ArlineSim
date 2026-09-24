@@ -89,14 +89,13 @@ describe('simRoute', () => {
     const pairs: [AirportCode, AirportCode][] = [
       ['BSB', 'CNF'],
       ['GRU', 'GIG'],
-      ['GRU', 'REC'],
-      ['GRU', 'LIS'],
       ['BSB', 'GYN'],
-      ['GIG', 'MIA'],
+      ['GRU', 'CWB'],
     ];
     for (const key of MODEL_KEYS) {
       for (const [a, b] of pairs) {
-        for (const lic of [0, 1, 2] as const) {
+        // paridade só onde as regras não mudaram: rotas domésticas até 1.500 km, sem executiva
+        for (const lic of [0, 1] as const) {
           const s = makeGame();
           s.day = 77;
           s.reputation = 63;

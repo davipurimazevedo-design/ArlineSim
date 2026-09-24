@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import * as actions from '../../src/engine/actions';
 import { MODELS } from '../../src/engine/data/aircraft';
+import { baseCompetition } from '../../src/engine/formulas';
 import { CABIN_CHANGE_COST, CABIN_CHANGE_DAYS, CABINS } from '../../src/engine/data/cabins';
 import {
   creditLimit,
@@ -90,7 +91,7 @@ describe('slots, licenças e crédito', () => {
     s.cash = 500e6;
     expect(actions.buyLicense(s, 2)).toBe('Inválido.');
     expect(actions.buyLicense(s, 1)).toBeNull();
-    expect(s.cash).toBe(475e6);
+    expect(s.cash).toBe(460e6);
     expect(actions.buyLicense(s, 2)).toBeNull();
     expect(s.license).toBe(2);
   });
@@ -133,7 +134,7 @@ describe('openRoute', () => {
       dist: d,
       planes: [{ id: atr.id, freq: Math.min(2, maxFreq(MODELS.AT7, d)) }],
       service: 1,
-      ai: 1.2,
+      ai: baseCompetition('BSB', 'CNF'),
       opened: s.day,
       price: fairPrice(d),
       priceJ: Math.round((fairPrice(d) * 3.5) / 10) * 10,
@@ -163,6 +164,7 @@ describe('openRoute', () => {
 
   it('fora do alcance', () => {
     const { s, atr } = setup();
+    s.license = 1;
     expect(actions.openRoute(s, { from: 'BSB', to: 'MAO', planeId: atr.id })).toBe(
       'Fora do alcance do ATR 72-600.',
     );
@@ -196,10 +198,22 @@ describe('openRoute', () => {
     expect(s.routes[1]!.planes.map((x) => x.id)).toEqual([atr.id]);
   });
 
-  it('sem aeronave abre vazia (sem checar alcance, como no protótipo)', () => {
+  it('sem aeronave abre vazia, mas respeita a licença regional', () => {
     const { s } = setup();
+    expect(actions.openRoute(s, { from: 'BSB', to: 'MAO', planeId: null })).toBe(
+      'Licença regional limita rotas a 1.500 km.',
+    );
+    s.license = 1;
     expect(actions.openRoute(s, { from: 'BSB', to: 'MAO', planeId: null })).toBeNull();
     expect(s.routes[0]!.planes).toEqual([]);
+  });
+
+  it('escalar numa rota longa também respeita a licença regional', () => {
+    const { s, atr } = setup();
+    s.license = 1;
+    actions.openRoute(s, { from: 'BSB', to: 'MAO', planeId: null });
+    s.license = 0;
+    expect(actions.assignPlane(s, s.routes[0]!.id, atr.id)).toBe('Licença regional limita rotas a 1.500 km.');
   });
 });
 

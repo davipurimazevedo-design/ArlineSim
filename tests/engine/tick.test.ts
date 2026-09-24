@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { MODELS } from '../../src/engine/data/aircraft';
 import { maintCost, slotFee } from '../../src/engine/formulas';
+import { simRoute } from '../../src/engine/simRoute';
 import { tick } from '../../src/engine/tick';
 import { addTestPlane, addTestRoute, makeGame } from './helpers';
 
@@ -100,7 +101,7 @@ describe('tick', () => {
     const s = makeGame();
     const p = addTestPlane(s, 'AT7');
     const r = addTestRoute(s, 'BSB', 'CNF', p.id, { price: 200, ai: 1.2 });
-    s.day = 29;
+    s.day = 30; // rota aberta no dia 1: reage no dia 31 (30 dias de vida)
     s.nextEvent = 9999;
     tick(s);
     expect(r.last!.share).toBeGreaterThan(0.55);
@@ -158,5 +159,54 @@ describe('tick', () => {
       return JSON.stringify([s.cash, s.reputation, s.fuelIdx, s.seed, s.history, s.usedEvents]);
     };
     expect(run()).toBe(run());
+  });
+});
+
+describe('correções do balanceamento', () => {
+  it('modificador de N dias vale exatamente N dias', () => {
+    const s = makeGame();
+    s.nextEvent = 1e9;
+    s.mods.push({ type: 'halt', value: 1, until: s.day + 3 });
+    const p = addTestPlane(s, 'AT7');
+    const r = addTestRoute(s, 'BSB', 'CNF', p.id);
+    const flying: boolean[] = [];
+    for (let i = 0; i < 5; i++) {
+      tick(s);
+      flying.push(r.last!.flying);
+    }
+    expect(flying).toEqual([false, false, false, true, true]);
+  });
+
+  it('IA reage pela idade de cada rota, não pelo calendário', () => {
+    const s = makeGame();
+    s.nextEvent = 1e9;
+    const a = addTestPlane(s, 'AT7');
+    const b = addTestPlane(s, 'AT7');
+    const r1 = addTestRoute(s, 'BSB', 'CNF', a.id, { price: 200 });
+    s.day = 10;
+    const r2 = addTestRoute(s, 'BSB', 'SSA', b.id, { price: 200 });
+    s.day = 30;
+    tick(s); // dia 31: r1 faz 30 dias
+    expect(r1.ai).toBeCloseTo(1.26);
+    expect(r2.ai).toBe(1.2);
+    for (let i = 0; i < 9; i++) tick(s); // dia 40: r2 faz 30 dias
+    expect(r2.ai).toBeCloseTo(1.26);
+  });
+
+  it('guerra tarifária baixa a tarifa cobrada por 30 dias e depois volta', () => {
+    const s = makeGame();
+    s.nextEvent = 1e9;
+    const p = addTestPlane(s, 'AT7');
+    const r = addTestRoute(s, 'BSB', 'CNF', p.id, { freq: 1 });
+    s.mods.push({ type: 'fare', value: 0.85, until: s.day + 30 });
+    tick(s);
+    const during = r.last!;
+    const x = simRoute(s, r);
+    expect(x.rev / Math.max(1, x.pax)).toBeCloseTo(r.price * 0.85);
+    for (let i = 0; i < 30; i++) tick(s);
+    expect(s.mods).toHaveLength(0);
+    const after = simRoute(s, r);
+    expect(after.rev / Math.max(1, after.pax)).toBeCloseTo(r.price);
+    expect(during.share).toBeGreaterThan(after.share);
   });
 });
