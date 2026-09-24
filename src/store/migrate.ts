@@ -31,6 +31,11 @@ const MIGRATIONS: Record<number, (g: Raw) => Raw> = {
   }),
   // v3 → v4: marcas para cadeias de eventos
   3: (g) => ({ ...g, flags: g.flags && typeof g.flags === 'object' ? g.flags : {} }),
+  // v4 → v5: conquistas
+  4: (g) => ({
+    ...g,
+    achievements: g.achievements && typeof g.achievements === 'object' ? g.achievements : {},
+  }),
 };
 
 /** Valida e migra um save cru. Devolve null se não for aproveitável. */

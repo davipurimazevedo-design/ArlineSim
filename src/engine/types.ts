@@ -183,6 +183,8 @@ export interface GameState {
   usedEvents: Record<string, number>;
   /** marcas de escolhas passadas (cadeias de eventos): nome → dia */
   flags: Record<string, number>;
+  /** objetivos cumpridos: id → dia */
+  achievements: Record<string, number>;
   lastDay: DayReport | null;
   speed: Speed;
   savedAt: number;

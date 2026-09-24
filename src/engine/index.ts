@@ -18,3 +18,5 @@ export { leaseDeposit, buyoutCost, routeExists, type RoutePatch } from './action
 export * from './events';
 export * from './offline';
 export * from './newGame';
+export * from './goals';
+export { GOALS, GOALS_BY_ID, type Goal, type Progress } from './data/goals';

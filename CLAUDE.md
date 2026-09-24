@@ -396,3 +396,4 @@ Plano aprovado em 2026-09-23. Ordem: (1) várias aeronaves por rota, (2) configu
   - sazonais só dentro da janela do calendário, com 60% de prioridade (não 100%);
   - alguns eventos dependem do porte da companhia (3+ aviões, 4+ aviões, 3+ rotas, ter jato), para aparecerem ao longo do jogo;
   - cadeias via `GameState.flags` (save v4); o acordo do sindicato bloqueia a greve de pilotos por 365 dias.
+- **Objetivos (etapa 6):** 18 objetivos em ordem de progressão (`src/engine/data/goals.ts`), conferidos no fim de cada dia (inclusive offline). Cumprido, vira conquista (`GameState.achievements`, save v5), dá de 1 a 4 de reputação — nunca dinheiro — e aparece em toast e no diário. O Painel mostra os 3 próximos com progresso e a lista de conquistas.

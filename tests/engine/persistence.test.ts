@@ -59,6 +59,15 @@ describe('save', () => {
   });
 });
 
+describe('migração v4 → v5', () => {
+  it('acrescenta as conquistas', () => {
+    const { achievements: _a, ...s } = makeGame();
+    const g = migrate(JSON.parse(JSON.stringify({ ...s, v: 4 })))!;
+    expect(g.v).toBe(SAVE_VERSION);
+    expect(g.achievements).toEqual({});
+  });
+});
+
 describe('migração v3 → v4', () => {
   it('acrescenta as marcas das cadeias de eventos', () => {
     const { flags: _f, ...s } = makeGame();

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import {
   catchUp,
+  GOALS,
   newGame,
   resolveEvent,
   tick,
@@ -108,6 +109,7 @@ export const useGame = create<Store>()(
 
     advance: (n) => {
       const before = get().game?.day ?? 0;
+      const had = new Set(Object.keys(get().game?.achievements ?? {}));
       set((st) => {
         const g = st.game;
         if (!g) return;
@@ -115,6 +117,9 @@ export const useGame = create<Store>()(
       });
       const g = get().game;
       if (!g) return;
+      const won = GOALS.filter((x) => g.achievements[x.id] !== undefined && !had.has(x.id));
+      const last = won[won.length - 1];
+      if (last) get().notify(`Conquista: ${last.title}. Reputação +${last.rep}.`);
       // autosave a cada 5 dias, ao surgir evento e na falência
       const crossed5 = Math.floor(g.day / 5) > Math.floor(before / 5);
       if (crossed5 || g.pendingEvent || g.gameOver) get().save();

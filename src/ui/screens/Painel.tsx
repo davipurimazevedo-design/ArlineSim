@@ -14,6 +14,7 @@ import { Btn } from '../components/Btn';
 import { CashChart } from '../components/CashChart';
 import { Empty } from '../components/Empty';
 import { Money } from '../components/Money';
+import { GoalsPanel } from './GoalsPanel';
 
 const MOD_LABEL: Record<ModType, string> = {
   fuel: 'Combustível',
@@ -177,6 +178,8 @@ export function Painel() {
           <Empty>Tudo em ordem. Nenhum avião parado, nenhuma rota no vermelho.</Empty>
         )}
       </div>
+
+      <GoalsPanel />
 
       <div className="panel span2">
         <h2>Diário de bordo</h2>

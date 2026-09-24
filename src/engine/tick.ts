@@ -1,5 +1,6 @@
 import { MODELS } from './data/aircraft';
 import { EVENT_GAP_MIN, EVENT_GAP_SPREAD, pickEvent } from './events';
+import { checkGoals } from './goals';
 import {
   BANKRUPTCY_CASH,
   clamp,
@@ -131,6 +132,9 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
     const target = clamp(38 + svc * 12 + (cond - 60) / 3, 5, 95);
     changeRep(s, (target - s.reputation) * 0.015);
   }
+
+  // 9b. objetivos cumpridos viram conquistas (prêmio em reputação)
+  checkGoals(s);
 
   // 10. limpeza e histórico
   s.mods = s.mods.filter((m) => m.until > s.day);

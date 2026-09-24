@@ -68,6 +68,48 @@
   margin-left: auto;
 }
 
+/* objetivos */
+.goals-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.goals-head h2 {
+  margin: 0;
+}
+.goals-head .link {
+  margin-left: auto;
+  font-size: 13px;
+}
+.goal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.goal-list li {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  justify-items: start;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--teal);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.goal-list.done li {
+  border-left-color: var(--muted);
+}
+.goal-bar {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+}
+
 /* alertas, diário */
 .alerts,
 .log,
@@ -523,6 +565,9 @@
   }
   .kpis b {
     font-size: 22px;
+  }
+  .goal-list {
+    grid-template-columns: 1fr;
   }
   .editor,
   .new-route {
