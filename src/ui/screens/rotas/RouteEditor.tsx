@@ -10,6 +10,7 @@ import {
   routeFreq,
   routePlanes,
   routeProfit,
+  seatsOf,
   SERVICE,
   simRoute,
   type RoutePatch,
@@ -38,7 +39,7 @@ export function RouteEditor({ r }: { r: Route }) {
   const prev = assigned.length ? simRoute(g, r) : null;
   const prevProfit = prev?.flying ? routeProfit(g, r, prev) : null;
   const upd = (patch: RoutePatch) => act((s) => actions.updateRoute(s, r.id, patch));
-  const hasJ = g.license >= 2 && assigned.some(({ p }) => MODELS[p.model].j > 0);
+  const hasJ = g.license >= 2 && assigned.some(({ p }) => seatsOf(p).j > 0);
 
   return (
     <div className="editor">

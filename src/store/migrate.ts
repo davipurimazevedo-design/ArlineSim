@@ -9,11 +9,13 @@ type Raw = Record<string, unknown>;
  * Ao mudar o GameState, suba SAVE_VERSION e acrescente a função aqui.
  */
 const MIGRATIONS: Record<number, (g: Raw) => Raw> = {
-  // v1 (Fase 1) → v2 (Fase 2): rota passa a ter uma lista de aeronaves
+  // v1 (Fase 1) → v2 (Fase 2): rota com lista de aeronaves; aeronave com layout de cabine
   1: (g) => {
     const routes = Array.isArray(g.routes) ? (g.routes as Raw[]) : [];
+    const fleet = Array.isArray(g.fleet) ? (g.fleet as Raw[]) : [];
     return {
       ...g,
+      fleet: fleet.map((p) => ({ ...p, cabin: 0 })),
       routes: routes.map(({ planeId, freq, ...r }) => ({
         ...r,
         planes:

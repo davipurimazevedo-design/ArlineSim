@@ -1,5 +1,6 @@
 // Ações do jogador: (state, ...args) => string | null. null = sucesso; string = erro para o toast.
 import { AIRPORTS } from './data/airports';
+import { CABIN_CHANGE_COST, CABIN_CHANGE_DAYS, CABINS, cabinLabel } from './data/cabins';
 import { MODELS } from './data/aircraft';
 import { LICENSES, REGIONAL_MAX_KM } from './data/licenses';
 import { fmtInt, fmtMoney } from './format';
@@ -52,6 +53,7 @@ function addPlane(s: GameState, model: ModelKey, owned: boolean): Plane {
     condition: 100,
     maint: 0,
     restore: true,
+    cabin: 0,
     hours: 0,
     since: s.day,
   };
@@ -120,6 +122,27 @@ export function maintain(s: GameState, id: string): ActionResult {
   p.maint = maintDays(p);
   p.restore = true;
   addLog(s, `${p.reg} entrou em manutenção por ${p.maint} dias.`, 'warn');
+  return null;
+}
+
+/** Reconfigura a cabine de um narrowbody. Exige licença internacional; o avião fica parado alguns dias. */
+export function setCabin(s: GameState, id: string, layout: number): ActionResult {
+  const p = findPlane(s, id);
+  const layouts = p && CABINS[p.model];
+  if (!p || !layouts || !layouts[layout]) return 'Inválido.';
+  if (s.license < 2) return 'Requer licença internacional.';
+  if (p.cabin === layout) return 'A cabine já tem esse layout.';
+  if (p.maint > 0) return 'Aeronave em manutenção.';
+  if (s.cash < CABIN_CHANGE_COST) return 'Caixa insuficiente.';
+  s.cash -= CABIN_CHANGE_COST;
+  p.cabin = layout;
+  p.maint = CABIN_CHANGE_DAYS;
+  p.restore = false;
+  addLog(
+    s,
+    `${p.reg} em reconfiguração de cabine (${cabinLabel(layouts[layout])}) por ${CABIN_CHANGE_DAYS} dias.`,
+    'warn',
+  );
   return null;
 }
 

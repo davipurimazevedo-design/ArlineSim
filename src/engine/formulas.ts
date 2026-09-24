@@ -1,5 +1,6 @@
 import { AIRPORTS } from './data/airports';
 import { MODELS } from './data/aircraft';
+import { CABINS } from './data/cabins';
 import type { AircraftModel, AirportCode, GameState, ModType, Plane } from './types';
 
 export const START_CASH = 12e6;
@@ -72,8 +73,10 @@ export function blockHours(m: AircraftModel, d: number): number {
   return d / m.speed + 0.5;
 }
 
-/** Assentos da aeronave (Y e J). */
+/** Assentos da aeronave (Y e J), conforme o layout de cabine. */
 export function seatsOf(p: Plane): { y: number; j: number } {
+  const layout = CABINS[p.model]?.[p.cabin];
+  if (layout) return layout;
   const m = MODELS[p.model];
   return { y: m.y, j: m.j };
 }

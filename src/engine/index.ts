@@ -3,6 +3,7 @@ export * from './data/airports';
 export * from './data/aircraft';
 export * from './data/licenses';
 export * from './data/service';
+export * from './data/cabins';
 export { EVENTS, EVENTS_BY_ID } from './data/events';
 export * from './formulas';
 export * from './format';

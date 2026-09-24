@@ -44,6 +44,7 @@ describe('save', () => {
     expect(g.v).toBe(SAVE_VERSION);
     expect(g.routes[0]!.planes).toEqual([{ id: p.id, freq: 3 }]);
     expect(g.routes[1]!.planes).toEqual([]);
+    expect(g.fleet[0]!.cabin).toBe(0);
     expect(g.routes[0]).not.toHaveProperty('planeId');
     expect(g.routes[0]).not.toHaveProperty('freq');
   });

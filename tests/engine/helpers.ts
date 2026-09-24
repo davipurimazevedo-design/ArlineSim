@@ -18,6 +18,7 @@ export function addTestPlane(s: GameState, model: ModelKey = 'AT7', extra: Parti
     condition: 100,
     maint: 0,
     restore: true,
+    cabin: 0,
     hours: 0,
     since: s.day,
     ...extra,

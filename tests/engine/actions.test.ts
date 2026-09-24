@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import * as actions from '../../src/engine/actions';
 import { MODELS } from '../../src/engine/data/aircraft';
+import { CABIN_CHANGE_COST, CABIN_CHANGE_DAYS, CABINS } from '../../src/engine/data/cabins';
 import {
   creditLimit,
   dist,
@@ -9,6 +10,7 @@ import {
   maintDays,
   maxFreq,
   planeValue,
+  seatsOf,
   slotCost,
 } from '../../src/engine/formulas';
 import { addTestPlane, addTestRoute, makeGame } from './helpers';
@@ -260,5 +262,39 @@ describe('updateRoute e closeRoute', () => {
     expect(s.routes).toHaveLength(0);
     expect(s.reputation).toBe(49);
     expect(actions.closeRoute(s, r.id)).toBe('Inválido.');
+  });
+});
+
+describe('configuração de cabine', () => {
+  it('exige licença internacional, layout válido e caixa', () => {
+    const s = makeGame('GRU');
+    const p = addTestPlane(s, 'A20N');
+    const atr = addTestPlane(s, 'AT7');
+    expect(actions.setCabin(s, p.id, 1)).toBe('Requer licença internacional.');
+    s.license = 2;
+    expect(actions.setCabin(s, atr.id, 1)).toBe('Inválido.');
+    expect(actions.setCabin(s, p.id, 9)).toBe('Inválido.');
+    expect(actions.setCabin(s, p.id, 0)).toBe('A cabine já tem esse layout.');
+    s.cash = 1e6;
+    expect(actions.setCabin(s, p.id, 1)).toBe('Caixa insuficiente.');
+  });
+
+  it('troca o layout, cobra e deixa o avião parado sem restaurar a condição', () => {
+    const s = makeGame('GRU');
+    s.license = 2;
+    const p = addTestPlane(s, 'A20N', { condition: 70 });
+    const cash = s.cash;
+    expect(actions.setCabin(s, p.id, 2)).toBeNull();
+    expect(s.cash).toBe(cash - CABIN_CHANGE_COST);
+    expect(p).toMatchObject({ cabin: 2, maint: CABIN_CHANGE_DAYS, restore: false });
+    expect(seatsOf(p)).toEqual({ y: 102, j: 24 });
+    expect(actions.setCabin(s, p.id, 1)).toBe('Aeronave em manutenção.');
+  });
+
+  it('todo layout ocupa o mesmo espaço (1J = 3Y)', () => {
+    for (const layouts of Object.values(CABINS)) {
+      const space = layouts!.map((c) => c.y + 3 * c.j);
+      expect(new Set(space).size).toBe(1);
+    }
   });
 });

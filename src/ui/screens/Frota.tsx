@@ -7,6 +7,12 @@ import {
   maintDays,
   MODELS,
   planeValue,
+  seatsOf,
+  CABINS,
+  CABIN_CHANGE_COST,
+  CABIN_CHANGE_DAYS,
+  cabinLabel,
+  type Plane,
 } from '../../engine';
 import { useGame } from '../../store/gameStore';
 import { CellBar } from '../components/Bar';
@@ -53,6 +59,7 @@ export function Frota() {
               <th>Matrícula</th>
               <th>Status</th>
               <th>Condição</th>
+              <th>Cabine</th>
               <th className="r">Contrato</th>
               <th className="r">Ações</th>
             </tr>
@@ -69,7 +76,7 @@ export function Frota() {
                   <td>
                     <b>{p.reg}</b>
                     <small>
-                      {m.name} · {m.y + m.j} assentos
+                      {m.name} · {seatsOf(p).y + seatsOf(p).j} assentos
                     </small>
                   </td>
                   <td>
@@ -87,6 +94,9 @@ export function Frota() {
                   </td>
                   <td>
                     <CellBar v={p.condition} label="Condição" />
+                  </td>
+                  <td>
+                    <CabinCell p={p} />
                   </td>
                   <td className="r">
                     {p.owned ? (
@@ -144,5 +154,37 @@ export function Frota() {
         </table>
       </div>
     </section>
+  );
+}
+
+/** Layout da cabine; nos narrowbodies, com licença internacional, vira um seletor. */
+function CabinCell({ p }: { p: Plane }) {
+  const license = useGame((s) => s.game!.license);
+  const act = useGame((s) => s.act);
+  const ask = useGame((s) => s.ask);
+  const layouts = CABINS[p.model];
+  const label = cabinLabel(seatsOf(p));
+  if (!layouts || license < 2) return <span className="num">{label}</span>;
+  return (
+    <select
+      className="cabin-select"
+      aria-label={`Cabine do ${p.reg}`}
+      value={p.cabin}
+      disabled={p.maint > 0}
+      onChange={(e) => {
+        const idx = +e.target.value;
+        ask({
+          text: `Reconfigurar ${p.reg} para ${cabinLabel(layouts[idx]!)}? Custa ${fmtMoney(CABIN_CHANGE_COST)} e deixa o avião ${CABIN_CHANGE_DAYS} dias parado.`,
+          okLabel: 'Reconfigurar',
+          onOk: () => act((s) => actions.setCabin(s, p.id, idx)),
+        });
+      }}
+    >
+      {layouts.map((c, i) => (
+        <option key={i} value={i}>
+          {cabinLabel(c)}
+        </option>
+      ))}
+    </select>
   );
 }

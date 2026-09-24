@@ -129,6 +129,17 @@ describe('simRoute', () => {
     }
   });
 
+  it('narrowbody com cabine mista vende executiva com licença 2', () => {
+    const s = makeGame('GRU');
+    s.license = 2;
+    const p = addTestPlane(s, 'A20N', { cabin: 1 });
+    const r = addTestRoute(s, 'GRU', 'EZE', p.id, { freq: 1 });
+    const x = simRoute(s, r);
+    expect(x.paxJ).toBeGreaterThan(0);
+    expect(x.paxJ).toBeLessThanOrEqual(12 * 2);
+    expect(x.pax).toBeLessThanOrEqual(138 * 2);
+  });
+
   describe('várias aeronaves', () => {
     it('soma capacidade, frequência e horas de cada avião', () => {
       const s = makeGame('GRU');

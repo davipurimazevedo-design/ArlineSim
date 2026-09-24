@@ -82,7 +82,7 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
       p.maint--;
       if (p.maint === 0) {
         if (p.restore) p.condition = 100;
-        addLog(s, `${p.reg} liberado da ${p.restore ? 'manutenção' : 'inspeção'}.`, 'good');
+        addLog(s, p.restore ? `${p.reg} liberado da manutenção.` : `${p.reg} voltou à operação.`, 'good');
       }
       continue;
     }

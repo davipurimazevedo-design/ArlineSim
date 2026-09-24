@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   actions,
+  CABINS,
   AIRPORT_CODES,
   AIRPORTS,
   dist,
@@ -70,6 +71,7 @@ function Aeronaves() {
                   <small>
                     {m.kind}
                     {locked ? ` · requer licença ${LICENSES[m.tier].name}` : ''}
+                    {CABINS[k] ? ' · cabine configurável' : ''}
                   </small>
                 </td>
                 <td className="c num">{m.j ? `${m.j}J + ${m.y}Y` : m.y}</td>

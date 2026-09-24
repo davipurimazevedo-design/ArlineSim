@@ -77,6 +77,8 @@ export interface Plane {
   maint: number;
   /** se a parada atual devolve a condição a 100 ao terminar (falso na inspeção do evento "passaro") */
   restore: boolean;
+  /** índice do layout de cabine (data/cabins.ts); 0 = de fábrica */
+  cabin: number;
   hours: number;
   /** dia em que entrou na frota */
   since: number;
