@@ -90,6 +90,7 @@ export function RouteEditor({ r }: { r: Route }) {
             id={uid + 'plane'}
             value={adding}
             dist={r.dist}
+            airports={[r.from, r.to]}
             exclude={assigned.map(({ p }) => p.id)}
             emptyLabel={assigned.length ? 'Escalar mais uma aeronave…' : 'Escolha uma aeronave…'}
             onChange={setAdding}

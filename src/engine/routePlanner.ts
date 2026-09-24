@@ -5,7 +5,7 @@ import { MODELS } from './data/aircraft';
 import { REGIONAL_MAX_KM } from './data/licenses';
 import { BUSINESS_MODELS } from './data/businessModels';
 import * as actions from './actions';
-import { baseDemand, dist, fairPrice } from './formulas';
+import { baseDemand, dist, fairPrice, runwayIssue } from './formulas';
 import { fmtInt, fmtMoney } from './format';
 import { findPlane } from './helpers';
 import { maxFreqFor, modelAllowed, slotCostFor, slotFeeFor } from './rules';
@@ -59,6 +59,8 @@ function validate(s: GameState, a: RoutePlanArgs, d: number): string | null {
     const m = MODELS[model];
     if (d > m.range) return `Fora do alcance do ${m.name} (${fmtInt(m.range)} km).`;
     if (maxFreqFor(s, model, d) < 1) return `Rota longa demais para o ${m.name} num dia.`;
+    const runway = runwayIssue(model, [from, to]);
+    if (runway) return runway;
   }
   return null;
 }

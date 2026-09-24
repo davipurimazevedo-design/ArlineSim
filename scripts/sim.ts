@@ -138,10 +138,11 @@ interface Bot {
   reserve: number;
 }
 
-/** Referência da seção 11: sempre ATR, destino de maior demanda base entre 350 e 1.500 km. */
+/** Referência da seção 11: sempre ATR, destino de maior demanda base entre 350 e 1.500 km (26 aeroportos do protótipo). */
 function basica(s: GameState): void {
   if (s.cash <= 8e6 && s.routes.length > 0) return;
-  const to = AIRPORT_CODES.filter((c) => {
+  // só os 26 aeroportos do protótipo, para continuar comparável com a referência da seção 11
+  const to = AIRPORT_CODES.slice(0, 26).filter((c) => {
     if (s.slots.includes(c) || !slotAllowed(s, c)) return false;
     const d = dist(s.hub, c);
     return d >= 350 && d <= 1500;

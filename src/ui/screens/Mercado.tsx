@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   actions,
+  searchKey,
   CABINS,
   AIRPORT_CODES,
   AIRPORTS,
@@ -128,11 +129,9 @@ function Slots() {
   const act = useGame((s) => s.act);
   const [q, setQ] = useState('');
   const own = (c: string) => g.slots.includes(c as never);
-  const needle = q.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  const needle = searchKey(q).trim();
   const match = (c: AirportCode) =>
-    !needle ||
-    c.toLowerCase().includes(needle) ||
-    AIRPORTS[c].city.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().includes(needle);
+    !needle || c.toLowerCase().includes(needle) || searchKey(AIRPORTS[c].city).includes(needle);
   // seus primeiro, domésticos antes, depois por distância do hub
   const list = AIRPORT_CODES.filter(match).sort(
     (a, b) =>

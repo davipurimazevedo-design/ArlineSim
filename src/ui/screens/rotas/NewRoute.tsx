@@ -13,6 +13,7 @@ import {
   overlapsOf,
   planRoute,
   routeOfPlane,
+  runwayIssue,
   type AirportCode,
   type ModelKey,
 } from '../../../engine';
@@ -77,12 +78,14 @@ export function NewRoute({ onDone }: { onDone: () => void }) {
                 {g.fleet.map((p) => {
                   const m = MODELS[p.model];
                   const used = routeOfPlane(g, p.id);
-                  const ok = !plan?.dist || (plan.dist <= m.range && maxFreqFor(g, p.model, plan.dist) > 0);
+                  const ok =
+                    (!plan?.dist || (plan.dist <= m.range && maxFreqFor(g, p.model, plan.dist) > 0)) &&
+                    !(from && to && runwayIssue(p.model, [from, to]));
                   return (
                     <option key={p.id} value={`p:${p.id}`} disabled={!ok}>
                       {p.reg} · {m.name}
                       {used ? ` (em ${used.from}–${used.to})` : ''}
-                      {ok ? '' : ' — sem alcance'}
+                      {ok ? '' : ' — sem alcance ou pista'}
                     </option>
                   );
                 })}

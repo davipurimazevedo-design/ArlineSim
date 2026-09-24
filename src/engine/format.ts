@@ -33,3 +33,11 @@ export function fmtDate(day: number): string {
 export function fmtDec(v: number, digits = 1): string {
   return v.toFixed(digits).replace('.', ',').replace('-', MINUS);
 }
+
+/** Texto normalizado para busca: minúsculas e sem acentos ("São Luís" → "sao luis"). */
+export function searchKey(t: string): string {
+  return t
+    .normalize('NFD')
+    .replace(/\p{Mn}/gu, '')
+    .toLowerCase();
+}

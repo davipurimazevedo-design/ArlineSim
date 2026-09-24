@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { AIRPORT_CODES } from '../../src/engine/data/airports';
+
+/** os 26 aeroportos do protótipo (os demais entraram na Fase 3) */
+const PROTO_CODES = AIRPORT_CODES.slice(0, 26);
 import { MODELS, MODEL_KEYS } from '../../src/engine/data/aircraft';
 import {
   baseDemand,
@@ -32,7 +35,7 @@ describe('dist', () => {
     expect(dist('GRU', 'CDG')).toBeLessThan(9500);
   });
   it('é idêntica ao protótipo para todos os pares', () => {
-    for (const a of AIRPORT_CODES) for (const b of AIRPORT_CODES) expect(dist(a, b)).toBe(proto.dist(a, b));
+    for (const a of PROTO_CODES) for (const b of PROTO_CODES) expect(dist(a, b)).toBe(proto.dist(a, b));
   });
 });
 
@@ -65,8 +68,8 @@ describe('baseDemand', () => {
     expect(baseDemand('GRU', 'EZE')).toBeCloseTo(14 * 10 * 8 * 0.7);
   });
   it('é idêntica ao protótipo', () => {
-    for (const a of AIRPORT_CODES)
-      for (const b of AIRPORT_CODES) expect(baseDemand(a, b)).toBe(proto.baseDemand(a, b));
+    for (const a of PROTO_CODES)
+      for (const b of PROTO_CODES) expect(baseDemand(a, b)).toBe(proto.baseDemand(a, b));
   });
 });
 

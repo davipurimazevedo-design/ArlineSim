@@ -12,8 +12,12 @@ import {
   type Difficulty,
 } from '../../engine';
 import { useGame } from '../../store/gameStore';
+import { AirportPicker } from '../components/AirportPicker';
 import { Btn } from '../components/Btn';
 import { Icon } from '../components/Icon';
+
+/** atalhos na tela de fundação (os hubs do protótipo) */
+const SUGGESTED: AirportCode[] = ['GRU', 'GIG', 'BSB', 'CNF', 'REC', 'SLZ'];
 
 const DIFF_CLASS: Record<Difficulty, string> = { Fácil: 'd-easy', Médio: 'd-mid', Difícil: 'd-hard' };
 
@@ -82,23 +86,33 @@ export function NewGame() {
           </div>
         </div>
         <small>O modelo não pode ser trocado depois.</small>
-        <span className="lbl" id="hub-label">
-          Hub
-        </span>
-        <div className="hubs" role="radiogroup" aria-labelledby="hub-label">
-          {HUBS.map((c) => {
+        <AirportPicker
+          label="Hub (cidade-base da companhia)"
+          value={hub}
+          onChange={setHub}
+          only={HUBS}
+          placeholder="Busque a cidade ou o código"
+        />
+        <div className="hubs" role="radiogroup" aria-label="Hubs sugeridos">
+          {SUGGESTED.map((c) => {
             const diff = hubDifficulty(c);
             return (
               <button key={c} type="button" role="radio" aria-checked={hub === c} onClick={() => setHub(c)}>
                 <b>{c}</b>
                 <small>{AIRPORTS[c].city}</small>
-                <em className={DIFF_CLASS[diff]}>
-                  {diff} · {fmtMoney(START_CASH_BY_DIFFICULTY[diff])}
-                </em>
+                <em className={DIFF_CLASS[diff]}>{diff}</em>
               </button>
             );
           })}
         </div>
+        <p className="hub-info">
+          <b>
+            {AIRPORTS[hub].city} ({hub}) · {AIRPORTS[hub].uf}
+          </b>{' '}
+          · porte {AIRPORTS[hub].size} ·{' '}
+          <span className={DIFF_CLASS[hubDifficulty(hub)]}>{hubDifficulty(hub)}</span> · capital inicial{' '}
+          {fmtMoney(START_CASH_BY_DIFFICULTY[hubDifficulty(hub)])}
+        </p>
         <Btn kind="primary" type="submit" disabled={!ok}>
           Iniciar operações
         </Btn>

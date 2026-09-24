@@ -16,6 +16,7 @@ import {
   maintCost,
   maintDays,
   planeValue,
+  runwayIssue,
 } from './formulas';
 import { addLog, changeRep, findPlane, unassignPlane } from './helpers';
 import { rivalsFor } from './rivals';
@@ -198,6 +199,8 @@ export function openRoute(s: GameState, { from, to, planeId }: OpenRouteArgs): A
     const m = MODELS[p.model];
     if (d > m.range) return `Fora do alcance do ${m.name}.`;
     if (maxFreqFor(s, p.model, d) < 1) return 'Rota longa demais para a utilização diária da aeronave.';
+    const runway = runwayIssue(p.model, [from, to]);
+    if (runway) return runway;
     unassignPlane(s, p.id);
   }
   const r: Route = {
@@ -254,6 +257,8 @@ export function assignPlane(s: GameState, routeId: string, planeId: string): Act
   if (s.license === 0 && r.dist > REGIONAL_MAX_KM) return 'Licença regional limita rotas a 1.500 km.';
   if (r.dist > m.range) return `Fora do alcance do ${m.name}.`;
   if (maxFreqFor(s, p.model, r.dist) < 1) return 'Rota longa demais para essa aeronave.';
+  const runway = runwayIssue(p.model, [r.from, r.to]);
+  if (runway) return runway;
   unassignPlane(s, planeId);
   r.planes.push({ id: planeId, freq: defaultFreq(s, p, r.dist) });
   return null;

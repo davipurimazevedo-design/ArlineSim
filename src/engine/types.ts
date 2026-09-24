@@ -2,17 +2,33 @@
 
 // prettier-ignore
 export type AirportCode =
-  | 'GRU' | 'GIG' | 'BSB' | 'CNF' | 'SSA' | 'REC' | 'FOR' | 'POA' | 'CWB'
-  | 'VCP' | 'FLN' | 'MAO' | 'GYN' | 'BEL' | 'SLZ' | 'NAT' | 'CGB' | 'THE'
-  | 'EZE' | 'SCL' | 'LIM' | 'MIA' | 'JFK' | 'LIS' | 'MAD' | 'CDG';
+  | 'GRU' | 'GIG' | 'BSB' | 'CNF' | 'SSA' | 'REC' | 'FOR' | 'POA' | 'CWB' | 'VCP' | 'FLN' | 'MAO'
+  | 'GYN' | 'BEL' | 'SLZ' | 'NAT' | 'CGB' | 'THE' | 'EZE' | 'SCL' | 'LIM' | 'MIA' | 'JFK' | 'LIS'
+  | 'MAD' | 'CDG' | 'CJZ' | 'VDC' | 'JTC' | 'AQA' | 'AJU' | 'AFL' | 'ARU' | 'AAX' | 'BVB' | 'CAC'
+  | 'CFB' | 'CGR' | 'XAP' | 'CKS' | 'CLV' | 'CAW' | 'CMG' | 'CXJ' | 'CZS' | 'BYO' | 'PPB' | 'IGU'
+  | 'FEN' | 'GVR' | 'ATM' | 'ITB' | 'IOS' | 'IPN' | 'IMP' | 'JJG' | 'JJD' | 'JDF' | 'JPR' | 'JPA'
+  | 'JDO' | 'JOI' | 'CPV' | 'LEC' | 'LAJ' | 'LDB' | 'MAB' | 'MGF' | 'MOC' | 'MII' | 'MCZ' | 'MCP'
+  | 'MVF' | 'MNX' | 'NVT' | 'GEL' | 'PHB' | 'PFB' | 'PGZ' | 'PMW' | 'PET' | 'PNZ' | 'PTO' | 'PMG'
+  | 'BPS' | 'PVH' | 'RBR' | 'ROO' | 'SDU' | 'RAO' | 'OPS' | 'SJK' | 'RIA' | 'STM' | 'SMT' | 'CGH'
+  | 'SJP' | 'TMT' | 'UNA' | 'TOW' | 'TFF' | 'TJL' | 'TBT' | 'TUR' | 'SJL' | 'PAV' | 'URG' | 'UDI'
+  | 'UBA' | 'BVH' | 'VIX' | 'IZA' | 'SOD' | 'BRA' | 'JPE' | 'GUZ' | 'SET' | 'CAU' | 'OPP' | 'VAL'
+  | 'BVS' | 'GGF' | 'PYT' | 'CEL' | 'FBE' | 'GGJ' | 'OAL' | 'UMU' | 'UVI' | 'SRA' | 'BAZ' | 'RBB'
+  | 'CAF' | 'AUX' | 'LBR' | 'IRZ' | 'TGQ' | 'BOG' | 'PTY' | 'MVD' | 'ASU' | 'MCO' | 'LHR' | 'FRA'
+  | 'FCO';
 
 export interface Airport {
   city: string;
+  /** UF (Brasil) ou nome do país (exterior) */
+  uf: string;
   lat: number;
   lon: number;
   /** porte 1–10 */
   size: number;
   intl: boolean;
+  /** pista mais longa, em metros */
+  runway: number;
+  /** a pista é pavimentada */
+  paved: boolean;
 }
 
 export type ModelKey = 'AT7' | 'E295' | 'A20N' | 'B38M' | 'A339';
@@ -42,6 +58,10 @@ export interface AircraftModel {
   wearH: number;
   /** utilização máxima, h/dia */
   util: number;
+  /** pista mínima em operação normal de etapa curta, em metros */
+  minRunway: number;
+  /** opera em pista não pavimentada */
+  unpaved: boolean;
 }
 
 export interface License {

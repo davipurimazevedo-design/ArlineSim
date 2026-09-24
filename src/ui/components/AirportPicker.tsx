@@ -1,8 +1,5 @@
 import { useId, useMemo, useState, type KeyboardEvent } from 'react';
-import { AIRPORT_CODES, AIRPORTS, type AirportCode } from '../../engine';
-
-/** Normaliza para busca: minúsculas e sem acento. */
-const norm = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+import { AIRPORT_CODES, AIRPORTS, searchKey, type AirportCode } from '../../engine';
 
 const MAX_RESULTS = 8;
 
@@ -14,19 +11,29 @@ interface Props {
   owned?: AirportCode[];
   /** códigos que não aparecem */
   exclude?: AirportCode[];
+  /** se informado, só estes códigos aparecem */
+  only?: AirportCode[];
   placeholder?: string;
 }
 
 /** Campo de busca de aeroporto por código ou cidade, com lista de resultados. */
-export function AirportPicker({ label, value, onChange, owned = [], exclude = [], placeholder }: Props) {
+export function AirportPicker({
+  label,
+  value,
+  onChange,
+  owned = [],
+  exclude = [],
+  only,
+  placeholder,
+}: Props) {
   const uid = useId();
   const [query, setQuery] = useState<string | null>(null);
   const [active, setActive] = useState(0);
   const open = query !== null;
 
   const results = useMemo(() => {
-    const q = norm(query ?? '').trim();
-    const list = AIRPORT_CODES.filter((c) => !exclude.includes(c));
+    const q = searchKey(query ?? '').trim();
+    const list = (only ?? AIRPORT_CODES).filter((c) => !exclude.includes(c));
     if (!q) {
       // sem busca: os aeroportos da companhia e depois os maiores
       return [...list]
@@ -39,7 +46,7 @@ export function AirportPicker({ label, value, onChange, owned = [], exclude = []
     return list
       .map((c) => {
         const code = c.toLowerCase();
-        const city = norm(AIRPORTS[c].city);
+        const city = searchKey(AIRPORTS[c].city);
         const score =
           code === q ? 0 : code.startsWith(q) ? 1 : city.startsWith(q) ? 2 : city.includes(q) ? 3 : 9;
         return { c, score };
@@ -48,7 +55,7 @@ export function AirportPicker({ label, value, onChange, owned = [], exclude = []
       .sort((a, b) => a.score - b.score || AIRPORTS[b.c].size - AIRPORTS[a.c].size)
       .slice(0, MAX_RESULTS)
       .map((x) => x.c);
-  }, [query, owned, exclude]);
+  }, [query, owned, exclude, only]);
 
   const pick = (c: AirportCode) => {
     onChange(c);
@@ -114,7 +121,9 @@ export function AirportPicker({ label, value, onChange, owned = [], exclude = []
                 }}
               >
                 <b className="num">{c}</b>
-                <span>{a.city}</span>
+                <span>
+                  {a.city} · {a.uf}
+                </span>
                 <small>
                   porte {a.size}
                   {a.intl ? ' · exterior' : ''}

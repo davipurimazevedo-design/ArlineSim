@@ -1,7 +1,8 @@
 import { AIRPORTS } from './data/airports';
 import { MODELS } from './data/aircraft';
 import { CABINS } from './data/cabins';
-import type { AircraftModel, AirportCode, GameState, ModType, Plane } from './types';
+import { fmtInt } from './format';
+import type { AircraftModel, AirportCode, GameState, ModType, ModelKey, Plane } from './types';
 
 export const START_CASH = 12e6;
 /** Capital inicial por dificuldade do hub: hubs pequenos começam com mais caixa. */
@@ -160,4 +161,19 @@ export function baseCompetition(a: AirportCode, b: AirportCode): number {
 /** Aeroporto ao qual a companhia pode comprar slot (licença permitindo). */
 export function slotAllowed(s: GameState, code: AirportCode): boolean {
   return !AIRPORTS[code].intl || s.license >= 2;
+}
+
+/**
+ * Problema de pista para a aeronave operar entre os aeroportos, ou null.
+ * Pista curta: abaixo da mínima operacional do modelo. Terra/cascalho: só modelos que operam fora de pista pavimentada.
+ */
+export function runwayIssue(model: ModelKey, codes: AirportCode[]): string | null {
+  const m = MODELS[model];
+  for (const c of codes) {
+    const a = AIRPORTS[c];
+    if (!a.paved && !m.unpaved) return `A pista de ${a.city} não é pavimentada; o ${m.name} não opera nela.`;
+    if (a.runway < m.minRunway)
+      return `A pista de ${a.city} (${fmtInt(a.runway)} m) é curta para o ${m.name} (mínimo ${fmtInt(m.minRunway)} m).`;
+  }
+  return null;
 }
