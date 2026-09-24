@@ -425,3 +425,15 @@ Plano aprovado em 2026-09-23. Ordem: (1) várias aeronaves por rota, (2) configu
   - Licenças: Nacional R$ 40 mi (era 25), Internacional R$ 250 mi (era 120).
   - Leasing dos jatos +30%: E195-E2 R$ 68 mil, A320neo R$ 88 mil, 737 MAX 8 R$ 94 mil, A330-900 R$ 230 mil por dia (preços de compra iguais). O ATR não mudou.
   - `npm run sim` ganhou três estratégias (básica = referência da seção 11; esperta; expansão com licenças, jatos e exterior).
+
+## 18. Decisões da Fase 3 (2026-09-24)
+
+Plano em `docs/fase3-plano.md`, aprovado com todas as recomendações:
+- modelo principal na fundação (Tradicional, Low-cost, Regional, Pequeno porte) e divisões depois (Cargas, Base internacional);
+- sem troca de modelo principal na primeira versão;
+- Pequeno porte é um "começar de baixo" que pode evoluir para o regional;
+- aeronaves novas com **dados reais** pesquisados a fundo, convertidos pela escala do jogo (âncora: ATR 72-600) e mostrados ao usuário antes de entrar (`docs/fase3-aeronaves.md`).
+
+Pedidos novos do usuário:
+- **Muitos aeroportos**, tanto para fundar a companhia quanto para abrir rotas.
+- **Criador de rotas:** o jogador escolhe origem, destino e aeronave; a rota é criada nesse momento e a tela mostra o preço dos slots que faltam, taxas e demais custos. Slots passam a ser comprados junto com a rota, sem depender da lista de aeroportos do Mercado. Com muitos aeroportos, origem e destino precisam de busca.
