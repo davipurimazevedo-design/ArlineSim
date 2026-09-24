@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { MODELS, MODEL_KEYS } from '../../src/engine/data/aircraft';
-import { baseDemand, fairPrice, seasonality } from '../../src/engine/formulas';
+import { baseDemand, blockHours, fairPrice, freqFactor, seasonality } from '../../src/engine/formulas';
 import { routeProfit, simRoute } from '../../src/engine/simRoute';
 import type { AirportCode } from '../../src/engine/types';
-import { addTestPlane, addTestRoute, loadPrototypeEngine, makeGame } from './helpers';
+import { addTestPlane, addTestRoute, loadPrototypeEngine, makeGame, toProtoRoute } from './helpers';
 
 const proto = loadPrototypeEngine();
 
@@ -13,7 +13,7 @@ describe('simRoute', () => {
     const r = addTestRoute(s, 'BSB', 'CNF', null);
     expect(simRoute(s, r)).toMatchObject({ flying: false, rev: 0, reason: 'Sem aeronave' });
     const p = addTestPlane(s, 'AT7', { maint: 3 });
-    r.planeId = p.id;
+    r.planes = [{ id: p.id, freq: 2 }];
     expect(simRoute(s, r)).toMatchObject({ flying: false, reason: 'Em manutenção' });
     p.maint = 0;
     s.mods.push({ type: 'halt', value: 1, until: s.day + 1 });
@@ -109,7 +109,7 @@ describe('simRoute', () => {
           const p = addTestPlane(s, key, { condition: 45 });
           const r = addTestRoute(s, a, b, p.id, { freq: 1, price: fairPrice(0) + 333, service: 2, ai: 1.4 });
           const mine = simRoute(s, r);
-          const theirs = proto.simRoute(JSON.parse(JSON.stringify(s)), JSON.parse(JSON.stringify(r)));
+          const theirs = proto.simRoute(JSON.parse(JSON.stringify(s)), toProtoRoute(r));
           for (const k of [
             'pax',
             'paxJ',
@@ -127,5 +127,69 @@ describe('simRoute', () => {
         }
       }
     }
+  });
+
+  describe('várias aeronaves', () => {
+    it('soma capacidade, frequência e horas de cada avião', () => {
+      const s = makeGame('GRU');
+      const a = addTestPlane(s, 'AT7');
+      const b = addTestPlane(s, 'AT7');
+      const r = addTestRoute(s, 'GRU', 'GIG', a.id, { freq: 1, price: 100 });
+      r.planes.push({ id: b.id, freq: 2 });
+      const x = simRoute(s, r);
+      expect(x.freq).toBe(3);
+      expect(x.pax).toBe(70 * 3 * 2);
+      const bh = blockHours(MODELS.AT7, r.dist);
+      expect(x.planeHours[a.id]).toBeCloseTo(2 * bh);
+      expect(x.planeHours[b.id]).toBeCloseTo(4 * bh);
+      expect(x.hours).toBeCloseTo(6 * bh);
+    });
+
+    it('avião em manutenção não conta; a rota segue com os outros', () => {
+      const s = makeGame('GRU');
+      const a = addTestPlane(s, 'AT7', { maint: 2 });
+      const b = addTestPlane(s, 'AT7');
+      const r = addTestRoute(s, 'GRU', 'GIG', a.id, { freq: 2, price: 100 });
+      r.planes.push({ id: b.id, freq: 1 });
+      const x = simRoute(s, r);
+      expect(x.flying).toBe(true);
+      expect(x.freq).toBe(1);
+      expect(x.planeHours[a.id]).toBeUndefined();
+    });
+
+    it('mais frequência aumenta o share, com ganho menor depois de 6 voos', () => {
+      expect(freqFactor(6) - freqFactor(5)).toBeCloseTo(0.1);
+      expect(freqFactor(7) - freqFactor(6)).toBeCloseTo(0.05);
+      expect(freqFactor(14)).toBeCloseTo(freqFactor(10));
+    });
+
+    it('penalidade de condição proporcional à capacidade desgastada', () => {
+      const s = makeGame();
+      const a = addTestPlane(s, 'AT7');
+      const b = addTestPlane(s, 'AT7', { condition: 30 });
+      const r = addTestRoute(s, 'BSB', 'CNF', a.id, { freq: 1 });
+      r.planes.push({ id: b.id, freq: 1 });
+      const mixed = simRoute(s, r).share;
+      b.condition = 100;
+      const fresh = simRoute(s, r).share;
+      a.condition = 30;
+      b.condition = 30;
+      const worn = simRoute(s, r).share;
+      expect(worn).toBeLessThan(mixed);
+      expect(mixed).toBeLessThan(fresh);
+    });
+
+    it('resultado da rota desconta o leasing de todos os arrendados', () => {
+      const s = makeGame();
+      const a = addTestPlane(s, 'AT7');
+      const b = addTestPlane(s, 'AT7', { owned: true });
+      const c = addTestPlane(s, 'AT7');
+      const r = addTestRoute(s, 'BSB', 'CNF', a.id, { freq: 1 });
+      r.planes.push({ id: b.id, freq: 1 }, { id: c.id, freq: 1 });
+      const x = simRoute(s, r);
+      expect(routeProfit(s, r, x)).toBeCloseTo(
+        x.rev - x.fuel - x.crew - x.fees - x.svc - 2 * MODELS.AT7.lease,
+      );
+    });
   });
 });

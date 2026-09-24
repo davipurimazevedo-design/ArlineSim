@@ -6,9 +6,22 @@ type Raw = Record<string, unknown>;
 
 /**
  * Migrações por versão: MIGRATIONS[n] converte um save v=n em v=n+1.
- * Hoje não há nenhuma; ao mudar o GameState, suba SAVE_VERSION e acrescente a função aqui.
+ * Ao mudar o GameState, suba SAVE_VERSION e acrescente a função aqui.
  */
-const MIGRATIONS: Record<number, (g: Raw) => Raw> = {};
+const MIGRATIONS: Record<number, (g: Raw) => Raw> = {
+  // v1 (Fase 1) → v2 (Fase 2): rota passa a ter uma lista de aeronaves
+  1: (g) => {
+    const routes = Array.isArray(g.routes) ? (g.routes as Raw[]) : [];
+    return {
+      ...g,
+      routes: routes.map(({ planeId, freq, ...r }) => ({
+        ...r,
+        planes:
+          typeof planeId === 'string' ? [{ id: planeId, freq: typeof freq === 'number' ? freq : 1 }] : [],
+      })),
+    };
+  },
+};
 
 /** Valida e migra um save cru. Devolve null se não for aproveitável. */
 export function migrate(raw: unknown): GameState | null {

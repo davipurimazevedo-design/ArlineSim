@@ -10,7 +10,7 @@ import {
   modVal,
   slotFee,
 } from './formulas';
-import { addLog, changeRep } from './helpers';
+import { addLog, changeRep, routeOfPlane } from './helpers';
 import { chance, randInt, randRange } from './rng';
 import { routeProfit, simRoute } from './simRoute';
 import type { DayReport, GameState, SimResult } from './types';
@@ -86,11 +86,11 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
       }
       continue;
     }
-    const r = s.routes.find((r) => r.planeId === p.id);
-    const x = r && byRoute.get(r.id);
-    if (x && x.flying) {
-      p.condition = clamp(p.condition - x.hours * m.wearH * modVal(s, 'wear'), 0, 100);
-      p.hours += x.hours;
+    const r = routeOfPlane(s, p.id);
+    const h = (r && byRoute.get(r.id)?.planeHours[p.id]) ?? 0;
+    if (h > 0) {
+      p.condition = clamp(p.condition - h * m.wearH * modVal(s, 'wear'), 0, 100);
+      p.hours += h;
     }
     if (p.condition < 25 && chance(s, 0.06)) {
       const cost = Math.round(maintCost(p) * 1.5);

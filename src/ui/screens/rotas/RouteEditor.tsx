@@ -1,19 +1,21 @@
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import {
   actions,
   fairPrice,
   fairPriceJ,
+  fmtInt,
   fmtMoney,
   maxFreq,
   MODELS,
+  routeFreq,
+  routePlanes,
   routeProfit,
   SERVICE,
   simRoute,
-  fmtInt,
+  type RoutePatch,
   type Route,
   type ServiceLevel,
 } from '../../../engine';
-import type { RoutePatch } from '../../../engine/actions';
 import { useGame } from '../../../store/gameStore';
 import { Btn } from '../../components/Btn';
 import { Money } from '../../components/Money';
@@ -28,38 +30,74 @@ export function RouteEditor({ r }: { r: Route }) {
   const act = useGame((s) => s.act);
   const ask = useGame((s) => s.ask);
   const uid = useId();
+  const [adding, setAdding] = useState<string | null>(null);
 
-  const p = g.fleet.find((x) => x.id === r.planeId);
-  const m = p && MODELS[p.model];
+  const assigned = routePlanes(g, r);
   const fp = fairPrice(r.dist);
   // previsão ao vivo: simRoute sobre o estado atual
-  const prev = p ? simRoute(g, r) : null;
+  const prev = assigned.length ? simRoute(g, r) : null;
   const prevProfit = prev?.flying ? routeProfit(g, r, prev) : null;
-  const mf = m ? maxFreq(m, r.dist) : 1;
   const upd = (patch: RoutePatch) => act((s) => actions.updateRoute(s, r.id, patch));
-  const hasJ = !!m && m.j > 0 && g.license >= 2;
+  const hasJ = g.license >= 2 && assigned.some(({ p }) => MODELS[p.model].j > 0);
 
   return (
     <div className="editor">
-      <label className="field" htmlFor={uid + 'plane'}>
-        <span>Aeronave</span>
-        <PlaneSelect
-          id={uid + 'plane'}
-          value={r.planeId}
-          dist={r.dist}
-          onChange={(v) => upd({ planeId: v })}
-        />
-      </label>
-      <div className="field">
-        <span>Frequência (idas e voltas/dia)</span>
-        <Stepper
-          value={r.freq}
-          min={1}
-          max={mf}
-          disabled={!p}
-          onChange={(v) => upd({ freq: v })}
-          label="Frequência"
-        />
+      <div className="field full">
+        <span>
+          Aeronaves <small>{assigned.length ? `${routeFreq(r)} idas e voltas/dia no total` : ''}</small>
+        </span>
+        {assigned.length > 0 && (
+          <ul className="route-planes">
+            {assigned.map(({ p, freq }) => {
+              const m = MODELS[p.model];
+              return (
+                <li key={p.id}>
+                  <div>
+                    <b>{p.reg}</b>
+                    <small>
+                      {m.name}
+                      {p.maint > 0 ? ` · em manutenção (${p.maint} dias)` : ''}
+                    </small>
+                  </div>
+                  <Stepper
+                    value={freq}
+                    min={1}
+                    max={maxFreq(m, r.dist)}
+                    onChange={(v) => act((s) => actions.setPlaneFreq(s, r.id, p.id, v))}
+                    label={`Frequência do ${p.reg}`}
+                  />
+                  <Btn
+                    small
+                    kind="ghost danger"
+                    onClick={() => act((s) => actions.unassignFromRoute(s, r.id, p.id))}
+                  >
+                    Tirar
+                  </Btn>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <div className="add-plane">
+          <PlaneSelect
+            id={uid + 'plane'}
+            value={adding}
+            dist={r.dist}
+            exclude={assigned.map(({ p }) => p.id)}
+            emptyLabel={assigned.length ? 'Escalar mais uma aeronave…' : 'Escolha uma aeronave…'}
+            onChange={setAdding}
+          />
+          <Btn
+            small
+            kind="primary"
+            disabled={!adding}
+            onClick={() => {
+              if (adding && !act((s) => actions.assignPlane(s, r.id, adding))) setAdding(null);
+            }}
+          >
+            Escalar
+          </Btn>
+        </div>
       </div>
       <label className="field wide" htmlFor={uid + 'price'}>
         <span>
@@ -76,6 +114,15 @@ export function RouteEditor({ r }: { r: Route }) {
           onChange={(e) => upd({ price: +e.target.value })}
         />
       </label>
+      <div className="field">
+        <span>Serviço de bordo</span>
+        <Segmented
+          label="Serviço de bordo"
+          value={r.service}
+          options={SERVICE_OPTIONS}
+          onChange={(v) => upd({ service: v })}
+        />
+      </div>
       {hasJ && (
         <label className="field wide" htmlFor={uid + 'priceJ'}>
           <span>
@@ -93,15 +140,6 @@ export function RouteEditor({ r }: { r: Route }) {
           />
         </label>
       )}
-      <div className="field">
-        <span>Serviço de bordo</span>
-        <Segmented
-          label="Serviço de bordo"
-          value={r.service}
-          options={SERVICE_OPTIONS}
-          onChange={(v) => upd({ service: v })}
-        />
-      </div>
       <div className="preview" aria-live="polite">
         {prev?.flying && prevProfit !== null ? (
           <>
@@ -118,8 +156,8 @@ export function RouteEditor({ r }: { r: Route }) {
           </>
         ) : (
           <small>
-            {p
-              ? (prev?.reason ?? '') + '. Sem previsão enquanto a rota não voa.'
+            {prev
+              ? prev.reason + '. Sem previsão enquanto a rota não voa.'
               : 'Escale uma aeronave para ver a previsão.'}
           </small>
         )}

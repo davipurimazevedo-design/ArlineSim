@@ -1,5 +1,5 @@
 import { Fragment, useState } from 'react';
-import { fmtInt, fmtMoney, MODELS } from '../../../engine';
+import { fmtInt, fmtMoney, MODELS, routeFreq } from '../../../engine';
 import { useGame } from '../../../store/gameStore';
 import { CellBar } from '../../components/Bar';
 import { Btn } from '../../components/Btn';
@@ -42,7 +42,8 @@ export function Rotas() {
             </thead>
             <tbody>
               {g.routes.map((r, i) => {
-                const p = g.fleet.find((x) => x.id === r.planeId);
+                const assigned = r.planes.map((x) => g.fleet.find((p) => p.id === x.id)).filter((p) => !!p);
+                const p = assigned[0];
                 const L = r.last;
                 const st = !p ? 'bad' : L && !L.flying ? 'mid' : L && L.profit < 0 ? 'bad' : 'good';
                 const isOpen = open === r.id;
@@ -72,14 +73,19 @@ export function Rotas() {
                       <td>
                         {p ? (
                           <>
-                            <b>{p.reg}</b>
-                            <small>{MODELS[p.model].name}</small>
+                            <b>
+                              {p.reg}
+                              {assigned.length > 1 ? ` +${assigned.length - 1}` : ''}
+                            </b>
+                            <small>
+                              {assigned.length > 1 ? `${assigned.length} aeronaves` : MODELS[p.model].name}
+                            </small>
                           </>
                         ) : (
                           <small className="neg">sem aeronave</small>
                         )}
                       </td>
-                      <td className="c num">{p ? r.freq + '×' : '—'}</td>
+                      <td className="c num">{p ? routeFreq(r) + '×' : '—'}</td>
                       <td className="r num">{fmtMoney(r.price)}</td>
                       <td>
                         {L?.flying ? (

@@ -254,6 +254,36 @@
 .editor .wide {
   grid-column: span 2;
 }
+.editor .full {
+  grid-column: 1 / -1;
+}
+.route-planes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.route-planes li {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--text);
+}
+.route-planes li > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.add-plane {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  max-width: 460px;
+}
 .preview {
   grid-column: 1 / -1;
   display: flex;
@@ -475,6 +505,10 @@
   }
   .editor .wide {
     grid-column: auto;
+  }
+  .route-planes li {
+    flex-wrap: wrap;
+    gap: 8px 14px;
   }
   .preview {
     flex-wrap: wrap;

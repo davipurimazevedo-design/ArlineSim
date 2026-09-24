@@ -31,7 +31,7 @@ export function addTestRoute(
   from: AirportCode,
   to: AirportCode,
   planeId: string | null,
-  extra: Partial<Route> = {},
+  { freq = 2, ...extra }: Partial<Route> & { freq?: number } = {},
 ): Route {
   const d = dist(from, to);
   const r: Route = {
@@ -39,8 +39,7 @@ export function addTestRoute(
     from,
     to,
     dist: d,
-    planeId,
-    freq: 2,
+    planes: planeId ? [{ id: planeId, freq }] : [],
     price: fairPrice(d),
     priceJ: defaultPriceJ(d),
     service: 1,
@@ -52,6 +51,12 @@ export function addTestRoute(
   s.routes.push(r);
   for (const c of [from, to]) if (!s.slots.includes(c)) s.slots.push(c);
   return r;
+}
+
+/** Rota no formato do protótipo (um avião só). */
+export function toProtoRoute(r: Route) {
+  const { planes, ...rest } = r;
+  return { ...rest, planeId: planes[0]?.id ?? null, freq: planes[0]?.freq ?? 1 };
 }
 
 /** Carrega o motor do protótipo (reference/prototipo.html) para testes de paridade. */

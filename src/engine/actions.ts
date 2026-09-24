@@ -173,8 +173,7 @@ export function openRoute(s: GameState, { from, to, planeId }: OpenRouteArgs): A
     from,
     to,
     dist: d,
-    planeId: p ? p.id : null,
-    freq: p ? Math.min(2, maxFreq(MODELS[p.model], d)) : 1,
+    planes: p ? [{ id: p.id, freq: defaultFreq(p, d) }] : [],
     price: fairPrice(d),
     priceJ: defaultPriceJ(d),
     service: 1,
@@ -187,38 +186,56 @@ export function openRoute(s: GameState, { from, to, planeId }: OpenRouteArgs): A
   return null;
 }
 
+/** Frequência padrão ao escalar uma aeronave: min(2, máximo). */
+export function defaultFreq(p: Plane, d: number): number {
+  return Math.min(2, maxFreq(MODELS[p.model], d));
+}
+
 export interface RoutePatch {
-  planeId?: string | null;
-  freq?: number;
   price?: number;
   priceJ?: number;
   service?: ServiceLevel;
 }
 
+/** Tarifas e serviço. */
 export function updateRoute(s: GameState, id: string, patch: RoutePatch): ActionResult {
   const r = s.routes.find((r) => r.id === id);
   if (!r) return 'Inválido.';
-  if ('planeId' in patch) {
-    if (patch.planeId) {
-      const p = findPlane(s, patch.planeId);
-      if (!p) return 'Inválido.';
-      const m = MODELS[p.model];
-      if (r.dist > m.range) return `Fora do alcance do ${m.name}.`;
-      if (maxFreq(m, r.dist) < 1) return 'Rota longa demais para essa aeronave.';
-      unassignPlane(s, p.id);
-      r.planeId = p.id;
-      r.freq = clamp(r.freq, 1, maxFreq(m, r.dist));
-    } else {
-      r.planeId = null;
-    }
-  }
-  if (patch.freq !== undefined) {
-    const p = findPlane(s, r.planeId);
-    r.freq = clamp(patch.freq, 1, p ? maxFreq(MODELS[p.model], r.dist) : 1);
-  }
   if (patch.price !== undefined) r.price = clamp(Math.round(patch.price), 50, 50000);
   if (patch.priceJ !== undefined) r.priceJ = clamp(Math.round(patch.priceJ), 100, 150000);
   if (patch.service !== undefined) r.service = clamp(patch.service, 0, 2) as ServiceLevel;
+  return null;
+}
+
+/** Escala uma aeronave na rota. Se ela estava em outra rota, sai de lá. */
+export function assignPlane(s: GameState, routeId: string, planeId: string): ActionResult {
+  const r = s.routes.find((r) => r.id === routeId);
+  const p = findPlane(s, planeId);
+  if (!r || !p) return 'Inválido.';
+  if (r.planes.some((x) => x.id === planeId)) return 'Aeronave já escalada nesta rota.';
+  const m = MODELS[p.model];
+  if (r.dist > m.range) return `Fora do alcance do ${m.name}.`;
+  if (maxFreq(m, r.dist) < 1) return 'Rota longa demais para essa aeronave.';
+  unassignPlane(s, planeId);
+  r.planes.push({ id: planeId, freq: defaultFreq(p, r.dist) });
+  return null;
+}
+
+/** Tira uma aeronave da rota. */
+export function unassignFromRoute(s: GameState, routeId: string, planeId: string): ActionResult {
+  const r = s.routes.find((r) => r.id === routeId);
+  if (!r || !r.planes.some((x) => x.id === planeId)) return 'Inválido.';
+  r.planes = r.planes.filter((x) => x.id !== planeId);
+  return null;
+}
+
+/** Frequência de uma aeronave na rota, de 1 ao máximo dela. */
+export function setPlaneFreq(s: GameState, routeId: string, planeId: string, freq: number): ActionResult {
+  const r = s.routes.find((r) => r.id === routeId);
+  const x = r?.planes.find((x) => x.id === planeId);
+  const p = findPlane(s, planeId);
+  if (!r || !x || !p) return 'Inválido.';
+  x.freq = clamp(Math.round(freq), 1, Math.max(1, maxFreq(MODELS[p.model], r.dist)));
   return null;
 }
 

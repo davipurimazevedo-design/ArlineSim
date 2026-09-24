@@ -1,5 +1,14 @@
 import type { ReactNode } from 'react';
-import { actions, fmtInt, fmtMoney, maintCost, MODELS, type ModType, type Tone } from '../../engine';
+import {
+  actions,
+  routeOfPlane,
+  fmtInt,
+  fmtMoney,
+  maintCost,
+  MODELS,
+  type ModType,
+  type Tone,
+} from '../../engine';
 import { useGame } from '../../store/gameStore';
 import { Btn } from '../components/Btn';
 import { CashChart } from '../components/CashChart';
@@ -69,7 +78,7 @@ export function Painel() {
           </Btn>
         ),
       });
-    else if (!g.routes.some((r) => r.planeId === p.id))
+    else if (!routeOfPlane(g, p.id))
       alerts.push({
         k: 'i' + p.id,
         tone: 'bad',
@@ -83,7 +92,7 @@ export function Painel() {
       });
   }
   for (const r of g.routes) {
-    if (!r.planeId)
+    if (!r.planes.length)
       alerts.push({
         k: 'r' + r.id,
         tone: 'bad',

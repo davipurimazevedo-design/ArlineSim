@@ -57,8 +57,8 @@ describe('frota', () => {
     expect(s.cash).toBeCloseTo(cash + value);
     expect(actions.release(s, leased.id)).toBeNull();
     expect(s.cash).toBeCloseTo(cash + value);
-    expect(r1.planeId).toBeNull();
-    expect(r2.planeId).toBeNull();
+    expect(r1.planes).toEqual([]);
+    expect(r2.planes).toEqual([]);
     expect(s.fleet).toHaveLength(0);
   });
 
@@ -129,11 +129,10 @@ describe('openRoute', () => {
       from: 'BSB',
       to: 'CNF',
       dist: d,
-      planeId: atr.id,
+      planes: [{ id: atr.id, freq: Math.min(2, maxFreq(MODELS.AT7, d)) }],
       service: 1,
       ai: 1.2,
       opened: s.day,
-      freq: Math.min(2, maxFreq(MODELS.AT7, d)),
       price: fairPrice(d),
       priceJ: Math.round((fairPrice(d) * 3.5) / 10) * 10,
     });
@@ -191,14 +190,14 @@ describe('openRoute', () => {
     const { s, atr } = setup();
     actions.openRoute(s, { from: 'BSB', to: 'CNF', planeId: atr.id });
     actions.openRoute(s, { from: 'BSB', to: 'GYN', planeId: atr.id });
-    expect(s.routes[0]!.planeId).toBeNull();
-    expect(s.routes[1]!.planeId).toBe(atr.id);
+    expect(s.routes[0]!.planes).toEqual([]);
+    expect(s.routes[1]!.planes.map((x) => x.id)).toEqual([atr.id]);
   });
 
-  it('sem aeronave abre com frequência 1 (sem checar alcance, como no protótipo)', () => {
+  it('sem aeronave abre vazia (sem checar alcance, como no protótipo)', () => {
     const { s } = setup();
     expect(actions.openRoute(s, { from: 'BSB', to: 'MAO', planeId: null })).toBeNull();
-    expect(s.routes[0]).toMatchObject({ planeId: null, freq: 1 });
+    expect(s.routes[0]!.planes).toEqual([]);
   });
 });
 
@@ -208,10 +207,11 @@ describe('updateRoute e closeRoute', () => {
     const p = addTestPlane(s, 'AT7');
     const r = addTestRoute(s, 'BSB', 'CNF', p.id);
     const mf = maxFreq(MODELS.AT7, r.dist);
-    actions.updateRoute(s, r.id, { freq: 99 });
-    expect(r.freq).toBe(mf);
-    actions.updateRoute(s, r.id, { freq: 0 });
-    expect(r.freq).toBe(1);
+    actions.setPlaneFreq(s, r.id, p.id, 99);
+    expect(r.planes[0]!.freq).toBe(mf);
+    actions.setPlaneFreq(s, r.id, p.id, 0);
+    expect(r.planes[0]!.freq).toBe(1);
+    expect(actions.setPlaneFreq(s, r.id, 'nada', 2)).toBe('Inválido.');
     actions.updateRoute(s, r.id, { price: 10 });
     expect(r.price).toBe(50);
     actions.updateRoute(s, r.id, { price: 1e9 });
@@ -224,19 +224,33 @@ describe('updateRoute e closeRoute', () => {
     expect(r.service).toBe(2);
   });
 
-  it('troca de aeronave valida alcance e ajusta a frequência', () => {
+  it('escalar aeronave valida alcance e tira de outra rota', () => {
     const s = makeGame();
     s.license = 1;
     const jet = addTestPlane(s, 'E295');
     const atr = addTestPlane(s, 'AT7');
     const r = addTestRoute(s, 'BSB', 'MAO', jet.id, { freq: 1 });
-    expect(actions.updateRoute(s, r.id, { planeId: atr.id })).toBe('Fora do alcance do ATR 72-600.');
+    expect(actions.assignPlane(s, r.id, atr.id)).toBe('Fora do alcance do ATR 72-600.');
+    expect(actions.assignPlane(s, r.id, jet.id)).toBe('Aeronave já escalada nesta rota.');
     const r2 = addTestRoute(s, 'BSB', 'GYN', null);
-    actions.updateRoute(s, r2.id, { planeId: jet.id });
-    expect(r2.planeId).toBe(jet.id);
-    expect(r.planeId).toBeNull();
-    actions.updateRoute(s, r2.id, { planeId: null });
-    expect(r2.planeId).toBeNull();
+    expect(actions.assignPlane(s, r2.id, jet.id)).toBeNull();
+    expect(r2.planes).toEqual([{ id: jet.id, freq: 2 }]);
+    expect(r.planes).toEqual([]);
+    expect(actions.unassignFromRoute(s, r2.id, jet.id)).toBeNull();
+    expect(r2.planes).toEqual([]);
+  });
+
+  it('várias aeronaves na mesma rota', () => {
+    const s = makeGame();
+    const a = addTestPlane(s, 'AT7');
+    const b = addTestPlane(s, 'AT7');
+    const r = addTestRoute(s, 'BSB', 'CNF', a.id);
+    expect(actions.assignPlane(s, r.id, b.id)).toBeNull();
+    expect(r.planes.map((x) => x.id)).toEqual([a.id, b.id]);
+    actions.setPlaneFreq(s, r.id, b.id, 3);
+    expect(r.planes[1]!.freq).toBe(3);
+    actions.release(s, a.id);
+    expect(r.planes.map((x) => x.id)).toEqual([b.id]);
   });
 
   it('encerrar custa 1 de reputação', () => {

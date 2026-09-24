@@ -25,6 +25,29 @@ describe('save', () => {
     expect(b).toEqual(a);
   });
 
+  it('migra um save da Fase 1 (v1) para v2', () => {
+    const s = makeGame();
+    const p = addTestPlane(s, 'AT7');
+    const r = addTestRoute(s, 'BSB', 'CNF', p.id, { freq: 3 });
+    const empty = addTestRoute(s, 'BSB', 'GYN', null);
+    const { planes: _a, ...r1 } = r;
+    const { planes: _b, ...e1 } = empty;
+    const v1 = {
+      ...s,
+      v: 1,
+      routes: [
+        { ...r1, planeId: p.id, freq: 3 },
+        { ...e1, planeId: null, freq: 1 },
+      ],
+    };
+    const g = migrate(JSON.parse(JSON.stringify(v1)))!;
+    expect(g.v).toBe(SAVE_VERSION);
+    expect(g.routes[0]!.planes).toEqual([{ id: p.id, freq: 3 }]);
+    expect(g.routes[1]!.planes).toEqual([]);
+    expect(g.routes[0]).not.toHaveProperty('planeId');
+    expect(g.routes[0]).not.toHaveProperty('freq');
+  });
+
   it('rejeita lixo e versões futuras', () => {
     expect(migrate(null)).toBeNull();
     expect(migrate('x')).toBeNull();

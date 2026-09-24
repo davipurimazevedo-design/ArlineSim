@@ -66,6 +66,17 @@ describe('tick', () => {
     expect(r.last?.flying).toBe(true);
   });
 
+  it('cada avião da rota se desgasta pelas próprias horas', () => {
+    const s = makeGame();
+    const a = addTestPlane(s, 'AT7');
+    const b = addTestPlane(s, 'AT7');
+    const r = addTestRoute(s, 'BSB', 'CNF', a.id, { freq: 1 });
+    r.planes.push({ id: b.id, freq: 3 });
+    tick(s);
+    expect(b.hours).toBeCloseTo(3 * a.hours);
+    expect(100 - b.condition).toBeCloseTo(3 * (100 - a.condition));
+  });
+
   it('pane: avião abaixo de 25% quebra em algum momento, com custo 1,5× e +2 dias', () => {
     const s = makeGame('BSB', 7);
     const p = addTestPlane(s, 'AT7', { condition: 20 });

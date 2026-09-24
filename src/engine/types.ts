@@ -92,18 +92,24 @@ export interface RouteLast {
   flying: boolean;
 }
 
+/** Aeronave escalada numa rota, com a própria frequência. */
+export interface RoutePlane {
+  id: string;
+  /** idas e voltas por dia desta aeronave */
+  freq: number;
+}
+
 export interface Route {
   id: string;
   from: AirportCode;
   to: AirportCode;
   dist: number;
-  planeId: string | null;
-  /** idas e voltas por dia */
-  freq: number;
+  /** aeronaves escaladas (capacidade e frequência somam) */
+  planes: RoutePlane[];
   price: number;
   priceJ: number;
   service: ServiceLevel;
-  /** força da concorrência na rota */
+  /** força total da concorrência na rota */
   ai: number;
   opened: number;
   last: RouteLast | null;
@@ -182,7 +188,12 @@ export interface SimResult {
   share: number;
   lf: number;
   flying: boolean;
+  /** horas de voo somadas */
   hours: number;
+  /** horas de voo por aeronave (id → h) */
+  planeHours: Record<string, number>;
+  /** frequência total das aeronaves que voaram */
+  freq: number;
   reason: string;
 }
 

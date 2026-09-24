@@ -1,4 +1,13 @@
-import { actions, buyoutCost, fmtMoney, maintCost, maintDays, MODELS, planeValue } from '../../engine';
+import {
+  actions,
+  buyoutCost,
+  routeOfPlane,
+  fmtMoney,
+  maintCost,
+  maintDays,
+  MODELS,
+  planeValue,
+} from '../../engine';
 import { useGame } from '../../store/gameStore';
 import { CellBar } from '../components/Bar';
 import { Btn } from '../components/Btn';
@@ -51,7 +60,7 @@ export function Frota() {
           <tbody>
             {g.fleet.map((p, i) => {
               const m = MODELS[p.model];
-              const r = g.routes.find((x) => x.planeId === p.id);
+              const r = routeOfPlane(g, p.id);
               const st = p.maint > 0 ? 'mid' : p.condition < 40 ? 'bad' : !r ? 'bad' : 'good';
               const buyout = buyoutCost(p);
               const value = planeValue(p);

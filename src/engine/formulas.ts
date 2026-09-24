@@ -72,6 +72,20 @@ export function blockHours(m: AircraftModel, d: number): number {
   return d / m.speed + 0.5;
 }
 
+/** Assentos da aeronave (Y e J). */
+export function seatsOf(p: Plane): { y: number; j: number } {
+  const m = MODELS[p.model];
+  return { y: m.y, j: m.j };
+}
+
+/**
+ * Efeito da frequência na atratividade: +0,1 por voo até 6 (como no protótipo)
+ * e +0,05 por voo do 7º ao 10º.
+ */
+export function freqFactor(freq: number): number {
+  return 0.7 + 0.1 * Math.min(freq, 6) + 0.05 * clamp(freq - 6, 0, 4);
+}
+
 /** Idas e voltas por dia. */
 export function maxFreq(m: AircraftModel, d: number): number {
   return Math.max(0, Math.floor(m.util / (2 * blockHours(m, d))));

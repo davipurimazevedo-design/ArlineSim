@@ -3,7 +3,7 @@ import { START_CASH } from './formulas';
 import { toSeed } from './rng';
 import type { AirportCode, GameState } from './types';
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 export const FIRST_EVENT_DAY = 18;
 
 export function newGame(name: string, hub: AirportCode, seed: number, now = 0): GameState {

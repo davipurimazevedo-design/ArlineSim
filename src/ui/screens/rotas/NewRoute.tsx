@@ -10,6 +10,7 @@ import {
   MODELS,
   REGIONAL_MAX_KM,
   routeExists,
+  routeOfPlane,
   type AirportCode,
 } from '../../../engine';
 import { useGame } from '../../../store/gameStore';
@@ -22,7 +23,7 @@ export function NewRoute({ onDone }: { onDone: () => void }) {
   const uid = useId();
   const [from, setFrom] = useState<AirportCode>(g.hub);
   const [to, setTo] = useState<AirportCode | ''>(g.slots.find((c) => c !== g.hub) ?? '');
-  const idle = g.fleet.find((p) => !g.routes.some((r) => r.planeId === p.id));
+  const idle = g.fleet.find((p) => !routeOfPlane(g, p.id));
   const [plane, setPlane] = useState<string | null>(idle?.id ?? null);
 
   const d = to && from !== to ? dist(from, to) : 0;

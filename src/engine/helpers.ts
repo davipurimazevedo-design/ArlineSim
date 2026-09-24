@@ -1,6 +1,6 @@
 // Pequenas mutações compartilhadas por ações, eventos e tick.
 import { clamp } from './formulas';
-import type { GameState, ModType, Plane, Tone } from './types';
+import type { GameState, ModType, Plane, Route, Tone } from './types';
 
 export function addLog(s: GameState, text: string, tone: Tone): void {
   s.log.unshift({ day: s.day, text, tone });
@@ -30,5 +30,15 @@ export function findPlane(s: GameState, id: string | null): Plane | undefined {
 
 /** Tira a aeronave de qualquer rota em que esteja escalada. */
 export function unassignPlane(s: GameState, planeId: string): void {
-  for (const r of s.routes) if (r.planeId === planeId) r.planeId = null;
+  for (const r of s.routes) r.planes = r.planes.filter((x) => x.id !== planeId);
+}
+
+/** Rota em que a aeronave está escalada. */
+export function routeOfPlane(s: GameState, planeId: string): Route | undefined {
+  return s.routes.find((r) => r.planes.some((x) => x.id === planeId));
+}
+
+/** Frequência total da rota (todas as aeronaves escaladas). */
+export function routeFreq(r: Route): number {
+  return r.planes.reduce((a, x) => a + x.freq, 0);
 }
