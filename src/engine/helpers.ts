@@ -1,5 +1,6 @@
 // Pequenas mutações compartilhadas por ações, eventos e tick.
 import { clamp } from './formulas';
+import { rules } from './rules';
 import type { GameState, ModType, Plane, Route, Tone } from './types';
 
 export function addLog(s: GameState, text: string, tone: Tone): void {
@@ -10,8 +11,9 @@ export function addMod(s: GameState, type: ModType, value: number, days: number)
   s.mods.push({ type, value, until: s.day + days });
 }
 
+/** Soma à reputação, dentro de 0 e do teto do modelo de negócio. */
 export function changeRep(s: GameState, delta: number): void {
-  s.reputation = clamp(s.reputation + delta, 0, 100);
+  s.reputation = clamp(s.reputation + delta, 0, rules(s).repCap);
 }
 
 /** Soma n à condição de todas as aeronaves fora de manutenção. */

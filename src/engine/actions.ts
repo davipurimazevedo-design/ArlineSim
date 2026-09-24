@@ -15,13 +15,13 @@ import {
   LEASE_DEPOSIT_DAYS,
   maintCost,
   maintDays,
-  maxFreq,
   planeValue,
-  slotCost,
 } from './formulas';
 import { addLog, changeRep, findPlane, unassignPlane } from './helpers';
 import { rivalsFor } from './rivals';
+import { maxFreqFor, modelAllowed, rules, slotCostFor } from './rules';
 import { randInt, uid } from './rng';
+import { BUSINESS_MODELS } from './data/businessModels';
 import type {
   ActionResult,
   AirportCode,
@@ -73,6 +73,8 @@ export function buyoutCost(p: Plane): number {
 export function lease(s: GameState, model: ModelKey): ActionResult {
   const m = MODELS[model];
   const dep = leaseDeposit(model);
+  if (!modelAllowed(s, model))
+    return `O modelo ${BUSINESS_MODELS[s.businessModel].name} não opera o ${m.name}.`;
   if (m.tier > s.license) return 'Licença insuficiente.';
   if (s.cash < dep) return 'Caixa insuficiente para o depósito.';
   s.cash -= dep;
@@ -83,6 +85,8 @@ export function lease(s: GameState, model: ModelKey): ActionResult {
 
 export function buy(s: GameState, model: ModelKey): ActionResult {
   const m = MODELS[model];
+  if (!modelAllowed(s, model))
+    return `O modelo ${BUSINESS_MODELS[s.businessModel].name} não opera o ${m.name}.`;
   if (m.tier > s.license) return 'Licença insuficiente.';
   if (s.cash < m.price) return 'Caixa insuficiente.';
   s.cash -= m.price;
@@ -132,6 +136,8 @@ export function setCabin(s: GameState, id: string, layout: number): ActionResult
   const layouts = p && CABINS[p.model];
   if (!p || !layouts || !layouts[layout]) return 'Inválido.';
   if (s.license < 2) return 'Requer licença internacional.';
+  if (layouts[layout].j > 0 && !rules(s).allowJ)
+    return `O modelo ${BUSINESS_MODELS[s.businessModel].name} não opera classe executiva.`;
   if (p.cabin === layout) return 'A cabine já tem esse layout.';
   if (p.maint > 0) return 'Aeronave em manutenção.';
   if (s.cash < CABIN_CHANGE_COST) return 'Caixa insuficiente.';
@@ -150,7 +156,7 @@ export function setCabin(s: GameState, id: string, layout: number): ActionResult
 export function buySlot(s: GameState, code: AirportCode): ActionResult {
   if (s.slots.includes(code)) return 'Já possui.';
   if (AIRPORTS[code].intl && s.license < 2) return 'Requer licença internacional.';
-  const c = slotCost(code);
+  const c = slotCostFor(s, code);
   if (s.cash < c) return 'Caixa insuficiente.';
   s.cash -= c;
   s.slots.push(code);
@@ -160,6 +166,8 @@ export function buySlot(s: GameState, code: AirportCode): ActionResult {
 
 export function buyLicense(s: GameState, tier: LicenseTier): ActionResult {
   if (tier !== s.license + 1) return 'Inválido.';
+  if (tier > rules(s).maxLicense)
+    return `O modelo ${BUSINESS_MODELS[s.businessModel].name} não opera com a licença ${LICENSES[tier].name}.`;
   const L = LICENSES[tier];
   if (s.cash < L.cost) return 'Caixa insuficiente.';
   s.cash -= L.cost;
@@ -189,7 +197,7 @@ export function openRoute(s: GameState, { from, to, planeId }: OpenRouteArgs): A
   if (p) {
     const m = MODELS[p.model];
     if (d > m.range) return `Fora do alcance do ${m.name}.`;
-    if (maxFreq(m, d) < 1) return 'Rota longa demais para a utilização diária da aeronave.';
+    if (maxFreqFor(s, p.model, d) < 1) return 'Rota longa demais para a utilização diária da aeronave.';
     unassignPlane(s, p.id);
   }
   const r: Route = {
@@ -197,10 +205,10 @@ export function openRoute(s: GameState, { from, to, planeId }: OpenRouteArgs): A
     from,
     to,
     dist: d,
-    planes: p ? [{ id: p.id, freq: defaultFreq(p, d) }] : [],
+    planes: p ? [{ id: p.id, freq: defaultFreq(s, p, d) }] : [],
     price: fairPrice(d),
     priceJ: defaultPriceJ(d),
-    service: 1,
+    service: rules(s).services[0]!,
     ai: baseCompetition(from, to),
     rivals: rivalsFor(from, to),
     opened: s.day,
@@ -212,8 +220,8 @@ export function openRoute(s: GameState, { from, to, planeId }: OpenRouteArgs): A
 }
 
 /** Frequência padrão ao escalar uma aeronave: min(2, máximo). */
-export function defaultFreq(p: Plane, d: number): number {
-  return Math.min(2, maxFreq(MODELS[p.model], d));
+export function defaultFreq(s: GameState, p: Plane, d: number): number {
+  return Math.min(2, maxFreqFor(s, p.model, d));
 }
 
 export interface RoutePatch {
@@ -228,7 +236,11 @@ export function updateRoute(s: GameState, id: string, patch: RoutePatch): Action
   if (!r) return 'Inválido.';
   if (patch.price !== undefined) r.price = clamp(Math.round(patch.price), 50, 50000);
   if (patch.priceJ !== undefined) r.priceJ = clamp(Math.round(patch.priceJ), 100, 150000);
-  if (patch.service !== undefined) r.service = clamp(patch.service, 0, 2) as ServiceLevel;
+  if (patch.service !== undefined) {
+    if (!rules(s).services.includes(patch.service))
+      return `O modelo ${BUSINESS_MODELS[s.businessModel].name} não oferece esse serviço de bordo.`;
+    r.service = patch.service;
+  }
   return null;
 }
 
@@ -241,9 +253,9 @@ export function assignPlane(s: GameState, routeId: string, planeId: string): Act
   const m = MODELS[p.model];
   if (s.license === 0 && r.dist > REGIONAL_MAX_KM) return 'Licença regional limita rotas a 1.500 km.';
   if (r.dist > m.range) return `Fora do alcance do ${m.name}.`;
-  if (maxFreq(m, r.dist) < 1) return 'Rota longa demais para essa aeronave.';
+  if (maxFreqFor(s, p.model, r.dist) < 1) return 'Rota longa demais para essa aeronave.';
   unassignPlane(s, planeId);
-  r.planes.push({ id: planeId, freq: defaultFreq(p, r.dist) });
+  r.planes.push({ id: planeId, freq: defaultFreq(s, p, r.dist) });
   return null;
 }
 
@@ -261,7 +273,7 @@ export function setPlaneFreq(s: GameState, routeId: string, planeId: string, fre
   const x = r?.planes.find((x) => x.id === planeId);
   const p = findPlane(s, planeId);
   if (!r || !x || !p) return 'Inválido.';
-  x.freq = clamp(Math.round(freq), 1, Math.max(1, maxFreq(MODELS[p.model], r.dist)));
+  x.freq = clamp(Math.round(freq), 1, Math.max(1, maxFreqFor(s, p.model, r.dist)));
   return null;
 }
 

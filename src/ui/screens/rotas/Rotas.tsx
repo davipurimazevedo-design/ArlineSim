@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react';
 import { fmtInt, fmtMoney, MODELS, overlapsOf, rivalShares, routeFreq, type Route } from '../../../engine';
-import { useGame } from '../../../store/gameStore';
+import { useGameState } from '../../../store/gameStore';
 import { CellBar } from '../../components/Bar';
 import { Btn } from '../../components/Btn';
 import { Empty } from '../../components/Empty';
@@ -9,7 +9,7 @@ import { NewRoute } from './NewRoute';
 import { RouteEditor } from './RouteEditor';
 
 export function Rotas() {
-  const g = useGame((s) => s.game!);
+  const g = useGameState();
   const [open, setOpen] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const toggle = (id: string) => setOpen(open === id ? null : id);

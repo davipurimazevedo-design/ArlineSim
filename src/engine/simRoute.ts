@@ -16,7 +16,9 @@ import {
   seasonality,
   seatsOf,
 } from './formulas';
+import { AIRPORTS } from './data/airports';
 import { findPlane } from './helpers';
+import { rules } from './rules';
 import { overlapFactor } from './overlap';
 import type { GameState, Plane, Route, SimResult } from './types';
 
@@ -64,12 +66,13 @@ export function simRoute(s: GameState, r: Route): SimResult {
   const intl = isIntlPair(r.from, r.to);
   const svc = SERVICE[r.service];
 
+  const R = rules(s);
   let freq = 0;
   let capY = 0;
   let capJ = 0;
   let worn = 0; // capacidade de aeronaves com condição < 50
   for (const { p, freq: f } of active) {
-    const seats = seatsOf(p);
+    const seats = seatsOf(p, R.seatFactor);
     freq += f;
     capY += seats.y * f * 2;
     capJ += seats.j * f * 2;
@@ -77,10 +80,15 @@ export function simRoute(s: GameState, r: Route): SimResult {
   }
 
   const overlap = overlapFactor(s, r);
-  const demand = baseDemand(r.from, r.to) * modVal(s, 'demand') * seasonality(s.day) * overlap;
+  const demand =
+    baseDemand(r.from, r.to) *
+    modVal(s, 'demand') *
+    seasonality(s.day) *
+    overlap *
+    R.demandFactor(AIRPORTS[r.from], AIRPORTS[r.to]);
   const fare = modVal(s, 'fare');
   const price = r.price * fare;
-  const priceF = Math.pow(fp / price, 2.2);
+  const priceF = Math.pow(fp / price, R.elasticity);
   // com um avião só, equivale ao protótipo: −0,1 se a condição estiver abaixo de 50
   const q = 0.75 + 0.5 * (s.reputation / 100) + svc.q - 0.1 * (worn / (capY + capJ));
   const freqF = freqFactor(freq);

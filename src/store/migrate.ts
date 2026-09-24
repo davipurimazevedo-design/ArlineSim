@@ -36,6 +36,12 @@ const MIGRATIONS: Record<number, (g: Raw) => Raw> = {
     ...g,
     achievements: g.achievements && typeof g.achievements === 'object' ? g.achievements : {},
   }),
+  // v5 → v6: modelo de negócio (saves antigos são Tradicional) e divisões
+  5: (g) => ({
+    ...g,
+    businessModel: typeof g.businessModel === 'string' ? g.businessModel : 'tradicional',
+    divisions: Array.isArray(g.divisions) ? g.divisions : [],
+  }),
 };
 
 /** Valida e migra um save cru. Devolve null se não for aproveitável. */

@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import {
   AIRPORTS,
+  BUSINESS_MODEL_IDS,
+  BUSINESS_MODELS,
+  type BusinessModelId,
   fmtMoney,
   HUBS,
   hubDifficulty,
@@ -18,6 +21,8 @@ export function NewGame() {
   const start = useGame((s) => s.start);
   const [name, setName] = useState('Asa Norte Linhas Aéreas');
   const [hub, setHub] = useState<AirportCode>('BSB');
+  const [model, setModel] = useState<BusinessModelId>('tradicional');
+  const bm = BUSINESS_MODELS[model];
   const ok = name.trim().length > 0;
 
   return (
@@ -26,7 +31,7 @@ export function NewGame() {
         className="ng-card"
         onSubmit={(e) => {
           e.preventDefault();
-          if (ok) start(name.trim(), hub);
+          if (ok) start(name.trim(), hub, model);
         }}
       >
         <span className="tail big" aria-hidden="true">
@@ -41,6 +46,42 @@ export function NewGame() {
           <span>Nome</span>
           <input type="text" value={name} maxLength={32} onChange={(e) => setName(e.target.value)} />
         </label>
+        <span className="lbl" id="model-label">
+          Modelo de negócio
+        </span>
+        <div className="models" role="radiogroup" aria-labelledby="model-label">
+          {BUSINESS_MODEL_IDS.filter((id) => BUSINESS_MODELS[id].available).map((id) => (
+            <button
+              key={id}
+              type="button"
+              role="radio"
+              aria-checked={model === id}
+              onClick={() => setModel(id)}
+            >
+              <b>{BUSINESS_MODELS[id].name}</b>
+              <small>{BUSINESS_MODELS[id].tagline}</small>
+            </button>
+          ))}
+        </div>
+        <div className="model-detail" aria-live="polite">
+          <div>
+            <small>Ganha</small>
+            <ul className="gain">
+              {bm.gains.map((x) => (
+                <li key={x}>{x}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <small>Perde</small>
+            <ul className="loss">
+              {bm.losses.map((x) => (
+                <li key={x}>{x}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <small>O modelo não pode ser trocado depois.</small>
         <span className="lbl" id="hub-label">
           Hub
         </span>

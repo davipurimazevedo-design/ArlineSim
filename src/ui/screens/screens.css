@@ -622,3 +622,149 @@
     flex-wrap: wrap;
   }
 }
+
+/* criador de rotas */
+.route-creator {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.rc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.3fr;
+  gap: 14px 18px;
+  align-items: start;
+}
+.route-creator .field {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.route-creator > .btn {
+  justify-self: start;
+}
+.route-creator .facts small {
+  display: block;
+}
+.route-creator .note {
+  margin: 0;
+}
+.rc-costs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  max-width: 520px;
+  font-size: 14px;
+}
+.rc-costs li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.rc-costs .total {
+  border-top: 1px solid var(--line);
+  padding-top: 6px;
+  font-weight: 600;
+}
+.rc-costs .daily {
+  color: var(--muted);
+}
+
+/* seletor de aeroporto com busca */
+.picker {
+  position: relative;
+}
+.picker-list {
+  position: absolute;
+  z-index: 15;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 4px 0 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  max-height: 320px;
+  overflow-y: auto;
+}
+.picker-list li {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  column-gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text);
+}
+.picker-list li small {
+  grid-column: 2;
+}
+.picker-list li.on,
+.picker-list li:hover {
+  background: var(--panel2);
+}
+.picker-list .picker-empty {
+  display: block;
+  color: var(--muted);
+  cursor: default;
+}
+
+/* escolha do modelo de negócio */
+.models {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.models button {
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 10px 12px;
+  cursor: pointer;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+.models button[aria-checked='true'] {
+  border-color: var(--teal);
+  box-shadow: inset 0 0 0 1px var(--teal);
+}
+.models b {
+  font-family: var(--f-num);
+  font-size: 20px;
+}
+.model-detail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  font-size: 13px;
+}
+.model-detail ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+.model-detail .gain {
+  color: var(--teal-t);
+}
+.model-detail .loss {
+  color: var(--alert-t);
+}
+.slot-search {
+  max-width: 320px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 760px) {
+  .rc-grid,
+  .models,
+  .model-detail {
+    grid-template-columns: 1fr;
+  }
+}

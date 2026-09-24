@@ -8,6 +8,7 @@ import {
   tick,
   type ActionResult,
   type AirportCode,
+  type BusinessModelId,
   type GameState,
   type OfflineSummary,
   type Side,
@@ -43,7 +44,7 @@ interface Store {
   theme: Theme | null;
 
   boot: () => Promise<void>;
-  start: (name: string, hub: AirportCode) => void;
+  start: (name: string, hub: AirportCode, model?: BusinessModelId) => void;
   /** Executa uma ação do motor sobre o jogo. Erros viram toast. Salva em seguida. */
   act: (fn: (g: GameState) => ActionResult) => ActionResult;
   /** Processa n dias (loop). */
@@ -90,8 +91,13 @@ export const useGame = create<Store>()(
       }
     },
 
-    start: (name, hub) => {
-      set({ game: newGame(name, hub, newSeed(), Date.now()), tab: 'painel', offline: null, result: null });
+    start: (name, hub, model = 'tradicional') => {
+      set({
+        game: newGame(name, hub, newSeed(), Date.now(), model),
+        tab: 'painel',
+        offline: null,
+        result: null,
+      });
       get().save();
     },
 
@@ -193,4 +199,18 @@ export const useGame = create<Store>()(
 /** Atalho para as ações do motor que recebem o jogo como primeiro argumento. */
 export function useAct() {
   return useGame((s) => s.act);
+}
+
+/** Último jogo não nulo (ver useGameState). */
+let lastGame: GameState | null = null;
+useGame.subscribe((s) => {
+  if (s.game) lastGame = s.game;
+});
+
+/**
+ * Jogo atual para as telas de jogo. Ao recomeçar ou na falência, uma tela pode renderizar
+ * mais uma vez com o jogo já apagado antes de ser desmontada; nesse instante usa o último válido.
+ */
+export function useGameState(): GameState {
+  return useGame((s) => s.game ?? lastGame!);
 }

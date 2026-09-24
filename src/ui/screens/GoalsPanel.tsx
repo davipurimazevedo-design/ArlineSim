@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { fmtInt, fmtMoney, GOALS, pendingGoals, type Progress } from '../../engine';
-import { useGame } from '../../store/gameStore';
+import { useGameState } from '../../store/gameStore';
 import { Bar } from '../components/Bar';
 import { Empty } from '../components/Empty';
 import { Pill } from '../components/Pill';
@@ -15,7 +15,7 @@ function progressText(p: Progress): string {
 
 /** Próximos objetivos com progresso e, alternando, a lista de conquistas. */
 export function GoalsPanel() {
-  const g = useGame((s) => s.game!);
+  const g = useGameState();
   const [showDone, setShowDone] = useState(false);
   const next = pendingGoals(g).slice(0, NEXT);
   const done = GOALS.filter((x) => g.achievements[x.id] !== undefined).sort(

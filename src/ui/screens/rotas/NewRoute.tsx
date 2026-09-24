@@ -1,45 +1,50 @@
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import {
   actions,
   AIRPORTS,
-  baseDemand,
-  dist,
-  fairPrice,
+  BUSINESS_MODELS,
+  createRoute,
   fmtInt,
   fmtMoney,
+  MODEL_KEYS,
   MODELS,
-  REGIONAL_MAX_KM,
-  routeExists,
-  routeOfPlane,
+  maxFreqFor,
+  modelAllowed,
   overlapsOf,
+  planRoute,
+  routeOfPlane,
   type AirportCode,
+  type ModelKey,
 } from '../../../engine';
-import { useGame } from '../../../store/gameStore';
+import { useGame, useGameState } from '../../../store/gameStore';
+import { AirportPicker } from '../../components/AirportPicker';
 import { Btn } from '../../components/Btn';
+import { Money } from '../../components/Money';
 import { overlapNames } from './overlapText';
-import { PlaneSelect } from './PlaneSelect';
 
+/** Aeronave escolhida: da frota ("p:<id>") ou arrendar nova ("m:<modelo>"). */
+type PlaneChoice = '' | `p:${string}` | `m:${ModelKey}`;
+
+/** Criador de rotas: origem, destino e aeronave; compra os slots que faltam e abre a rota de uma vez. */
 export function NewRoute({ onDone }: { onDone: () => void }) {
-  const g = useGame((s) => s.game!);
+  const g = useGameState();
   const act = useGame((s) => s.act);
-  const uid = useId();
-  const [from, setFrom] = useState<AirportCode>(g.hub);
-  const [to, setTo] = useState<AirportCode | ''>(g.slots.find((c) => c !== g.hub) ?? '');
+  const [from, setFrom] = useState<AirportCode | ''>(g.hub);
+  const [to, setTo] = useState<AirportCode | ''>('');
   const idle = g.fleet.find((p) => !routeOfPlane(g, p.id));
-  const [plane, setPlane] = useState<string | null>(idle?.id ?? null);
+  const [choice, setChoice] = useState<PlaneChoice>(idle ? `p:${idle.id}` : 'm:AT7');
 
-  const d = to && from !== to ? dist(from, to) : 0;
-  const p = g.fleet.find((x) => x.id === plane);
-  const m = p && MODELS[p.model];
-
-  // rotas próprias que disputariam passageiros com a nova
+  const planeId = choice.startsWith('p:') ? choice.slice(2) : null;
+  const leaseModel = choice.startsWith('m:') ? (choice.slice(2) as ModelKey) : null;
+  const args = from && to ? { from, to, planeId, leaseModel } : null;
+  const plan = args ? planRoute(g, args) : null;
   const overlaps =
-    to && d
+    plan && plan.dist && from && to
       ? overlapsOf(g, {
           id: '',
           from,
           to,
-          dist: d,
+          dist: plan.dist,
           planes: [],
           price: 0,
           priceJ: 0,
@@ -51,70 +56,141 @@ export function NewRoute({ onDone }: { onDone: () => void }) {
         })
       : [];
 
-  let warn = '';
-  if (g.slots.length < 2) warn = 'Compre slots em outro aeroporto no Mercado.';
-  else if (!to || !d) warn = 'Escolha dois aeroportos diferentes.';
-  else if (g.license === 0 && d > REGIONAL_MAX_KM) warn = 'A licença regional limita rotas a 1.500 km.';
-  else if (m && d > m.range) warn = `Fora do alcance do ${m.name} (${fmtInt(m.range)} km).`;
-  else if (routeExists(g, from, to)) warn = 'Essa rota já existe.';
-
-  const options = g.slots.map((c) => (
-    <option key={c} value={c}>
-      {c} · {AIRPORTS[c].city}
-    </option>
-  ));
+  const leasable = MODEL_KEYS.filter((k) => modelAllowed(g, k) && MODELS[k].tier <= g.license);
 
   return (
-    <div className="panel new-route">
-      <label className="field" htmlFor={uid + 'from'}>
-        <span>Origem</span>
-        <select id={uid + 'from'} value={from} onChange={(e) => setFrom(e.target.value as AirportCode)}>
-          {options}
-        </select>
-      </label>
-      <label className="field" htmlFor={uid + 'to'}>
-        <span>Destino</span>
-        <select id={uid + 'to'} value={to} onChange={(e) => setTo(e.target.value as AirportCode | '')}>
-          <option value="">—</option>
-          {options}
-        </select>
-      </label>
-      <label className="field" htmlFor={uid + 'plane'}>
-        <span>Aeronave</span>
-        <PlaneSelect id={uid + 'plane'} value={plane} dist={d} onChange={setPlane} />
-      </label>
-      <div className="facts">
-        <div>
-          <small>Distância</small>
-          <b className="num">{d ? fmtInt(d) + ' km' : '—'}</b>
-        </div>
-        <div>
-          <small>Demanda total</small>
-          <b className="num">{d && to ? fmtInt(baseDemand(from, to)) + ' pax/dia' : '—'}</b>
-        </div>
-        <div>
-          <small>Tarifa de mercado</small>
-          <b className="num">{d ? fmtMoney(fairPrice(d)) : '—'}</b>
+    <div className="panel route-creator">
+      <div className="rc-grid">
+        <AirportPicker label="Origem" value={from} onChange={setFrom} owned={g.slots} />
+        <AirportPicker
+          label="Destino"
+          value={to}
+          onChange={setTo}
+          owned={g.slots}
+          exclude={from ? [from] : []}
+        />
+        <div className="field">
+          <label htmlFor="rc-plane">Aeronave</label>
+          <select id="rc-plane" value={choice} onChange={(e) => setChoice(e.target.value as PlaneChoice)}>
+            {g.fleet.length > 0 && (
+              <optgroup label="Da sua frota">
+                {g.fleet.map((p) => {
+                  const m = MODELS[p.model];
+                  const used = routeOfPlane(g, p.id);
+                  const ok = !plan?.dist || (plan.dist <= m.range && maxFreqFor(g, p.model, plan.dist) > 0);
+                  return (
+                    <option key={p.id} value={`p:${p.id}`} disabled={!ok}>
+                      {p.reg} · {m.name}
+                      {used ? ` (em ${used.from}–${used.to})` : ''}
+                      {ok ? '' : ' — sem alcance'}
+                    </option>
+                  );
+                })}
+              </optgroup>
+            )}
+            <optgroup label="Arrendar agora">
+              {leasable.map((k) => (
+                <option key={k} value={`m:${k}`}>
+                  {MODELS[k].name} · depósito {fmtMoney(actions.leaseDeposit(k))} ·{' '}
+                  {fmtMoney(MODELS[k].lease)}/dia
+                </option>
+              ))}
+            </optgroup>
+          </select>
         </div>
       </div>
-      {!warn && overlaps.length > 0 && (
-        <p className="warn-line" role="note">
-          Vai disputar passageiros com {overlapNames(overlaps)}.
-        </p>
+
+      {plan && plan.dist > 0 && (
+        <>
+          <div className="facts">
+            <div>
+              <small>Distância</small>
+              <b className="num">{fmtInt(plan.dist)} km</b>
+            </div>
+            <div>
+              <small>Demanda total</small>
+              <b className="num">{fmtInt(plan.demand)} pax/dia</b>
+            </div>
+            <div>
+              <small>Tarifa de mercado</small>
+              <b className="num">{fmtMoney(plan.fair)}</b>
+            </div>
+            {plan.preview && (
+              <div>
+                <small>Resultado estimado</small>
+                <Money v={plan.preview.profit} signed />
+                <small>
+                  {fmtInt(plan.preview.pax)} pax · {Math.round(plan.preview.share * 100)}% do mercado ·{' '}
+                  {plan.preview.freq}× por dia
+                </small>
+              </div>
+            )}
+          </div>
+
+          <ul className="rc-costs" aria-label="Custos para abrir a rota">
+            {plan.slots.map((x) => (
+              <li key={x.code}>
+                <span>
+                  Slots em {AIRPORTS[x.code].city} ({x.code})
+                </span>
+                <b className="num">{fmtMoney(x.cost)}</b>
+              </li>
+            ))}
+            {plan.deposit > 0 && leaseModel && (
+              <li>
+                <span>Depósito do leasing do {MODELS[leaseModel].name}</span>
+                <b className="num">{fmtMoney(plan.deposit)}</b>
+              </li>
+            )}
+            <li className="total">
+              <span>Sai do caixa agora</span>
+              <b className="num">{plan.total ? fmtMoney(plan.total) : 'nada'}</b>
+            </li>
+            {(plan.newSlotFees > 0 || leaseModel) && (
+              <li className="daily">
+                <span>Custos fixos novos por dia</span>
+                <small className="num">
+                  {[
+                    plan.newSlotFees > 0 ? `slots ${fmtMoney(plan.newSlotFees)}` : '',
+                    leaseModel ? `leasing ${fmtMoney(MODELS[leaseModel].lease)}` : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' + ')}
+                </small>
+              </li>
+            )}
+          </ul>
+        </>
       )}
-      {warn && (
+
+      {plan?.error ? (
         <p className="warn-line" role="alert">
-          {warn}
+          {plan.error}
+        </p>
+      ) : (
+        overlaps.length > 0 && (
+          <p className="warn-line" role="note">
+            Vai disputar passageiros com {overlapNames(overlaps)}.
+          </p>
+        )
+      )}
+      {!args && (
+        <p className="note">Escolha a origem e o destino. Os slots que faltarem são comprados junto.</p>
+      )}
+      {g.businessModel !== 'tradicional' && (
+        <p className="note">
+          Modelo {BUSINESS_MODELS[g.businessModel].name}: só aparecem as aeronaves que ele opera.
         </p>
       )}
+
       <Btn
         kind="primary"
-        disabled={!!warn}
+        disabled={!args || !plan || !!plan.error}
         onClick={() => {
-          if (to && !act((s) => actions.openRoute(s, { from, to, planeId: plane }))) onDone();
+          if (args && !act((s) => createRoute(s, args))) onDone();
         }}
       >
-        Abrir rota
+        {plan?.total ? `Criar rota · ${fmtMoney(plan.total)}` : 'Criar rota'}
       </Btn>
     </div>
   );

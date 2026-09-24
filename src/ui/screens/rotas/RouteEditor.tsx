@@ -5,7 +5,8 @@ import {
   fairPriceJ,
   fmtInt,
   fmtMoney,
-  maxFreq,
+  maxFreqFor,
+  rules,
   MODELS,
   routeFreq,
   routePlanes,
@@ -19,7 +20,7 @@ import {
   type Route,
   type ServiceLevel,
 } from '../../../engine';
-import { useGame } from '../../../store/gameStore';
+import { useGame, useGameState } from '../../../store/gameStore';
 import { CellBar } from '../../components/Bar';
 import { Btn } from '../../components/Btn';
 import { Money } from '../../components/Money';
@@ -31,7 +32,7 @@ import { PlaneSelect } from './PlaneSelect';
 const SERVICE_OPTIONS = SERVICE.map((sv, i) => [i as ServiceLevel, sv.name] as const);
 
 export function RouteEditor({ r }: { r: Route }) {
-  const g = useGame((s) => s.game!);
+  const g = useGameState();
   const act = useGame((s) => s.act);
   const ask = useGame((s) => s.ask);
   const uid = useId();
@@ -44,6 +45,7 @@ export function RouteEditor({ r }: { r: Route }) {
   const prevProfit = prev?.flying ? routeProfit(g, r, prev) : null;
   const upd = (patch: RoutePatch) => act((s) => actions.updateRoute(s, r.id, patch));
   const hasJ = g.license >= 2 && assigned.some(({ p }) => seatsOf(p).j > 0);
+  const services = SERVICE_OPTIONS.filter(([k]) => rules(g).services.includes(k));
 
   return (
     <div className="editor">
@@ -67,7 +69,7 @@ export function RouteEditor({ r }: { r: Route }) {
                   <Stepper
                     value={freq}
                     min={1}
-                    max={maxFreq(m, r.dist)}
+                    max={maxFreqFor(g, p.model, r.dist)}
                     onChange={(v) => act((s) => actions.setPlaneFreq(s, r.id, p.id, v))}
                     label={`Frequência do ${p.reg}`}
                   />
@@ -124,7 +126,7 @@ export function RouteEditor({ r }: { r: Route }) {
         <Segmented
           label="Serviço de bordo"
           value={r.service}
-          options={SERVICE_OPTIONS}
+          options={services}
           onChange={(v) => upd({ service: v })}
         />
       </div>

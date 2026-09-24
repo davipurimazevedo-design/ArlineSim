@@ -2,14 +2,22 @@ import { AIRPORTS } from './data/airports';
 import { hubDifficulty } from './data/airports';
 import { START_CASH_BY_DIFFICULTY } from './formulas';
 import { toSeed } from './rng';
-import type { AirportCode, GameState } from './types';
+import type { AirportCode, BusinessModelId, GameState } from './types';
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 export const FIRST_EVENT_DAY = 25;
 
-export function newGame(name: string, hub: AirportCode, seed: number, now = 0): GameState {
+export function newGame(
+  name: string,
+  hub: AirportCode,
+  seed: number,
+  now = 0,
+  businessModel: BusinessModelId = 'tradicional',
+): GameState {
   return {
     v: SAVE_VERSION,
+    businessModel,
+    divisions: [],
     seed: toSeed(seed),
     name,
     hub,

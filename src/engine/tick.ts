@@ -9,11 +9,11 @@ import {
   maintCost,
   maintDays,
   modVal,
-  slotFee,
 } from './formulas';
 import { addLog, changeRep, routeOfPlane } from './helpers';
 import { chance, randInt, randRange } from './rng';
 import { driftRivals } from './rivals';
+import { rules, slotFeeFor } from './rules';
 import { routeProfit, simRoute } from './simRoute';
 import type { DayReport, GameState, SimResult } from './types';
 
@@ -74,7 +74,7 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
     // a cada 30 dias de vida da rota (o protótipo usava o calendário global)
     const age = s.day - r.opened;
     if (age > 0 && age % AI_REACTION_DAYS === 0) {
-      if (x.share > 0.55) r.ai = clamp(r.ai + 0.06, 0.8, 2.2);
+      if (x.share > 0.55) r.ai = clamp(r.ai + rules(s).aiStep, 0.8, 2.2);
       else r.ai += (baseCompetition(r.from, r.to) - r.ai) * 0.2;
       driftRivals(r);
     }
@@ -109,8 +109,8 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
   }
 
   // 7. custos fixos
-  day.slots = s.slots.reduce((a, c) => a + slotFee(c), 0);
-  day.overhead = 8000 + 2500 * s.fleet.length;
+  day.slots = s.slots.reduce((a, c) => a + slotFeeFor(s, c), 0);
+  day.overhead = (8000 + 2500 * s.fleet.length) * rules(s).overheadFactor;
   day.interest = dailyInterest(s.debt);
 
   // 8. relatório do dia
@@ -132,7 +132,7 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
   if (act.length) {
     const svc = act.reduce((a, r) => a + r.service, 0) / act.length;
     const cond = s.fleet.length ? s.fleet.reduce((a, p) => a + p.condition, 0) / s.fleet.length : 80;
-    const target = clamp(38 + svc * 12 + (cond - 60) / 3, 5, 95);
+    const target = clamp(38 + svc * 12 + (cond - 60) / 3, 5, Math.min(95, rules(s).repCap));
     changeRep(s, (target - s.reputation) * 0.015);
   }
 

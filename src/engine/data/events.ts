@@ -1,7 +1,8 @@
 // Catálogo de eventos (cartas). O estado guarda só o id; o efeito é resolvido aqui.
 import { AIRPORT_CODES, AIRPORTS } from './airports';
 import { fmtMoney } from '../format';
-import { maintCost, slotAllowed, slotCost } from '../formulas';
+import { maintCost, slotAllowed } from '../formulas';
+import { slotCostFor } from '../rules';
 import { addMod, changeRep, hitFleet, scaleCost, setFlag } from '../helpers';
 import { chance } from '../rng';
 import { MORE_EVENTS } from './moreEvents';
@@ -316,7 +317,7 @@ const BASE_EVENTS: GameEvent[] = [
         // sort estável: empate de porte fica com o primeiro na ordem de AIRPORTS
         const c = slotCandidates(s).sort((a, b) => AIRPORTS[b].size - AIRPORTS[a].size)[0];
         if (!c) return NOTHING;
-        const cost = slotCost(c) / 2;
+        const cost = slotCostFor(s, c) / 2;
         if (s.cash < cost) return 'Caixa insuficiente. A oferta foi para um concorrente.';
         s.cash -= cost;
         s.slots.push(c);

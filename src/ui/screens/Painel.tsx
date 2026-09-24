@@ -9,7 +9,7 @@ import {
   type ModType,
   type Tone,
 } from '../../engine';
-import { useGame } from '../../store/gameStore';
+import { useGame, useGameState } from '../../store/gameStore';
 import { Btn } from '../components/Btn';
 import { CashChart } from '../components/CashChart';
 import { Empty } from '../components/Empty';
@@ -45,7 +45,7 @@ interface Alert {
 const MAX_ALERTS = 8;
 
 export function Painel() {
-  const g = useGame((s) => s.game!);
+  const g = useGameState();
   const act = useGame((s) => s.act);
   const setTab = useGame((s) => s.setTab);
   const d = g.lastDay;
@@ -135,22 +135,17 @@ export function Painel() {
         <div className="panel start">
           <h2>Primeiro voo</h2>
           <ol>
-            <li className={g.fleet.length ? 'done' : ''}>
-              Arrende um ATR 72 no{' '}
-              <button type="button" className="link" onClick={() => setTab('mercado')}>
-                Mercado
-              </button>
-            </li>
-            <li className={g.slots.length > 1 ? 'done' : ''}>
-              Compre slots em outra cidade até 1.500 km do hub
-            </li>
-            <li>
-              Abra a rota em{' '}
+            <li className={g.routes.length ? 'done' : ''}>
+              Em{' '}
               <button type="button" className="link" onClick={() => setTab('rotas')}>
                 Rotas
-              </button>{' '}
-              e ajuste tarifa e frequência
+              </button>
+              , toque em Nova rota e escolha um destino até 1.500 km do hub
             </li>
+            <li>
+              Escolha a aeronave: da frota ou arrendada na hora. Os slots que faltam são comprados junto
+            </li>
+            <li>Ajuste tarifa, frequência e serviço de bordo no editor da rota</li>
           </ol>
         </div>
       )}

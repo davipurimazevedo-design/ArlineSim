@@ -84,12 +84,11 @@ export function blockHours(m: AircraftModel, d: number): number {
   return d / m.speed + 0.5;
 }
 
-/** Assentos da aeronave (Y e J), conforme o layout de cabine. */
-export function seatsOf(p: Plane): { y: number; j: number } {
-  const layout = CABINS[p.model]?.[p.cabin];
-  if (layout) return layout;
+/** Assentos da aeronave (Y e J), conforme o layout de cabine e o fator de densidade do modelo de negócio. */
+export function seatsOf(p: Plane, seatFactor = 1): { y: number; j: number } {
   const m = MODELS[p.model];
-  return { y: m.y, j: m.j };
+  const layout = CABINS[p.model]?.[p.cabin] ?? { y: m.y, j: m.j };
+  return seatFactor === 1 ? layout : { y: Math.round(layout.y * seatFactor), j: layout.j };
 }
 
 /**

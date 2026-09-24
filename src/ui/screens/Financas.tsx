@@ -1,5 +1,5 @@
 import { actions, creditLimit, dailyInterest, fmtMoney, LOAN_STEP } from '../../engine';
-import { useGame } from '../../store/gameStore';
+import { useGame, useGameState } from '../../store/gameStore';
 import { Bar } from '../components/Bar';
 import { Btn } from '../components/Btn';
 import { DayBars } from '../components/DayBars';
@@ -7,7 +7,7 @@ import { Empty } from '../components/Empty';
 import { Money } from '../components/Money';
 
 export function Financas() {
-  const g = useGame((s) => s.game!);
+  const g = useGameState();
   const act = useGame((s) => s.act);
   const d = g.lastDay;
   const lim = creditLimit(g);

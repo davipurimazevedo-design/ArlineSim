@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
-import { fmtDate, fmtMoney, type Speed } from '../../engine';
-import { useGame } from '../../store/gameStore';
+import { BUSINESS_MODELS, fmtDate, fmtMoney, type Speed } from '../../engine';
+import { useGame, useGameState } from '../../store/gameStore';
 import { Bar } from '../components/Bar';
 import { Icon } from '../components/Icon';
 import { Money } from '../components/Money';
@@ -15,7 +15,7 @@ function subscribeScheme(cb: () => void) {
 const systemDark = () => matchMedia('(prefers-color-scheme: dark)').matches;
 
 export function TopBar() {
-  const g = useGame((s) => s.game!);
+  const g = useGameState();
   const setSpeed = useGame((s) => s.setSpeed);
   const theme = useGame((s) => s.theme);
   const setTheme = useGame((s) => s.setTheme);
@@ -33,6 +33,7 @@ export function TopBar() {
           <strong>{g.name}</strong>
           <small>
             {fmtDate(g.day)} · dia {g.day}
+            {g.businessModel !== 'tradicional' ? ` · ${BUSINESS_MODELS[g.businessModel].name}` : ''}
           </small>
         </div>
       </div>

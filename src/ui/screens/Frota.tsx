@@ -8,13 +8,14 @@ import {
   MODELS,
   planeValue,
   seatsOf,
+  rules,
   CABINS,
   CABIN_CHANGE_COST,
   CABIN_CHANGE_DAYS,
   cabinLabel,
   type Plane,
 } from '../../engine';
-import { useGame } from '../../store/gameStore';
+import { useGame, useGameState } from '../../store/gameStore';
 import { CellBar } from '../components/Bar';
 import { Btn } from '../components/Btn';
 import { Empty } from '../components/Empty';
@@ -22,7 +23,7 @@ import { Icon } from '../components/Icon';
 import { Pill } from '../components/Pill';
 
 export function Frota() {
-  const g = useGame((s) => s.game!);
+  const g = useGameState();
   const act = useGame((s) => s.act);
   const ask = useGame((s) => s.ask);
   const setTab = useGame((s) => s.setTab);
@@ -76,7 +77,7 @@ export function Frota() {
                   <td>
                     <b>{p.reg}</b>
                     <small>
-                      {m.name} · {seatsOf(p).y + seatsOf(p).j} assentos
+                      {m.name} · {seatsOf(p, rules(g).seatFactor).y + seatsOf(p).j} assentos
                     </small>
                   </td>
                   <td>
@@ -159,7 +160,8 @@ export function Frota() {
 
 /** Layout da cabine; nos narrowbodies, com licença internacional, vira um seletor. */
 function CabinCell({ p }: { p: Plane }) {
-  const license = useGame((s) => s.game!.license);
+  const g = useGameState();
+  const license = g.license;
   const act = useGame((s) => s.act);
   const ask = useGame((s) => s.ask);
   const layouts = CABINS[p.model];
@@ -181,7 +183,7 @@ function CabinCell({ p }: { p: Plane }) {
       }}
     >
       {layouts.map((c, i) => (
-        <option key={i} value={i}>
+        <option key={i} value={i} disabled={c.j > 0 && !rules(g).allowJ}>
           {cabinLabel(c)}
         </option>
       ))}

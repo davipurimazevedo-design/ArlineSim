@@ -12,10 +12,14 @@ import {
   MAX_RANGE,
   MODEL_KEYS,
   MODELS,
-  slotCost,
-  slotFee,
+  slotCostFor,
+  rules,
+  modelAllowed,
+  BUSINESS_MODELS,
+  type AirportCode,
+  slotFeeFor,
 } from '../../engine';
-import { useGame } from '../../store/gameStore';
+import { useGame, useGameState } from '../../store/gameStore';
 import { Bar, CellBar } from '../components/Bar';
 import { Btn } from '../components/Btn';
 import { Pill } from '../components/Pill';
@@ -42,7 +46,7 @@ export function Mercado() {
 }
 
 function Aeronaves() {
-  const g = useGame((s) => s.game!);
+  const g = useGameState();
   const act = useGame((s) => s.act);
   return (
     <div className="table-wrap">
@@ -62,7 +66,8 @@ function Aeronaves() {
         <tbody>
           {MODEL_KEYS.map((k, i) => {
             const m = MODELS[k];
-            const locked = m.tier > g.license;
+            const outOfModel = !modelAllowed(g, k);
+            const locked = outOfModel || m.tier > g.license;
             const dep = leaseDeposit(k);
             return (
               <tr key={k} className={`row ${locked ? 'locked' : 's-good'}${i % 2 ? ' zebra' : ''}`}>
@@ -70,7 +75,11 @@ function Aeronaves() {
                   <b>{m.name}</b>
                   <small>
                     {m.kind}
-                    {locked ? ` · requer licença ${LICENSES[m.tier].name}` : ''}
+                    {outOfModel
+                      ? ` · fora do modelo ${BUSINESS_MODELS[g.businessModel].name}`
+                      : m.tier > g.license
+                        ? ` · requer licença ${LICENSES[m.tier].name}`
+                        : ''}
                     {CABINS[k] ? ' · cabine configurável' : ''}
                   </small>
                 </td>
@@ -115,84 +124,101 @@ function Aeronaves() {
 }
 
 function Slots() {
-  const g = useGame((s) => s.game!);
+  const g = useGameState();
   const act = useGame((s) => s.act);
+  const [q, setQ] = useState('');
   const own = (c: string) => g.slots.includes(c as never);
+  const needle = q.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  const match = (c: AirportCode) =>
+    !needle ||
+    c.toLowerCase().includes(needle) ||
+    AIRPORTS[c].city.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().includes(needle);
   // seus primeiro, domésticos antes, depois por distância do hub
-  const list = [...AIRPORT_CODES].sort(
+  const list = AIRPORT_CODES.filter(match).sort(
     (a, b) =>
       Number(own(b)) - Number(own(a)) ||
       Number(AIRPORTS[a].intl) - Number(AIRPORTS[b].intl) ||
       dist(g.hub, a) - dist(g.hub, b),
   );
   return (
-    <div className="table-wrap">
-      <table className="tbl">
-        <thead>
-          <tr>
-            <th>Aeroporto</th>
-            <th>Porte</th>
-            <th className="r">Do hub</th>
-            <th className="r">Taxa/dia</th>
-            <th className="r">
-              <span className="sr-only">Ações</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {list.map((c, i) => {
-            const a = AIRPORTS[c];
-            const mine = own(c);
-            const locked = a.intl && g.license < 2;
-            const cost = slotCost(c);
-            return (
-              <tr
-                key={c}
-                className={`row ${mine ? 's-good' : locked ? 'locked' : ''}${i % 2 ? ' zebra' : ''}`}
-              >
-                <td>
-                  <b>{c}</b>
-                  <small>
-                    {a.city}
-                    {a.intl ? ' · internacional' : ''}
-                  </small>
-                </td>
-                <td>
-                  <CellBar v={a.size * 10} tone="blue" label="Porte" text={String(a.size)} />
-                </td>
-                <td className="r num">{c === g.hub ? 'hub' : fmtInt(dist(g.hub, c)) + ' km'}</td>
-                <td className="r num">{fmtMoney(slotFee(c))}</td>
-                <td className="r">
-                  {mine ? (
-                    <Pill tone="ok">Seu</Pill>
-                  ) : (
-                    <Btn
-                      small
-                      kind="primary"
-                      disabled={locked || g.cash < cost}
-                      onClick={() => act((s) => actions.buySlot(s, c))}
-                    >
-                      {locked ? 'Licença int.' : 'Comprar ' + fmtMoney(cost)}
-                    </Btn>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <input
+        type="text"
+        className="slot-search"
+        placeholder="Buscar aeroporto por cidade ou código"
+        aria-label="Buscar aeroporto"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+      />
+      <div className="table-wrap">
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th>Aeroporto</th>
+              <th>Porte</th>
+              <th className="r">Do hub</th>
+              <th className="r">Taxa/dia</th>
+              <th className="r">
+                <span className="sr-only">Ações</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {list.map((c, i) => {
+              const a = AIRPORTS[c];
+              const mine = own(c);
+              const locked = a.intl && g.license < 2;
+              const cost = slotCostFor(g, c);
+              return (
+                <tr
+                  key={c}
+                  className={`row ${mine ? 's-good' : locked ? 'locked' : ''}${i % 2 ? ' zebra' : ''}`}
+                >
+                  <td>
+                    <b>{c}</b>
+                    <small>
+                      {a.city}
+                      {a.intl ? ' · internacional' : ''}
+                    </small>
+                  </td>
+                  <td>
+                    <CellBar v={a.size * 10} tone="blue" label="Porte" text={String(a.size)} />
+                  </td>
+                  <td className="r num">{c === g.hub ? 'hub' : fmtInt(dist(g.hub, c)) + ' km'}</td>
+                  <td className="r num">{fmtMoney(slotFeeFor(g, c))}</td>
+                  <td className="r">
+                    {mine ? (
+                      <Pill tone="ok">Seu</Pill>
+                    ) : (
+                      <Btn
+                        small
+                        kind="primary"
+                        disabled={locked || g.cash < cost}
+                        onClick={() => act((s) => actions.buySlot(s, c))}
+                      >
+                        {locked ? 'Licença int.' : 'Comprar ' + fmtMoney(cost)}
+                      </Btn>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 
 function Licencas() {
-  const g = useGame((s) => s.game!);
+  const g = useGameState();
   const act = useGame((s) => s.act);
   return (
     <ol className="licenses">
       {LICENSES.map((L) => {
         const has = g.license >= L.tier;
         const next = L.tier === g.license + 1;
+        const blocked = L.tier > rules(g).maxLicense;
         return (
           <li key={L.tier} className={has ? 'has' : next ? 'next' : ''}>
             <div>
@@ -201,6 +227,8 @@ function Licencas() {
             </div>
             {has ? (
               <Pill tone="ok">Ativa</Pill>
+            ) : blocked ? (
+              <small>Fora do modelo {BUSINESS_MODELS[g.businessModel].name}</small>
             ) : next ? (
               <div className="lic-buy">
                 <Bar

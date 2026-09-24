@@ -160,9 +160,16 @@ export interface LogEntry {
 
 export type Speed = 0 | 1 | 2 | 4;
 
+export type BusinessModelId = 'tradicional' | 'lowcost' | 'regional' | 'pequeno';
+export type DivisionId = 'cargas' | 'internacional';
+
 export interface GameState {
   /** versão do save */
   v: number;
+  /** modelo de negócio escolhido na fundação (Fase 3) */
+  businessModel: BusinessModelId;
+  /** divisões compradas depois (Fase 3) */
+  divisions: DivisionId[];
   /** estado do RNG (uint32) */
   seed: number;
   name: string;
