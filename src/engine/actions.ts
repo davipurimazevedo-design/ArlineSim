@@ -20,6 +20,7 @@ import {
   slotCost,
 } from './formulas';
 import { addLog, changeRep, findPlane, unassignPlane } from './helpers';
+import { rivalsFor } from './rivals';
 import { randInt, uid } from './rng';
 import type {
   ActionResult,
@@ -201,6 +202,7 @@ export function openRoute(s: GameState, { from, to, planeId }: OpenRouteArgs): A
     priceJ: defaultPriceJ(d),
     service: 1,
     ai: DEFAULT_AI,
+    rivals: rivalsFor(from, to),
     opened: s.day,
     last: null,
   };

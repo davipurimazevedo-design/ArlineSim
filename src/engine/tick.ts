@@ -12,6 +12,7 @@ import {
 } from './formulas';
 import { addLog, changeRep, routeOfPlane } from './helpers';
 import { chance, randInt, randRange } from './rng';
+import { driftRivals } from './rivals';
 import { routeProfit, simRoute } from './simRoute';
 import type { DayReport, GameState, SimResult } from './types';
 
@@ -71,6 +72,7 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
     if (s.day % 30 === 0) {
       if (x.share > 0.55) r.ai = clamp(r.ai + 0.06, 0.8, 2.2);
       else r.ai += (DEFAULT_AI - r.ai) * 0.2;
+      driftRivals(r);
     }
   }
 

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { newGame } from '../../src/engine/newGame';
+import { rivalsFor } from '../../src/engine/rivals';
 import type { AirportCode, GameState, ModelKey, Plane, Route } from '../../src/engine/types';
 import { dist, fairPrice, defaultPriceJ } from '../../src/engine/formulas';
 
@@ -45,6 +46,7 @@ export function addTestRoute(
     priceJ: defaultPriceJ(d),
     service: 1,
     ai: 1.2,
+    rivals: rivalsFor(from, to),
     opened: s.day,
     last: null,
     ...extra,

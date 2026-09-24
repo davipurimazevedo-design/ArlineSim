@@ -10,6 +10,7 @@ import {
   routeFreq,
   routePlanes,
   routeProfit,
+  rivalShares,
   seatsOf,
   SERVICE,
   simRoute,
@@ -18,6 +19,7 @@ import {
   type ServiceLevel,
 } from '../../../engine';
 import { useGame } from '../../../store/gameStore';
+import { CellBar } from '../../components/Bar';
 import { Btn } from '../../components/Btn';
 import { Money } from '../../components/Money';
 import { Segmented } from '../../components/Segmented';
@@ -140,6 +142,29 @@ export function RouteEditor({ r }: { r: Route }) {
             onChange={(e) => upd({ priceJ: +e.target.value })}
           />
         </label>
+      )}
+      {prev?.flying && (
+        <div className="field full">
+          <span>Concorrência</span>
+          <ul className="rivals">
+            <li className="me">
+              <div>
+                <b>{g.name}</b>
+                <small>você</small>
+              </div>
+              <CellBar v={prev.share * 100} tone="teal" label={`Share de ${g.name}`} />
+            </li>
+            {rivalShares(r, prev.share).map((x) => (
+              <li key={x.id}>
+                <div>
+                  <b>{x.name}</b>
+                  <small>{x.style}</small>
+                </div>
+                <CellBar v={x.share * 100} tone="mid" label={`Share de ${x.name}`} />
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       <div className="preview" aria-live="polite">
         {prev?.flying && prevProfit !== null ? (

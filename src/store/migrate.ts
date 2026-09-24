@@ -1,6 +1,7 @@
 // Versionamento do save. Puro: roda no Node (testes) e no navegador.
 import { SAVE_VERSION } from '../engine/newGame';
-import type { GameState } from '../engine/types';
+import { rivalsFor } from '../engine/rivals';
+import type { AirportCode, GameState } from '../engine/types';
 
 type Raw = Record<string, unknown>;
 
@@ -8,21 +9,26 @@ type Raw = Record<string, unknown>;
  * Migrações por versão: MIGRATIONS[n] converte um save v=n em v=n+1.
  * Ao mudar o GameState, suba SAVE_VERSION e acrescente a função aqui.
  */
+const list = (x: unknown): Raw[] => (Array.isArray(x) ? (x as Raw[]) : []);
+
 const MIGRATIONS: Record<number, (g: Raw) => Raw> = {
-  // v1 (Fase 1) → v2 (Fase 2): rota com lista de aeronaves; aeronave com layout de cabine
-  1: (g) => {
-    const routes = Array.isArray(g.routes) ? (g.routes as Raw[]) : [];
-    const fleet = Array.isArray(g.fleet) ? (g.fleet as Raw[]) : [];
-    return {
-      ...g,
-      fleet: fleet.map((p) => ({ ...p, cabin: 0 })),
-      routes: routes.map(({ planeId, freq, ...r }) => ({
-        ...r,
-        planes:
-          typeof planeId === 'string' ? [{ id: planeId, freq: typeof freq === 'number' ? freq : 1 }] : [],
-      })),
-    };
-  },
+  // v1 (Fase 1) → v2: rota passa a ter uma lista de aeronaves
+  1: (g) => ({
+    ...g,
+    routes: list(g.routes).map(({ planeId, freq, ...r }) => ({
+      ...r,
+      planes: typeof planeId === 'string' ? [{ id: planeId, freq: typeof freq === 'number' ? freq : 1 }] : [],
+    })),
+  }),
+  // v2 → v3: layout de cabine nas aeronaves e concorrentes com nome nas rotas
+  2: (g) => ({
+    ...g,
+    fleet: list(g.fleet).map((p) => ({ ...p, cabin: typeof p.cabin === 'number' ? p.cabin : 0 })),
+    routes: list(g.routes).map((r) => ({
+      ...r,
+      rivals: Array.isArray(r.rivals) ? r.rivals : rivalsFor(r.from as AirportCode, r.to as AirportCode),
+    })),
+  }),
 };
 
 /** Valida e migra um save cru. Devolve null se não for aproveitável. */

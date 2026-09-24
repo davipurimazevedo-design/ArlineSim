@@ -4,6 +4,8 @@ export * from './data/aircraft';
 export * from './data/licenses';
 export * from './data/service';
 export * from './data/cabins';
+export * from './data/competitors';
+export { rivalShares } from './rivals';
 export { EVENTS, EVENTS_BY_ID } from './data/events';
 export * from './formulas';
 export * from './format';

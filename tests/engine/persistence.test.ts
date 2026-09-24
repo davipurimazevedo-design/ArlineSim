@@ -25,13 +25,13 @@ describe('save', () => {
     expect(b).toEqual(a);
   });
 
-  it('migra um save da Fase 1 (v1) para v2', () => {
+  it('migra um save da Fase 1 (v1) até a versão atual', () => {
     const s = makeGame();
     const p = addTestPlane(s, 'AT7');
     const r = addTestRoute(s, 'BSB', 'CNF', p.id, { freq: 3 });
     const empty = addTestRoute(s, 'BSB', 'GYN', null);
-    const { planes: _a, ...r1 } = r;
-    const { planes: _b, ...e1 } = empty;
+    const { planes: _a, rivals: _ra, ...r1 } = r;
+    const { planes: _b, rivals: _rb, ...e1 } = empty;
     const v1 = {
       ...s,
       v: 1,
@@ -45,6 +45,7 @@ describe('save', () => {
     expect(g.routes[0]!.planes).toEqual([{ id: p.id, freq: 3 }]);
     expect(g.routes[1]!.planes).toEqual([]);
     expect(g.fleet[0]!.cabin).toBe(0);
+    expect(g.routes[0]!.rivals.map((x) => x.id)).toEqual(['horizonte', 'aerovia', 'ipe']);
     expect(g.routes[0]).not.toHaveProperty('planeId');
     expect(g.routes[0]).not.toHaveProperty('freq');
   });
@@ -55,5 +56,20 @@ describe('save', () => {
     expect(migrate({ v: SAVE_VERSION })).toBeNull();
     expect(migrate({ ...makeGame(), v: SAVE_VERSION + 1 })).toBeNull();
     expect(migrate({ ...makeGame(), v: 0 })).toBeNull();
+  });
+});
+
+describe('migração v2 → v3', () => {
+  it('acrescenta cabine e concorrentes a um save da etapa 1 da Fase 2', () => {
+    const s = makeGame();
+    const p = addTestPlane(s, 'AT7');
+    const r = addTestRoute(s, 'BSB', 'CNF', p.id);
+    const { cabin: _c, ...p2 } = p;
+    const { rivals: _r, ...r2 } = r;
+    const g = migrate(JSON.parse(JSON.stringify({ ...s, v: 2, fleet: [p2], routes: [r2] })))!;
+    expect(g.v).toBe(SAVE_VERSION);
+    expect(g.fleet[0]!.cabin).toBe(0);
+    expect(g.routes[0]!.planes).toEqual(r.planes);
+    expect(g.routes[0]!.rivals.length).toBeGreaterThan(0);
   });
 });

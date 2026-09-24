@@ -1,5 +1,5 @@
 import { Fragment, useState } from 'react';
-import { fmtInt, fmtMoney, MODELS, routeFreq } from '../../../engine';
+import { fmtInt, fmtMoney, MODELS, rivalShares, routeFreq, type Route } from '../../../engine';
 import { useGame } from '../../../store/gameStore';
 import { CellBar } from '../../components/Bar';
 import { Btn } from '../../components/Btn';
@@ -95,7 +95,14 @@ export function Rotas() {
                         )}
                       </td>
                       <td>
-                        {L?.flying ? <CellBar v={L.share * 100} tone="teal" label="Market share" /> : '—'}
+                        {L?.flying ? (
+                          <>
+                            <CellBar v={L.share * 100} tone="teal" label="Market share" />
+                            <TopRival r={r} share={L.share} />
+                          </>
+                        ) : (
+                          '—'
+                        )}
                       </td>
                       <td className="r">{L ? <Money v={L.profit} signed /> : '—'}</td>
                     </tr>
@@ -114,5 +121,16 @@ export function Rotas() {
         </div>
       )}
     </section>
+  );
+}
+
+/** Maior concorrente da rota, abaixo da barra de share. */
+function TopRival({ r, share }: { r: Route; share: number }) {
+  const top = rivalShares(r, share).sort((a, b) => b.share - a.share)[0];
+  if (!top) return null;
+  return (
+    <small>
+      maior rival: {top.name} {Math.round(top.share * 100)}%
+    </small>
   );
 }

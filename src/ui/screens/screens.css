@@ -263,6 +263,24 @@
   font-family: var(--f-num);
   font-weight: 600;
 }
+.rivals {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  max-width: 620px;
+}
+.rivals li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 14px;
+  align-items: center;
+  color: var(--text);
+}
+.rivals li.me b {
+  color: var(--teal-t);
+}
 .route-planes {
   list-style: none;
   margin: 0;
@@ -511,6 +529,9 @@
   }
   .editor .wide {
     grid-column: auto;
+  }
+  .rivals li {
+    grid-template-columns: minmax(0, 1fr) 150px;
   }
   .route-planes li {
     flex-wrap: wrap;

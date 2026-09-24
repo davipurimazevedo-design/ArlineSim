@@ -94,6 +94,13 @@ export interface RouteLast {
   flying: boolean;
 }
 
+/** Concorrente presente numa rota, com o peso dele na força total (Route.ai). */
+export interface RouteRival {
+  id: string;
+  /** pesos da rota somam 1 */
+  w: number;
+}
+
 /** Aeronave escalada numa rota, com a própria frequência. */
 export interface RoutePlane {
   id: string;
@@ -113,6 +120,8 @@ export interface Route {
   service: ServiceLevel;
   /** força total da concorrência na rota */
   ai: number;
+  /** concorrentes presentes e como dividem a força total */
+  rivals: RouteRival[];
   opened: number;
   last: RouteLast | null;
 }
