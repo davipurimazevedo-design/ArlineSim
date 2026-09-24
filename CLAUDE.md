@@ -437,3 +437,13 @@ Plano em `docs/fase3-plano.md`, aprovado com todas as recomendações:
 Pedidos novos do usuário:
 - **Muitos aeroportos**, tanto para fundar a companhia quanto para abrir rotas.
 - **Criador de rotas:** o jogador escolhe origem, destino e aeronave; a rota é criada nesse momento e a tela mostra o preço dos slots que faltam, taxas e demais custos. Slots passam a ser comprados junto com a rota, sem depender da lista de aeroportos do Mercado. Com muitos aeroportos, origem e destino precisam de busca.
+
+Decisões de 2026-09-24 (segunda rodada):
+- **145 aeroportos** aprovados (`docs/fase3-aeroportos.md`), com pista real (`runways.csv` da OurAirports). Aeronaves têm pista mínima operacional e flag de pista de terra.
+- **Aeronaves novas aprovadas** (dados em `docs/fase3-aeronaves.md`): Grand Caravan EX, PC-12 NGX, Twin Otter 300-G, SkyCourier, L-410 NG, ATR 42-600, E175 e os cargueiros ATR 72-600F, 737-800BCF, 767-300F.
+- **Hubs:** o hub vale por **conexões** (rotas que saem de um hub ganham demanda extra conforme o número de rotas da companhia naquele hub) e por ser **base de manutenção e tripulação** (manutenção mais barata e rápida; tripulação baseada não paga pernoite). **Hubs adicionais** custam uma implantação proporcional ao porte e estrutura diária, sem desconto de slot.
+- **Rotas ponto a ponto** (sem tocar hub) continuam permitidas, mas pagam **pernoite** de tripulação; a Low-cost é isenta.
+- **Pequeno porte:** R$ 5 mi de capital, hub em qualquer cidade doméstica (inclusive porte 1 e 2), licença inicial Táxi aéreo que evolui para a Regional.
+- **Financiamento de aeronaves:** comprar com entrada e parcelas com juros.
+- **Idade e mercado de usados:** depois da Fase 3.
+- **Rebalanceamento:** uma vez, no fim da Fase 3.

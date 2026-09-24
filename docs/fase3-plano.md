@@ -94,7 +94,11 @@ O jogo atual, sem mudanças. Serve de referência para o balanceamento.
 
 Cada etapa com testes, commit próprio e conferência no navegador, como nas fases anteriores.
 
-## 8. Decisões pendentes
+## 8. Decisões (todas tomadas; ver CLAUDE.md, seção 18)
+
+Ordem revisada das etapas: 1 e 2 (feitas) → 3 Pequeno porte e aeronaves novas → 3b Hubs (conexões, base, pernoite, hubs adicionais) → 3c Financiamento → 4 Base internacional → 5 Cargas → 6 Eventos e objetivos → 7 Balanceamento.
+
+### Perguntas originais
 
 1. **Estrutura:** modelo principal na fundação e divisões depois? (recomendado)
 2. **Trocar de modelo principal durante o jogo:** recomendo **não** na primeira versão, porque simplifica e torna a escolha importante. Alternativa: permitir uma vez, com custo e perda de reputação.
