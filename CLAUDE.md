@@ -380,3 +380,13 @@ Aprovadas antes do início da implementação:
 - TypeScript 6.0 (o typescript-eslint ainda não suporta o 7).
 - Projeto fora do OneDrive, em `C:\dev\airlinesim`.
 - **Estratégia do `npm run sim`:** rotas sempre saindo do hub; o destino é o aeroporto sem slot com maior demanda base entre 350 e 1.500 km do hub; frequência e tarifa padrão; sem empréstimos; quando os candidatos acabam, para de expandir.
+
+## 17. Decisões da Fase 2
+
+Plano aprovado em 2026-09-23. Ordem: (1) várias aeronaves por rota, (2) configuração de cabine, (3) concorrentes com nome, (4) demanda compartilhada, (5) eventos novos, (6) objetivos e conquistas, (7) balanceamento.
+
+- Concorrentes **fictícios**, sem marcas reais.
+- Objetivos dão **só reputação** como prêmio, para não mexer na economia.
+- Na etapa de balanceamento, corrigir os comportamentos mantidos na Fase 1 (modificadores N−1 dias, rota sem aeronave sem validação, IA no calendário global) e tornar a guerra tarifária temporária.
+- Os textos dos 18 eventos novos passam pela revisão do usuário **antes** de serem implementados.
+- Save sobe para `v: 2`, com migração dos saves da Fase 1.
