@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Asa Norte · gestão de companhia aérea</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F4F6;--panel:#FFFFFF;--panel2:#ECECF0;--line:#DCDCE3;--text:#1E1E24;--muted:#686876;
+  --blue:#005B96;--blue-t:#005B96;--teal:#00A896;--teal-t:#00806F;--alert:#FF6B6B;--alert-t:#D8413F;
+  --shadow:0 18px 50px rgba(30,30,36,.18);
+  --f-body:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-num:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1E1E24;--panel:#26262D;--panel2:#2E2E37;--line:#393943;--text:#ECECF1;--muted:#9C9CAA;
+  --blue-t:#5AA8DD;--teal-t:#2FCDB8;--alert-t:#FF8585;--shadow:0 20px 60px rgba(0,0,0,.5);color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#1E1E24;--panel:#26262D;--panel2:#2E2E37;--line:#393943;--text:#ECECF1;--muted:#9C9CAA;
+  --blue-t:#5AA8DD;--teal-t:#2FCDB8;--alert-t:#FF8585;--shadow:0 20px 60px rgba(0,0,0,.5);color-scheme:dark;}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 var(--f-body);-webkit-font-smoothing:antialiased;min-height:100%}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--blue-t);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+small{display:block;color:var(--muted);font-size:12.5px;line-height:1.3}
+h1,h2,h3{font-family:var(--f-num);font-weight:600;margin:0;letter-spacing:.01em}
+h1{font-size:28px}h2{font-size:17px;color:var(--muted);font-weight:500;margin-bottom:12px}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;font-weight:600}
+.pos{color:var(--teal-t)}.neg{color:var(--alert-t)}
+.ic{flex:none;vertical-align:middle}
+
+/* topo */
+.app{max-width:1180px;margin:0 auto;padding:0 16px 96px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);display:flex;align-items:center;gap:18px;padding:12px 0;border-bottom:1px solid var(--line)}
+.brand{display:flex;gap:10px;align-items:center;min-width:0}
+.brand strong{font-family:var(--f-num);font-size:19px;font-weight:700;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.tail{display:grid;place-items:center;width:36px;height:36px;border-radius:9px;background:var(--blue);color:#fff;transform:rotate(-45deg)}
+.tail .ic{transform:rotate(45deg)}
+.tail.big{width:58px;height:58px;border-radius:14px}
+.stats{display:flex;gap:22px;margin-left:auto;align-items:center}
+.stat b{font-family:var(--f-num);font-size:20px;font-weight:600;display:block;line-height:1.1}
+.stat.rep{width:110px}.stat.rep .bar{margin-top:6px}
+.speed{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.speed button{background:none;border:0;padding:7px 10px;cursor:pointer;font-family:var(--f-num);font-weight:600;min-width:36px;color:var(--muted)}
+.speed button+button{border-left:1px solid var(--line)}
+.speed button.on{background:var(--blue);color:#fff}
+.tabs{display:flex;gap:4px;padding:10px 0 0;border-bottom:1px solid var(--line)}
+.tabs button{position:relative;display:flex;align-items:center;gap:7px;background:none;border:0;padding:10px 14px 12px;cursor:pointer;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--text);border-bottom-color:var(--teal)}
+.tabs em{font-style:normal;font-family:var(--f-num);font-size:12px;background:var(--alert);color:#1E1E24;border-radius:9px;padding:0 6px;font-weight:700}
+.content{padding:22px 0}
+.foot{text-align:center}.linkish{background:none;border:0;color:var(--muted);cursor:pointer;text-decoration:underline;font-size:13px}
+
+/* painéis */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.grid-dash{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.span2,.kpis,.start{grid-column:1/-1}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:0}
+.kpis>div{padding:14px 18px}.kpis>div+div{border-left:1px solid var(--line)}
+.kpis b{white-space:nowrap;font-size:30px;line-height:1.1;font-family:var(--f-num);font-weight:600;display:block}
+.start{border-left:4px solid var(--teal)}
+.start h2{color:var(--text);font-size:20px}
+.start ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.start li.done{color:var(--muted);text-decoration:line-through}
+.empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}
+.section-head{display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.section-head small{margin-top:6px}
+.section-head .btn,.section-head .seg{margin-left:auto}
+
+/* barras */
+.bar{height:7px;background:var(--panel2);border-radius:4px;overflow:hidden;min-width:60px;flex:1}
+.bar i{display:block;height:100%;border-radius:4px;transition:width .4s}
+.bar-good,.bar-teal{background:var(--teal)}.bar-blue{background:var(--blue)}.bar-mid{background:var(--muted)}.bar-bad{background:var(--alert)}
+.cell-bar{display:flex;align-items:center;gap:8px;min-width:120px}.cell-bar span{width:40px;text-align:right}
+
+/* tabelas estilo escalação */
+.table-wrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.tbl{width:100%;border-collapse:collapse;min-width:720px}
+.tbl th{font-weight:500;font-size:12.5px;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tbody tr:last-child td{border-bottom:0}
+.tbl tr.row>td:first-child{border-left:4px solid transparent}
+.tbl tr.s-good>td:first-child{border-left-color:var(--teal)}
+.tbl tr.s-bad>td:first-child{border-left-color:var(--alert)}
+.tbl tr.s-mid>td:first-child{border-left-color:var(--muted)}
+.tbl tbody tr.row:nth-child(even){background:color-mix(in srgb,var(--panel2) 45%,transparent)}
+.tbl tr[tabindex]{cursor:pointer}.tbl tr[tabindex]:hover{background:var(--panel2)}
+.tbl tr.open{background:var(--panel2)}
+.tbl tr.locked{opacity:.5}
+.tbl .r{text-align:right}.tbl .c{text-align:center}
+.tbl b{font-weight:600}
+.route{font-family:var(--f-num);font-size:18px;letter-spacing:.02em}.route span{color:var(--muted);margin:0 5px;font-weight:400}
+.actions{white-space:nowrap}.actions .btn+.btn{margin-left:6px}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;padding:2px 8px;border-radius:20px;font-weight:600;font-family:var(--f-num);letter-spacing:.02em}
+.pill.ok{background:color-mix(in srgb,var(--teal) 16%,transparent);color:var(--teal-t)}
+.pill.bad{background:color-mix(in srgb,var(--alert) 18%,transparent);color:var(--alert-t)}
+.pill.warn{background:color-mix(in srgb,var(--alert) 18%,transparent);color:var(--alert-t)}
+
+/* botões */
+.btn{border:1px solid var(--line);background:var(--panel);padding:8px 14px;border-radius:7px;cursor:pointer;font-weight:600;white-space:nowrap}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn:hover:not(:disabled){border-color:var(--muted)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.primary:hover:not(:disabled){background:#004a7a}
+.btn.warn{background:var(--alert);border-color:var(--alert);color:#1E1E24}
+.btn.ghost{background:none;border-color:transparent}
+.btn.danger{color:var(--alert-t)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;background:none;padding:7px 13px;cursor:pointer;color:var(--muted);font-weight:500}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--panel2);color:var(--text);box-shadow:inset 0 -2px 0 var(--teal)}
+
+/* editor de rota */
+.editor-row>td{padding:0!important;background:var(--panel2)}
+.editor{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 22px;padding:16px 18px 18px 22px}
+.editor label,.new-route label{display:grid;gap:6px;font-size:13px;color:var(--muted)}
+.editor label>span b{color:var(--text);font-size:16px;margin-left:4px}
+.editor label>span small{display:inline;margin-left:6px}
+.editor .wide{grid-column:span 2}
+select,input[type=text],.newgame input{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 10px;width:100%}
+input[type=range]{width:100%;accent-color:var(--teal)}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:32px;height:32px;border-radius:7px;border:1px solid var(--line);background:var(--panel);cursor:pointer;font-size:18px}
+.stepper b{font-size:22px;color:var(--text);min-width:20px;text-align:center}
+.stepper small{display:inline}
+.preview{grid-column:1/-1;display:flex;align-items:center;gap:26px;border-top:1px solid var(--line);padding-top:12px}
+.preview b{font-size:17px}.preview .num{font-size:19px}
+.preview .btn{margin-left:auto}
+.new-route{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 18px;margin-bottom:16px;align-items:end}
+.facts{grid-column:1/-1;display:flex;gap:28px}
+.facts b,.facts .num{font-size:20px}
+.warn-line{grid-column:1/-1;margin:0;color:var(--alert-t);font-weight:500}
+.new-route>.btn{grid-column:1/-1;justify-self:start}
+
+/* alertas, diário */
+.alerts,.log,.breakdown{list-style:none;margin:0;padding:0}
+.alerts li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.alerts li:last-child{border:0}
+.alerts li>i{width:4px;align-self:stretch;border-radius:2px;background:var(--muted)}
+.alerts .t-bad>i{background:var(--alert)}.alerts .t-good>i{background:var(--teal)}
+.alerts li>div{flex:1}.alerts b{font-weight:600}
+.log li{display:grid;grid-template-columns:10px 42px 1fr;gap:8px;align-items:baseline;padding:5px 0;font-size:14px}
+.log time{font-family:var(--f-num);color:var(--muted);text-align:right}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);align-self:center}
+.dot.teal{background:var(--teal)}.dot.alert{background:var(--alert)}.dot.blue{background:var(--blue)}
+.chart{width:100%;height:140px;display:block}
+.chart .line{fill:none;stroke-width:2;vector-effect:non-scaling-stroke}
+.chart .line.up{stroke:var(--teal)}.chart .line.down{stroke:var(--alert)}
+.chart .area.up{fill:color-mix(in srgb,var(--teal) 14%,transparent)}.chart .area.down{fill:color-mix(in srgb,var(--alert) 14%,transparent)}
+.chart .zero{stroke:var(--muted);stroke-dasharray:4 4;vector-effect:non-scaling-stroke}
+.chart-legend{display:flex;justify-content:space-between;font-family:var(--f-num);color:var(--muted);font-size:13px;margin-top:4px}
+
+/* finanças */
+.breakdown li{display:grid;grid-template-columns:150px 1fr 110px;gap:12px;align-items:center;padding:5px 0;font-size:14px}
+.breakdown b,.breakdown .num{text-align:right;white-space:nowrap}
+.breakdown .total{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;font-weight:600}
+.breakdown .total .num{font-size:18px}
+.bars{display:flex;height:140px;gap:2px;position:relative}
+.bars::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:1px dashed var(--line)}
+.bars .col{flex:1;position:relative;height:100%}
+.bars i{position:absolute;left:0;right:0;border-radius:2px}
+.bars i.up{bottom:50%;background:var(--teal)}.bars i.down{top:50%;background:var(--alert)}
+.credit{display:flex;gap:30px;align-items:end;flex-wrap:wrap}
+.credit b{font-size:24px}
+.credit-actions{margin-left:auto;display:flex;gap:8px}
+.note{color:var(--muted);font-size:13px;margin:12px 0 0}
+.licenses{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.licenses li{display:flex;align-items:center;gap:16px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 18px;border-left:4px solid var(--line)}
+.licenses li.has{border-left-color:var(--teal)}.licenses li.next{border-left-color:var(--blue)}
+.licenses li>div:first-child{flex:1}.licenses b{font-family:var(--f-num);font-size:20px;font-weight:600}
+.lic-buy{display:flex;align-items:center;gap:12px;width:280px}
+
+/* carta de evento: cartão de embarque */
+.overlay{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:max(20px,env(safe-area-inset-top,0px)) 20px max(20px,env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.ticket{width:min(380px,100%);background:var(--panel);border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--line);touch-action:none;user-select:none;cursor:grab;transition:transform .25s cubic-bezier(.2,.8,.3,1);animation:deal .45s cubic-bezier(.2,.9,.3,1.2)}
+.ticket.dragging{transition:none;cursor:grabbing}
+@keyframes deal{from{transform:translateY(40px) rotate(-4deg);opacity:0}}
+.ticket-top{display:flex;gap:14px;align-items:center;padding:20px 22px 6px}
+.ev-icon{width:62px;height:62px;border-radius:14px;display:grid;place-items:center;background:var(--blue);color:#fff;flex:none}
+.ticket h3{font-size:26px;line-height:1.05}
+.ticket>p{padding:4px 22px 18px;margin:0;font-size:16px}
+.perf{height:22px;position:relative;margin:0 -1px}
+.perf::before{content:"";position:absolute;left:18px;right:18px;top:50%;border-top:2px dashed var(--line)}
+.perf::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 0 50%,var(--bg) 10px,transparent 11px),radial-gradient(circle at 100% 50%,var(--bg) 10px,transparent 11px)}
+.ticket-stub{display:grid;grid-template-columns:1fr 1fr}
+.ticket-stub>div{padding:12px 16px 18px;transition:background .15s}
+.ticket-stub>div+div{border-left:1px solid var(--line);text-align:right}
+.ticket-stub>div.hot{background:var(--panel2)}
+.ticket-stub b{display:block;font-family:var(--f-num);font-size:18px;font-weight:600;line-height:1.15;margin:3px 0 6px}
+.fx{display:inline-flex;gap:8px}.fx span{display:inline-flex;align-items:center;gap:2px;font-size:11px}
+.fx .up{color:var(--teal-t)}.fx .down{color:var(--alert-t)}.fx.none{display:inline}
+.swipe-hint{position:fixed;top:50%;font-family:var(--f-num);font-size:22px;font-weight:600;max-width:22vw;transition:opacity .15s;pointer-events:none}
+.swipe-hint.l{left:24px}.swipe-hint.r{right:24px;text-align:right}
+.ev-buttons{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.ticket.result{cursor:default;padding:22px;display:grid;gap:14px;touch-action:auto;user-select:text}
+.ticket.result p{margin:0;font-size:16px}
+.ticket.result .facts{gap:28px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--text);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:500;box-shadow:var(--shadow)}
+.toast.t-bad{background:var(--alert);color:#1E1E24}
+
+/* novo jogo */
+.newgame{min-height:100%;display:grid;place-items:center;padding:24px}
+.ng-card{width:min(520px,100%);display:grid;gap:16px}
+.ng-card h1{font-size:40px;line-height:1}
+.ng-card p{margin:0;color:var(--muted);max-width:44ch}
+.ng-card label{display:grid;gap:6px}
+.lbl,.ng-card label span{font-size:13px;color:var(--muted)}
+.ng-card input{font-size:17px}
+.hubs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.hubs button{text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:10px 12px;cursor:pointer}
+.hubs button.on{border-color:var(--teal);box-shadow:inset 0 0 0 1px var(--teal)}
+.hubs b{font-family:var(--f-num);font-size:22px;display:block;line-height:1}
+.hubs em{font-style:normal;font-size:12px;font-weight:600}
+.d-Fácil{color:var(--teal-t)}.d-Médio{color:var(--blue-t)}.d-Difícil{color:var(--alert-t)}
+.ng-card>.btn{justify-self:start;padding:11px 20px;font-size:16px}
+
+/* mobile */
+@media (max-width:760px){
+  .app{padding:0 12px calc(90px + env(safe-area-inset-bottom,0px))}
+  .top{flex-wrap:wrap;gap:10px}
+  .stats{order:3;width:100%;margin:0;justify-content:space-between;gap:10px}
+  .speed{margin-left:auto}.speed button{padding:6px 7px;min-width:30px}.brand{flex:1}
+  .hide-s{display:none}
+  .brand strong{max-width:150px}
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--panel);border-top:1px solid var(--line);border-bottom:0;padding:4px 4px env(safe-area-inset-bottom,0px);justify-content:space-around}
+  .tabs button{flex-direction:column;gap:2px;font-size:11px;padding:8px 4px;border-bottom:0;border-top:2px solid transparent;flex:1}
+  .tabs button.on{border-top-color:var(--teal)}
+  .tabs em{position:absolute;top:4px;right:18%}
+  .grid-dash{grid-template-columns:1fr}
+  .kpis{grid-template-columns:1fr 1fr}.kpis>div:nth-child(3){border-left:0}.kpis>div:nth-child(n+3){border-top:1px solid var(--line)}
+  .kpis b{font-size:22px}
+  .editor,.new-route{grid-template-columns:1fr}.editor .wide{grid-column:auto}
+  .preview{flex-wrap:wrap;gap:14px}
+  .facts{flex-wrap:wrap;gap:16px}
+  .tbl th:first-child,.tbl td:first-child{position:sticky;left:0;background:var(--panel);z-index:1}
+  .breakdown li{grid-template-columns:100px 1fr 84px}
+  .hubs{grid-template-columns:1fr 1fr}
+  .swipe-hint{display:none}
+  .lic-buy{width:160px}
+  .licenses li{flex-wrap:wrap}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<script>
+// ===================== ENGINE (lógica pura, sem DOM) =====================
+const SAVE_KEY = 'aerocia-save-v1';
+
+const AIRPORTS = {
+  GRU:{city:'São Paulo',lat:-23.43,lon:-46.47,size:10,intl:false},
+  GIG:{city:'Rio de Janeiro',lat:-22.81,lon:-43.25,size:9,intl:false},
+  BSB:{city:'Brasília',lat:-15.87,lon:-47.92,size:8,intl:false},
+  CNF:{city:'Belo Horizonte',lat:-19.63,lon:-43.97,size:7,intl:false},
+  SSA:{city:'Salvador',lat:-12.91,lon:-38.33,size:7,intl:false},
+  REC:{city:'Recife',lat:-8.13,lon:-34.92,size:7,intl:false},
+  FOR:{city:'Fortaleza',lat:-3.78,lon:-38.53,size:7,intl:false},
+  POA:{city:'Porto Alegre',lat:-29.99,lon:-51.17,size:7,intl:false},
+  CWB:{city:'Curitiba',lat:-25.53,lon:-49.18,size:6,intl:false},
+  VCP:{city:'Campinas',lat:-23.01,lon:-47.13,size:6,intl:false},
+  FLN:{city:'Florianópolis',lat:-27.67,lon:-48.55,size:6,intl:false},
+  MAO:{city:'Manaus',lat:-3.04,lon:-60.05,size:6,intl:false},
+  GYN:{city:'Goiânia',lat:-16.63,lon:-49.22,size:5,intl:false},
+  BEL:{city:'Belém',lat:-1.38,lon:-48.48,size:5,intl:false},
+  SLZ:{city:'São Luís',lat:-2.59,lon:-44.24,size:4,intl:false},
+  NAT:{city:'Natal',lat:-5.77,lon:-35.37,size:4,intl:false},
+  CGB:{city:'Cuiabá',lat:-15.65,lon:-56.12,size:4,intl:false},
+  THE:{city:'Teresina',lat:-5.06,lon:-42.82,size:3,intl:false},
+  EZE:{city:'Buenos Aires',lat:-34.82,lon:-58.54,size:8,intl:true},
+  SCL:{city:'Santiago',lat:-33.39,lon:-70.79,size:7,intl:true},
+  LIM:{city:'Lima',lat:-12.02,lon:-77.11,size:7,intl:true},
+  MIA:{city:'Miami',lat:25.79,lon:-80.29,size:9,intl:true},
+  JFK:{city:'Nova York',lat:40.64,lon:-73.78,size:10,intl:true},
+  LIS:{city:'Lisboa',lat:38.77,lon:-9.13,size:8,intl:true},
+  MAD:{city:'Madri',lat:40.47,lon:-3.56,size:8,intl:true},
+  CDG:{city:'Paris',lat:49.01,lon:2.55,size:10,intl:true},
+};
+
+// tier: 0 regional, 1 nacional, 2 internacional
+const MODELS = {
+  AT7:{name:'ATR 72-600',kind:'Turboélice',tier:0,y:70,j:0,range:1500,speed:500,fuelKm:7,crewH:1800,lease:28000,price:55e6,wearH:0.08,util:15},
+  E295:{name:'Embraer E195-E2',kind:'Jato regional',tier:1,y:132,j:0,range:4800,speed:830,fuelKm:11,crewH:3000,lease:52000,price:105e6,wearH:0.07,util:16},
+  A20N:{name:'Airbus A320neo',kind:'Narrowbody',tier:1,y:174,j:0,range:6300,speed:840,fuelKm:13,crewH:3600,lease:68000,price:145e6,wearH:0.065,util:17},
+  B38M:{name:'Boeing 737 MAX 8',kind:'Narrowbody',tier:1,y:186,j:0,range:6500,speed:840,fuelKm:13.5,crewH:3800,lease:72000,price:152e6,wearH:0.065,util:17},
+  A339:{name:'Airbus A330-900',kind:'Widebody',tier:2,y:257,j:30,range:13300,speed:870,fuelKm:27,crewH:8500,lease:175000,price:420e6,wearH:0.05,util:22},
+};
+
+const LICENSES = [
+  {tier:0,name:'Regional',desc:'Turboélices, rotas até 1.500 km',cost:0},
+  {tier:1,name:'Nacional',desc:'Jatos em qualquer rota doméstica',cost:25e6},
+  {tier:2,name:'Internacional',desc:'Destinos no exterior, widebodies e classe executiva',cost:120e6},
+];
+
+const SERVICE = [
+  {name:'Básico',cost:6,q:-0.12},
+  {name:'Padrão',cost:20,q:0},
+  {name:'Premium',cost:45,q:0.14},
+];
+
+const HUBS = ['BSB','GRU','GIG','CNF','REC','SLZ'];
+
+// ---------- utilidades ----------
+function dist(a,b){
+  const A=AIRPORTS[a],B=AIRPORTS[b],R=6371,rad=Math.PI/180;
+  const dLat=(B.lat-A.lat)*rad,dLon=(B.lon-A.lon)*rad;
+  const h=Math.sin(dLat/2)**2+Math.cos(A.lat*rad)*Math.cos(B.lat*rad)*Math.sin(dLon/2)**2;
+  return Math.round(2*R*Math.asin(Math.sqrt(h)));
+}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function uid(){return Math.random().toString(36).slice(2,9);}
+function isIntlPair(a,b){return AIRPORTS[a].intl||AIRPORTS[b].intl;}
+function fairPrice(d){
+  const base=d<=3500?150+0.45*d:150+0.45*3500+0.25*(d-3500);
+  return Math.round(base/5)*5;
+}
+function baseDemand(a,b){
+  const d=dist(a,b);
+  let f=d<300?0.6:d<2500?1:0.85;
+  if(isIntlPair(a,b))f*=0.7;
+  return 14*AIRPORTS[a].size*AIRPORTS[b].size*f;
+}
+function slotCost(code){const s=AIRPORTS[code].size;return s*s*60000*(AIRPORTS[code].intl?2:1);}
+function slotFee(code){return AIRPORTS[code].size*800*(AIRPORTS[code].intl?2:1);}
+function blockHours(m,d){return d/m.speed+0.5;}
+function maxFreq(m,d){return Math.max(0,Math.floor(m.util/(2*blockHours(m,d))));}
+function maintCost(p){const m=MODELS[p.model];return Math.round(m.price*0.00015*(100-p.condition)/1000)*1000;}
+function maintDays(p){return 2+Math.ceil((100-p.condition)/20);}
+function planeValue(p){return MODELS[p.model].price*0.6*(0.5+p.condition/200);}
+function creditLimit(s){
+  const owned=s.fleet.filter(p=>p.owned).reduce((a,p)=>a+planeValue(p),0);
+  return Math.round((10e6+owned*0.5)/1e6)*1e6;
+}
+function modVal(s,type){
+  return s.mods.filter(m=>m.type===type&&m.until>s.day).reduce((a,m)=>a*m.value,1);
+}
+function opsHalted(s){return s.mods.some(m=>m.type==='halt'&&m.until>s.day);}
+
+// ---------- estado inicial ----------
+function newGame(name,hub){
+  return {
+    v:1,name,hub,day:1,cash:12e6,debt:0,reputation:50,fuelIdx:1,
+    license:0,slots:[hub],fleet:[],routes:[],mods:[],
+    history:[],log:[{day:1,text:`${name} recebe o certificado de operação em ${AIRPORTS[hub].city}.`,tone:'info'}],
+    nextEvent:18,pendingEvent:null,usedEvents:{},
+    lastDay:null,speed:1,savedAt:Date.now(),gameOver:false,
+  };
+}
+
+// ---------- simulação de uma rota ----------
+function simRoute(s,r){
+  const p=s.fleet.find(x=>x.id===r.planeId);
+  const res={id:r.id,pax:0,paxJ:0,rev:0,fuel:0,crew:0,fees:0,svc:0,share:0,lf:0,flying:false,hours:0,reason:''};
+  if(!p){res.reason='Sem aeronave';return res;}
+  if(p.maint>0){res.reason='Em manutenção';return res;}
+  if(opsHalted(s)){res.reason='Operações suspensas';return res;}
+  const m=MODELS[p.model],d=r.dist;
+  const fp=fairPrice(d);
+  const intl=isIntlPair(r.from,r.to);
+  const demand=baseDemand(r.from,r.to)*modVal(s,'demand')*(1+0.08*Math.sin(s.day/365*2*Math.PI*2));
+  const priceF=Math.pow(fp/r.price,2.2);
+  let q=0.75+0.5*(s.reputation/100)+SERVICE[r.service].q;
+  if(p.condition<50)q-=0.1;
+  const freqF=0.7+0.1*Math.min(r.freq,6);
+  const A=priceF*q*freqF*modVal(s,'share');
+  const share=A/(A+r.ai);
+  const capY=m.y*r.freq*2,capJ=m.j*r.freq*2;
+  const pax=Math.round(Math.min(capY,demand*share));
+  let paxJ=0;
+  if(capJ>0&&s.license>=2){
+    const fpJ=fp*3.5,pj=r.priceJ||fpJ;
+    const AJ=Math.pow(fpJ/pj,1.8)*q*freqF;
+    paxJ=Math.round(Math.min(capJ,demand*0.12*AJ/(AJ+r.ai)));
+    res.rev+=paxJ*pj;
+  }
+  res.rev+=pax*r.price;
+  const hours=r.freq*2*blockHours(m,d);
+  res.fuel=m.fuelKm*d*r.freq*2*s.fuelIdx*modVal(s,'fuel');
+  res.crew=m.crewH*hours*modVal(s,'salary');
+  res.fees=(pax+paxJ)*(intl?80:25);
+  res.svc=pax*SERVICE[r.service].cost+paxJ*SERVICE[r.service].cost*4;
+  Object.assign(res,{pax,paxJ,share,lf:(pax+paxJ)/(capY+capJ),flying:true,hours});
+  return res;
+}
+
+// ---------- tick diário ----------
+function tick(s,opts={}){
+  if(s.gameOver)return s;
+  s.day++;
+  const day={day:s.day,rev:0,fuel:0,crew:0,lease:0,fees:0,svc:0,slots:0,overhead:0,interest:0,maint:0,pax:0};
+  // combustível: passeio aleatório com reversão à média
+  s.fuelIdx=clamp(s.fuelIdx+(1-s.fuelIdx)*0.02+(Math.random()-0.5)*0.025,0.7,1.6);
+  // rotas
+  const byRoute={};
+  for(const r of s.routes){
+    const x=simRoute(s,r);byRoute[r.id]=x;
+    day.rev+=x.rev;day.fuel+=x.fuel;day.crew+=x.crew;day.fees+=x.fees;day.svc+=x.svc;day.pax+=x.pax+x.paxJ;
+    r.last={pax:x.pax,paxJ:x.paxJ,share:x.share,lf:x.lf,profit:x.rev-x.fuel-x.crew-x.fees-x.svc-(()=>{const p=s.fleet.find(p=>p.id===r.planeId);return p&&!p.owned?MODELS[p.model].lease:0;})(),reason:x.reason,flying:x.flying};
+    // IA reage a cada 30 dias
+    if(s.day%30===0){
+      if(x.share>0.55)r.ai=clamp(r.ai+0.06,0.8,2.2);
+      else r.ai+=(1.2-r.ai)*0.2;
+    }
+  }
+  // frota: desgaste, manutenção, leasing
+  for(const p of s.fleet){
+    const m=MODELS[p.model];
+    if(!p.owned)day.lease+=m.lease;
+    if(p.maint>0){
+      p.maint--;
+      if(p.maint===0){p.condition=100;s.log.unshift({day:s.day,text:`${p.reg} liberado da manutenção.`,tone:'good'});}
+      continue;
+    }
+    const r=s.routes.find(r=>r.planeId===p.id);
+    const x=r&&byRoute[r.id];
+    if(x&&x.flying){
+      p.condition=clamp(p.condition-x.hours*m.wearH*modVal(s,'wear'),0,100);
+      p.hours+=x.hours;
+    }
+    if(p.condition<25&&Math.random()<0.06){
+      const cost=Math.round(maintCost(p)*1.5);
+      p.maint=maintDays(p)+2;day.maint+=cost;
+      s.reputation=clamp(s.reputation-3,0,100);
+      s.log.unshift({day:s.day,text:`Pane no ${p.reg}. Aeronave em solo (AOG) por ${p.maint} dias.`,tone:'bad'});
+    }
+  }
+  // custos fixos
+  day.slots=s.slots.reduce((a,c)=>a+slotFee(c),0);
+  day.overhead=8000+2500*s.fleet.length;
+  day.interest=s.debt*0.0006;
+  const cost=day.fuel+day.crew+day.lease+day.fees+day.svc+day.slots+day.overhead+day.interest+day.maint;
+  day.profit=day.rev-cost;
+  s.cash+=day.profit;
+  // reputação tende a um alvo
+  const act=s.routes.filter(r=>byRoute[r.id]&&byRoute[r.id].flying);
+  if(act.length){
+    const svc=act.reduce((a,r)=>a+r.service,0)/act.length;
+    const cond=s.fleet.length?s.fleet.reduce((a,p)=>a+p.condition,0)/s.fleet.length:80;
+    const target=clamp(38+svc*12+(cond-60)/3,5,95);
+    s.reputation=clamp(s.reputation+(target-s.reputation)*0.015,0,100);
+  }
+  s.mods=s.mods.filter(m=>m.until>s.day);
+  s.lastDay=day;
+  s.history.push({day:s.day,cash:Math.round(s.cash),profit:Math.round(day.profit),rep:Math.round(s.reputation)});
+  if(s.history.length>120)s.history.shift();
+  if(s.log.length>60)s.log.length=60;
+  // falência
+  if(s.cash<-15e6){s.gameOver=true;s.log.unshift({day:s.day,text:'Os credores assumiram a companhia.',tone:'bad'});}
+  // eventos
+  if(!opts.noEvents&&!s.pendingEvent&&s.day>=s.nextEvent){
+    const ev=pickEvent(s);
+    if(ev)s.pendingEvent=ev.id;
+    s.nextEvent=s.day+20+Math.floor(Math.random()*20);
+  }
+  return s;
+}
+
+// ---------- ações do jogador ----------
+function regFor(s){
+  const letters='ABCDEFGHJKLMNPQRSTUVWXYZ';
+  let r;do{r='PR-'+Array.from({length:3},()=>letters[Math.floor(Math.random()*24)]).join('');}
+  while(s.fleet.some(p=>p.reg===r));return r;
+}
+const actions={
+  lease(s,model){
+    const m=MODELS[model];const dep=m.lease*10;
+    if(m.tier>s.license)return 'Licença insuficiente.';
+    if(s.cash<dep)return 'Caixa insuficiente para o depósito.';
+    s.cash-=dep;
+    const p={id:uid(),reg:regFor(s),model,owned:false,condition:100,maint:0,hours:0,since:s.day};
+    s.fleet.push(p);s.log.unshift({day:s.day,text:`${m.name} ${p.reg} arrendado.`,tone:'info'});return null;
+  },
+  buy(s,model){
+    const m=MODELS[model];
+    if(m.tier>s.license)return 'Licença insuficiente.';
+    if(s.cash<m.price)return 'Caixa insuficiente.';
+    s.cash-=m.price;
+    const p={id:uid(),reg:regFor(s),model,owned:true,condition:100,maint:0,hours:0,since:s.day};
+    s.fleet.push(p);s.log.unshift({day:s.day,text:`${m.name} ${p.reg} comprado.`,tone:'good'});return null;
+  },
+  buyOut(s,id){ // comprar avião arrendado com desconto do que já foi pago
+    const p=s.fleet.find(p=>p.id===id);if(!p||p.owned)return 'Inválido.';
+    const cost=Math.round(MODELS[p.model].price*0.9);
+    if(s.cash<cost)return 'Caixa insuficiente.';
+    s.cash-=cost;p.owned=true;s.log.unshift({day:s.day,text:`${p.reg} agora é próprio.`,tone:'good'});return null;
+  },
+  release(s,id){
+    const p=s.fleet.find(p=>p.id===id);if(!p)return 'Inválido.';
+    if(p.owned)s.cash+=planeValue(p);
+    s.routes.forEach(r=>{if(r.planeId===id)r.planeId=null;});
+    s.fleet=s.fleet.filter(x=>x.id!==id);
+    s.log.unshift({day:s.day,text:p.owned?`${p.reg} vendido.`:`${p.reg} devolvido ao arrendador.`,tone:'info'});return null;
+  },
+  maintain(s,id){
+    const p=s.fleet.find(p=>p.id===id);if(!p||p.maint>0)return 'Inválido.';
+    const c=maintCost(p);if(s.cash<c)return 'Caixa insuficiente.';
+    s.cash-=c;p.maint=maintDays(p);s.log.unshift({day:s.day,text:`${p.reg} entrou em manutenção por ${p.maint} dias.`,tone:'warn'});return null;
+  },
+  buySlot(s,code){
+    if(s.slots.includes(code))return 'Já possui.';
+    if(AIRPORTS[code].intl&&s.license<2)return 'Requer licença internacional.';
+    const c=slotCost(code);if(s.cash<c)return 'Caixa insuficiente.';
+    s.cash-=c;s.slots.push(code);s.log.unshift({day:s.day,text:`Slots adquiridos em ${AIRPORTS[code].city}.`,tone:'good'});return null;
+  },
+  buyLicense(s,tier){
+    const L=LICENSES[tier];if(tier!==s.license+1)return 'Inválido.';
+    if(s.cash<L.cost)return 'Caixa insuficiente.';
+    s.cash-=L.cost;s.license=tier;s.log.unshift({day:s.day,text:`Licença ${L.name} concedida pela ANAC.`,tone:'good'});return null;
+  },
+  openRoute(s,{from,to,planeId}){
+    if(from===to)return 'Escolha dois aeroportos diferentes.';
+    if(!s.slots.includes(from)||!s.slots.includes(to))return 'Você precisa de slots nos dois aeroportos.';
+    if(s.routes.some(r=>(r.from===from&&r.to===to)||(r.from===to&&r.to===from)))return 'Rota já existe.';
+    const d=dist(from,to);
+    const p=s.fleet.find(p=>p.id===planeId);
+    if(p){
+      const m=MODELS[p.model];
+      if(d>m.range)return `Fora do alcance do ${m.name}.`;
+      if(s.license===0&&d>1500)return 'Licença regional limita rotas a 1.500 km.';
+      if(maxFreq(m,d)<1)return 'Rota longa demais para a utilização diária da aeronave.';
+      s.routes.forEach(r=>{if(r.planeId===planeId)r.planeId=null;});
+    }
+    const fp=fairPrice(d);
+    const r={id:uid(),from,to,dist:d,planeId:p?p.id:null,freq:p?Math.min(2,maxFreq(MODELS[p.model],d)):1,price:fp,priceJ:Math.round(fp*3.5/10)*10,service:1,ai:1.2,opened:s.day,last:null};
+    s.routes.push(r);s.log.unshift({day:s.day,text:`Nova rota ${from}–${to} (${d.toLocaleString('pt-BR')} km).`,tone:'good'});return null;
+  },
+  updateRoute(s,id,patch){
+    const r=s.routes.find(r=>r.id===id);if(!r)return 'Inválido.';
+    if('planeId' in patch&&patch.planeId){
+      const p=s.fleet.find(p=>p.id===patch.planeId),m=MODELS[p.model];
+      if(r.dist>m.range)return `Fora do alcance do ${m.name}.`;
+      if(maxFreq(m,r.dist)<1)return 'Rota longa demais para essa aeronave.';
+      s.routes.forEach(x=>{if(x.planeId===patch.planeId)x.planeId=null;});
+      r.planeId=patch.planeId;r.freq=clamp(r.freq,1,maxFreq(m,r.dist));
+    }else if('planeId' in patch){r.planeId=null;}
+    if('freq' in patch){const p=s.fleet.find(p=>p.id===r.planeId);r.freq=clamp(patch.freq,1,p?maxFreq(MODELS[p.model],r.dist):1);}
+    if('price' in patch)r.price=clamp(Math.round(patch.price),50,50000);
+    if('priceJ' in patch)r.priceJ=clamp(Math.round(patch.priceJ),100,150000);
+    if('service' in patch)r.service=clamp(patch.service,0,2);
+    return null;
+  },
+  closeRoute(s,id){
+    const r=s.routes.find(r=>r.id===id);if(!r)return 'Inválido.';
+    s.routes=s.routes.filter(x=>x.id!==id);
+    s.reputation=clamp(s.reputation-1,0,100);
+    s.log.unshift({day:s.day,text:`Rota ${r.from}–${r.to} encerrada.`,tone:'warn'});return null;
+  },
+  borrow(s,amt){
+    if(s.debt+amt>creditLimit(s))return 'Limite de crédito atingido.';
+    s.debt+=amt;s.cash+=amt;s.log.unshift({day:s.day,text:`Empréstimo de ${fmtMoney(amt)} contratado.`,tone:'info'});return null;
+  },
+  repay(s,amt){
+    amt=Math.min(amt,s.debt);if(s.cash<amt)return 'Caixa insuficiente.';
+    s.debt-=amt;s.cash-=amt;return null;
+  },
+};
+
+// ---------- eventos (cartas) ----------
+// cada opção: label, fx (preview: cash, rep, fleet, ops com -1/+1), apply(s) -> texto de resultado
+function addMod(s,type,value,days){s.mods.push({type,value,until:s.day+days});}
+function hitFleet(s,n){s.fleet.forEach(p=>{if(!p.maint)p.condition=clamp(p.condition+n,0,100);});}
+function scaleCost(s){return Math.max(1,s.fleet.length);} // eventos escalam com o tamanho da empresa
+
+const EVENTS = [
+  {id:'greve',icon:'strike',title:'Greve de pilotos',text:'O sindicato exige 15% de reajuste. Sem acordo, ninguém decola amanhã.',
+   L:{label:'Ceder ao reajuste',fx:{cash:-1},apply:s=>{addMod(s,'salary',1.15,120);return 'Acordo fechado. Salários +15% pelos próximos 120 dias.';}},
+   R:{label:'Endurecer',fx:{rep:-1,ops:-1},apply:s=>{addMod(s,'halt',1,3);s.reputation=clamp(s.reputation-6,0,100);return 'Três dias de greve. Toda a malha parada.';}}},
+  {id:'querosene',icon:'fuel',title:'Querosene dispara',text:'A Petrobras anuncia alta de 25% no QAV a partir de segunda.',
+   L:{label:'Travar preço (hedge)',fx:{cash:-1},apply:s=>{const c=250000*scaleCost(s);s.cash-=c;addMod(s,'fuel',0.9,45);return `Hedge contratado por ${fmtMoney(c)}. Combustível 10% abaixo do mercado por 45 dias.`;}},
+   R:{label:'Absorver a alta',fx:{cash:-1},apply:s=>{addMod(s,'fuel',1.25,40);return 'Combustível 25% mais caro pelos próximos 40 dias.';}}},
+  {id:'cinzas',icon:'ash',title:'Nuvem de cinzas',text:'Um vulcão andino lançou cinzas no espaço aéreo do sul. Os modelos divergem sobre o risco.',
+   L:{label:'Cancelar voos',fx:{ops:-1,rep:1},apply:s=>{addMod(s,'halt',1,4);s.reputation=clamp(s.reputation+2,0,100);return 'Malha suspensa por 4 dias. Passageiros elogiam a prudência.';}},
+   R:{label:'Manter a malha',fx:{fleet:-1,rep:-1},apply:s=>{if(Math.random()<0.35){hitFleet(s,-25);s.reputation=clamp(s.reputation-12,0,100);return 'Dois motores ingeriram cinzas. Frota -25% de condição, reputação em queda.';}return 'Os voos passaram ao largo da nuvem. Nada aconteceu.';}}},
+  {id:'influencer',icon:'phone',title:'Vídeo viral',text:'Uma influenciadora filmou a poltrona quebrada. 2 milhões de visualizações.',
+   L:{label:'Pedir desculpas e dar vouchers',fx:{cash:-1,rep:1},apply:s=>{const c=80000*scaleCost(s);s.cash-=c;s.reputation=clamp(s.reputation+3,0,100);return `Resposta rápida bem recebida. Custo: ${fmtMoney(c)}.`;}},
+   R:{label:'Ignorar',fx:{rep:-1},apply:s=>{s.reputation=clamp(s.reputation-7,0,100);return 'O assunto virou meme. Reputação -7.';}}},
+  {id:'feriado',icon:'sun',title:'Feriadão à vista',text:'Procura por passagens explodiu para o feriado prolongado.',
+   L:{label:'Subir tarifas',fx:{cash:1,rep:-1},apply:s=>{const c=150000*scaleCost(s);s.cash+=c;s.reputation=clamp(s.reputation-2,0,100);return `Receita extra de ${fmtMoney(c)}. Alguns clientes reclamaram.`;}},
+   R:{label:'Voos extras',fx:{cash:1,fleet:-1},apply:s=>{addMod(s,'demand',1.35,10);hitFleet(s,-5);return 'Demanda +35% por 10 dias. Frota trabalhando no limite.';}}},
+  {id:'anac',icon:'clip',title:'Fiscalização da ANAC',text:'Inspetores pedem os registros de manutenção de toda a frota.',
+   L:{label:'Auditoria completa',fx:{cash:-1,fleet:1},apply:s=>{const c=120000*scaleCost(s);s.cash-=c;hitFleet(s,10);return `Auditoria concluída (${fmtMoney(c)}). Frota +10% de condição.`;}},
+   R:{label:'Pedir prazo',fx:{cash:-1,rep:-1},apply:s=>{if(Math.random()<0.45){const c=400000*scaleCost(s);s.cash-=c;s.reputation=clamp(s.reputation-5,0,100);return `Pendências encontradas. Multa de ${fmtMoney(c)}.`;}return 'Prazo concedido sem pendências.';}}},
+  {id:'guerra',icon:'tag',title:'Guerra tarifária',text:'A concorrente anunciou passagens 30% mais baratas nas suas rotas.',
+   L:{label:'Acompanhar os preços',fx:{cash:-1},apply:s=>{s.routes.forEach(r=>r.price=Math.round(r.price*0.85));return 'Todas as tarifas reduzidas em 15%. Revise-as em Rotas quando a poeira baixar.';}},
+   R:{label:'Apostar no serviço',fx:{rep:1,ops:-1},apply:s=>{addMod(s,'share',0.8,30);s.reputation=clamp(s.reputation+2,0,100);return 'Você perde passageiros por 30 dias, mas a marca sai fortalecida.';}}},
+  {id:'passaro',icon:'bird',title:'Colisão com pássaro',text:'Um urubu atingiu o motor na aproximação. O avião pousou bem, mas há marcas no fan.',
+   need:s=>s.fleet.some(p=>!p.maint),
+   L:{label:'Inspeção completa',fx:{cash:-1,ops:-1},apply:s=>{const p=s.fleet.filter(p=>!p.maint)[0];p.maint=4;return `${p.reg} parado 4 dias para inspeção boroscópica.`;}},
+   R:{label:'Inspeção visual e seguir',fx:{fleet:-1},apply:s=>{const p=s.fleet.filter(p=>!p.maint)[0];if(Math.random()<0.4){p.condition=clamp(p.condition-35,0,100);s.reputation=clamp(s.reputation-4,0,100);return `Dano interno não detectado. ${p.reg} perdeu 35% de condição.`;}return 'Tudo certo. O avião seguiu voando.';}}},
+  {id:'patrocinio',icon:'star',title:'Proposta de patrocínio',text:'Um clube de futebol quer sua marca na camisa. Contrato de um ano.',
+   L:{label:'Recusar',fx:{},apply:s=>'Proposta recusada.'},
+   R:{label:'Fechar contrato',fx:{cash:-1,rep:1},apply:s=>{const c=300000*scaleCost(s);s.cash-=c;s.reputation=clamp(s.reputation+6,0,100);addMod(s,'demand',1.08,90);return `Marca na camisa. Reputação +6 e demanda +8% por 90 dias.`;}}},
+  {id:'sistema',icon:'bug',title:'Pane no sistema de reservas',text:'O site caiu na sexta à noite. A TI estima 12 horas para reparar.',
+   L:{label:'Chamar consultoria externa',fx:{cash:-1},apply:s=>{const c=90000*scaleCost(s);s.cash-=c;return `Sistema restaurado em 2 horas por ${fmtMoney(c)}.`;}},
+   R:{label:'Esperar a equipe interna',fx:{rep:-1,cash:-1},apply:s=>{addMod(s,'demand',0.7,3);s.reputation=clamp(s.reputation-3,0,100);return 'Vendas 30% menores por 3 dias.';}}},
+  {id:'copa',icon:'ball',title:'Final no Brasil',text:'A final da Libertadores será no seu hub. Torcedores procuram voos.',
+   L:{label:'Pacotes com desconto',fx:{rep:1},apply:s=>{addMod(s,'demand',1.2,7);s.reputation=clamp(s.reputation+3,0,100);return 'Demanda +20% por 7 dias e torcida agradecida.';}},
+   R:{label:'Tarifa dinâmica',fx:{cash:1,rep:-1},apply:s=>{const c=200000*scaleCost(s);s.cash+=c;s.reputation=clamp(s.reputation-2,0,100);return `Lucro extra de ${fmtMoney(c)}.`;}}},
+  {id:'slotbarato',icon:'key',title:'Slot à venda',text:'Uma companhia em recuperação judicial oferece seus slots pela metade do preço.',
+   need:s=>Object.keys(AIRPORTS).some(c=>!s.slots.includes(c)&&(!AIRPORTS[c].intl||s.license>=2)),
+   L:{label:'Dispensar',fx:{},apply:s=>'Oferta recusada.'},
+   R:{label:'Comprar',fx:{cash:-1},apply:s=>{const opts=Object.keys(AIRPORTS).filter(c=>!s.slots.includes(c)&&(!AIRPORTS[c].intl||s.license>=2));const c=opts.sort((a,b)=>AIRPORTS[b].size-AIRPORTS[a].size)[0];const cost=slotCost(c)/2;if(s.cash<cost)return 'Caixa insuficiente. A oferta foi para um concorrente.';s.cash-=cost;s.slots.push(c);return `Slots em ${AIRPORTS[c].city} por ${fmtMoney(cost)}.`;}}},
+];
+
+function pickEvent(s){
+  const pool=EVENTS.filter(e=>(!e.need||e.need(s))&&(s.day-(s.usedEvents[e.id]||-999))>120);
+  if(!pool.length)return null;
+  const e=pool[Math.floor(Math.random()*pool.length)];s.usedEvents[e.id]=s.day;return e;
+}
+function resolveEvent(s,side){
+  const e=EVENTS.find(e=>e.id===s.pendingEvent);if(!e)return null;
+  const opt=side==='L'?e.L:e.R;
+  const out=opt.apply(s);
+  s.log.unshift({day:s.day,text:`${e.title}: ${out}`,tone:'event'});
+  s.pendingEvent=null;return out;
+}
+
+// ---------- offline ----------
+function catchUp(s,now=Date.now()){
+  const elapsed=(now-(s.savedAt||now))/1000;
+  const days=Math.min(60,Math.floor(elapsed/60)); // 1 dia por minuto real fora, máx. 60
+  if(days<1)return null;
+  const cash0=s.cash,rep0=s.reputation,day0=s.day;
+  for(let i=0;i<days&&!s.gameOver;i++)tick(s,{noEvents:true});
+  return {days:s.day-day0,profit:s.cash-cash0,rep:s.reputation-rep0,away:elapsed};
+}
+
+// ---------- formatação ----------
+function fmtMoney(v){
+  const a=Math.abs(v),sg=v<0?'−':'';
+  if(a>=1e9)return `${sg}R$ ${(a/1e9).toFixed(2).replace('.',',')} bi`;
+  if(a>=1e6)return `${sg}R$ ${(a/1e6).toFixed(1).replace('.',',')} mi`;
+  if(a>=1e3)return `${sg}R$ ${Math.round(a/1e3)} mil`;
+  return `${sg}R$ ${Math.round(a)}`;
+}
+function fmtDate(day){
+  const d=new Date(2026,0,1);d.setDate(d.getDate()+day-1);
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'}).replace('.','');
+}
+
+if(typeof module!=='undefined')module.exports={AIRPORTS,MODELS,LICENSES,SERVICE,HUBS,EVENTS,dist,fairPrice,baseDemand,maxFreq,newGame,tick,actions,resolveEvent,catchUp,simRoute,fmtMoney,creditLimit,slotCost};
+// ===================== FIM ENGINE =====================
+
+// ===================== STORE (API no estilo Zustand) =====================
+const {useState,useEffect,useRef,useSyncExternalStore}=React;
+const html=htm.bind(React.createElement);
+
+function create(init){
+  let state;const subs=new Set();
+  const set=p=>{state={...state,...(typeof p==='function'?p(state):p)};subs.forEach(l=>l());};
+  const get=()=>state;state=init(set,get);
+  const use=(sel=s=>s)=>useSyncExternalStore(cb=>{subs.add(cb);return()=>subs.delete(cb);},()=>sel(state));
+  use.getState=get;use.setState=set;return use;
+}
+function loadGame(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return null;const g=JSON.parse(raw);return g&&g.v===1?g:null;}catch(e){return null;}}
+function saveGame(g){if(!g)return;try{g.savedAt=Date.now();localStorage.setItem(SAVE_KEY,JSON.stringify(g));}catch(e){}}
+function loadTheme(){try{return localStorage.getItem('aerocia-theme');}catch(e){return null;}}
+
+const useGame=create((set,get)=>({
+  game:null,rev:0,tab:'painel',toast:null,offline:null,result:null,theme:loadTheme(),
+  bump:()=>set(s=>({rev:s.rev+1})),
+  act:(fn)=>{const g=get().game;const err=fn(g);if(err)get().notify(err,'bad');get().bump();saveGame(g);return err;},
+  notify:(text,tone='info')=>{set({toast:{text,tone,id:Date.now()}});setTimeout(()=>{if(get().toast&&Date.now()-get().toast.id>2400)set({toast:null});},2600);},
+  start:(name,hub)=>{const g=newGame(name,hub);saveGame(g);set({game:g,tab:'painel'});},
+  setTab:t=>set({tab:t}),
+  setSpeed:v=>{const g=get().game;g.speed=v;get().bump();},
+  decide:side=>{const g=get().game;const out=resolveEvent(g,side);set({result:out});get().bump();saveGame(g);},
+  reset:()=>{try{localStorage.removeItem(SAVE_KEY);}catch(e){}set({game:null,offline:null,result:null});},
+  setTheme:t=>{try{localStorage.setItem('aerocia-theme',t);}catch(e){}document.documentElement.dataset.theme=t;set({theme:t});},
+}));
+
+// ===================== GAME LOOP =====================
+function startLoop(){
+  let acc=0,last=performance.now();
+  function frame(now){
+    const st=useGame.getState(),g=st.game;
+    const dt=now-last;last=now;
+    if(g&&!g.gameOver&&!g.pendingEvent&&!st.result&&!st.offline&&g.speed>0&&!document.hidden){
+      acc+=dt;const step=1000/g.speed;let n=0;
+      while(acc>=step&&n<8){tick(g);acc-=step;n++;if(g.pendingEvent)break;}
+      if(n){st.bump();if(g.day%5===0||g.pendingEvent)saveGame(g);}
+    }else acc=0;
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  document.addEventListener('visibilitychange',()=>{
+    const st=useGame.getState(),g=st.game;if(!g)return;
+    if(document.hidden)saveGame(g);
+    else{const r=catchUp(g);if(r){useGame.setState({offline:r});st.bump();saveGame(g);}}
+  });
+  window.addEventListener('pagehide',()=>saveGame(useGame.getState().game));
+}
+
+// ===================== ÍCONES =====================
+const IC={
+  plane:'M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z',
+  fuel:'M4 21V5a2 2 0 012-2h6a2 2 0 012 2v16M3 21h12M4 11h10M14 8l3 2v8a2 2 0 004 0V9l-3-3',
+  strike:'M3 10v4h3l7 4V6L6 10H3zM16 9a4 4 0 010 6M18.5 6.5a7.5 7.5 0 010 11',
+  ash:'M7 17a4 4 0 01-.6-8A6 6 0 0118 10.5 3.3 3.3 0 0117.5 17zM8 20h.01M12 21h.01M16 20h.01',
+  phone:'M8 2h8a1 1 0 011 1v18a1 1 0 01-1 1H8a1 1 0 01-1-1V3a1 1 0 011-1zM11 18h2',
+  sun:'M12 7a5 5 0 100 10 5 5 0 000-10zM12 1v3M12 20v3M1 12h3M20 12h3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1',
+  clip:'M9 2h6v3H9zM7 3.5H5V22h14V3.5h-2M8 11h8M8 15h6',
+  tag:'M3 12V3h9l9 9-9 9zM7.5 7.5h.01',
+  bird:'M2 13c4-1.5 6.5.5 8.5 3 1-4.5 5-8.5 11.5-9-3 2.2-4 5-5 8-1.8 4.3-7.3 6.2-12.5 3',
+  star:'M12 2.5l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17.4l-6.1 3.5 1.5-6.8-5.2-4.6 6.9-.7z',
+  bug:'M3 4h18v12H3zM8 20h8M12 16v4M12 7v4M12 13.5h.01',
+  ball:'M12 2a10 10 0 100 20 10 10 0 000-20zM12 7l4.5 3.3-1.7 5.2H9.2l-1.7-5.2z',
+  key:'M14.5 3a6.5 6.5 0 00-6.2 8.6L2 18v4h4v-2h2v-2h2l1.9-1.9A6.5 6.5 0 1014.5 3zM16.5 7.5h.01',
+  wrench:'M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z',
+  cash:'M2 6h20v12H2zM12 9a3 3 0 100 6 3 3 0 000-6zM6 12h.01M18 12h.01',
+  rep:'M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z',
+  ops:'M12 2a10 10 0 100 20 10 10 0 000-20zM12 6v6l4 2',
+  moon:'M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z',
+  grid:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',
+  route:'M5 19a2 2 0 100-4 2 2 0 000 4zM19 9a2 2 0 100-4 2 2 0 000 4zM5 15V9a4 4 0 014-4h4M19 9v6a4 4 0 01-4 4h-4',
+  store:'M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6',
+  chart:'M3 3v18h18M7 15l4-4 3 3 5-6',
+};
+const FILLED=new Set(['plane']);
+function Icon({n,size=18,cls=''}){
+  const f=FILLED.has(n);
+  return html`<svg className=${'ic '+cls} width=${size} height=${size} viewBox="0 0 24 24" aria-hidden="true"
+    fill=${f?'currentColor':'none'} stroke=${f?'none':'currentColor'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d=${IC[n]}/></svg>`;
+}
+
+// ===================== PEÇAS =====================
+function Bar({v,tone,label}){
+  const t=tone||(v>=60?'good':v>=40?'mid':'bad');
+  return html`<div className="bar" role="meter" aria-valuenow=${Math.round(v)} aria-valuemin="0" aria-valuemax="100" aria-label=${label||''}>
+    <i className=${'bar-'+t} style=${{width:clamp(v,0,100)+'%'}}></i></div>`;
+}
+function Money({v,signed}){
+  return html`<span className=${'num '+(signed?(v>=0?'pos':'neg'):'')}>${signed&&v>0?'+':''}${fmtMoney(v)}</span>`;
+}
+function Btn({children,onClick,kind='',disabled,title,small}){
+  return html`<button className=${'btn '+kind+(small?' sm':'')} onClick=${onClick} disabled=${disabled} title=${title}>${children}</button>`;
+}
+function Empty({children}){return html`<div className="empty">${children}</div>`;}
+const TONE_DOT={good:'teal',bad:'alert',warn:'alert',info:'muted',event:'blue'};
+
+// ===================== TOPO =====================
+function TopBar(){
+  const {game:g,setSpeed,theme,setTheme}=useGame();
+  const d=g.lastDay;const dark=(theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))==='dark';
+  return html`<header className="top">
+    <div className="brand">
+      <span className="tail"><${Icon} n="plane" size=${20}/></span>
+      <div><strong>${g.name}</strong><small>${fmtDate(g.day)} · dia ${g.day}</small></div>
+    </div>
+    <div className="stats">
+      <div className="stat"><small>Caixa</small><b className=${g.cash<0?'neg':''}>${fmtMoney(g.cash)}</b></div>
+      <div className="stat"><small>Hoje</small><b>${d?html`<${Money} v=${d.profit} signed/>`:'—'}</b></div>
+      <div className="stat rep"><small>Reputação ${Math.round(g.reputation)}</small><${Bar} v=${g.reputation} tone=${g.reputation<35?"bad":"teal"} label="Reputação"/></div>
+      <div className="stat hide-s"><small>QAV</small><b className=${g.fuelIdx>1.1?'neg':''}>${(g.fuelIdx*100).toFixed(0)}</b></div>
+    </div>
+    <div className="speed" role="group" aria-label="Velocidade">
+      ${[0,1,2,4].map(v=>html`<button key=${v} className=${g.speed===v?'on':''} onClick=${()=>setSpeed(v)} aria-label=${v?`${v} dia(s) por segundo`:'Pausar'}>${v===0?'❚❚':v+'×'}</button>`)}
+      <button onClick=${()=>setTheme(dark?'light':'dark')} aria-label="Alternar tema"><${Icon} n=${dark?'sun':'moon'} size=${15}/></button>
+    </div>
+  </header>`;
+}
+const TABS=[['painel','Painel','grid'],['rotas','Rotas','route'],['frota','Frota','plane'],['mercado','Mercado','store'],['financas','Finanças','chart']];
+function Tabs(){
+  const {tab,setTab,game:g}=useGame();
+  const alerts=g.fleet.filter(p=>p.condition<40&&!p.maint).length;
+  return html`<nav className="tabs">${TABS.map(([k,l,i])=>html`
+    <button key=${k} className=${tab===k?'on':''} onClick=${()=>setTab(k)}><${Icon} n=${i} size=${18}/><span>${l}</span>${k==='frota'&&alerts?html`<em>${alerts}</em>`:''}</button>`)}</nav>`;
+}
+
+// ===================== PAINEL =====================
+const MOD_LABEL={fuel:'Combustível',demand:'Demanda',salary:'Salários',share:'Atratividade',halt:'Operações suspensas',wear:'Desgaste'};
+function Painel(){
+  const {game:g,act,setTab}=useGame();
+  const d=g.lastDay;
+  const alerts=[];
+  g.mods.forEach((m,i)=>alerts.push({k:'m'+i,tone:(m.type==='fuel'||m.type==='salary')?(m.value>1?'bad':'good'):(m.value<1||m.type==='halt'?'bad':'good'),
+    text:m.type==='halt'?`Operações suspensas`:`${MOD_LABEL[m.type]} ${m.value>1?'+':''}${Math.round((m.value-1)*100)}%`,sub:`${m.until-g.day} dias`}));
+  g.fleet.forEach(p=>{
+    if(p.maint>0)alerts.push({k:'mt'+p.id,tone:'info',text:`${p.reg} em manutenção`,sub:`${p.maint} dias`});
+    else if(p.condition<40)alerts.push({k:'c'+p.id,tone:'bad',text:`${p.reg} com ${Math.round(p.condition)}% de condição`,sub:'risco de pane',btn:html`<${Btn} small kind="warn" onClick=${()=>act(s=>actions.maintain(s,p.id))}>Manutenção ${fmtMoney(maintCost(p))}</${Btn}>`});
+    else if(!g.routes.some(r=>r.planeId===p.id))alerts.push({k:'i'+p.id,tone:'bad',text:`${p.reg} parado sem rota`,sub:p.owned?'avião ocioso':`leasing de ${fmtMoney(MODELS[p.model].lease)}/dia sem voar`,btn:html`<${Btn} small onClick=${()=>setTab('rotas')}>Escalar</${Btn}>`});
+  });
+  g.routes.forEach(r=>{
+    if(!r.planeId)alerts.push({k:'r'+r.id,tone:'bad',text:`${r.from}–${r.to} sem aeronave`,sub:'rota não opera'});
+    else if(r.last&&r.last.flying&&r.last.profit<0)alerts.push({k:'l'+r.id,tone:'bad',text:`${r.from}–${r.to} no prejuízo`,sub:fmtMoney(r.last.profit)+'/dia'});
+  });
+  const onboarding=g.routes.length===0;
+  return html`<section className="grid-dash">
+    <div className="panel kpis">
+      <div><small>Resultado do dia</small><b>${d?html`<${Money} v=${d.profit} signed/>`:'—'}</b></div>
+      <div><small>Passageiros/dia</small><b className="num">${d?d.pax.toLocaleString('pt-BR'):0}</b></div>
+      <div><small>Frota</small><b className="num">${g.fleet.length}</b></div>
+      <div><small>Rotas</small><b className="num">${g.routes.length}</b></div>
+    </div>
+    ${onboarding?html`<div className="panel start">
+      <h2>Primeiro voo</h2>
+      <ol>
+        <li className=${g.fleet.length?'done':''}>Arrende um ATR 72 no <a onClick=${()=>setTab('mercado')}>Mercado</a></li>
+        <li className=${g.slots.length>1?'done':''}>Compre slots em outra cidade até 1.500 km do hub</li>
+        <li>Abra a rota em <a onClick=${()=>setTab('rotas')}>Rotas</a> e ajuste tarifa e frequência</li>
+      </ol>
+    </div>`:''}
+    <div className="panel">
+      <h2>Caixa · últimos ${g.history.length} dias</h2>
+      <${CashChart} data=${g.history}/>
+    </div>
+    <div className="panel">
+      <h2>Atenção</h2>
+      ${alerts.length?html`<ul className="alerts">${alerts.slice(0,8).map(a=>html`<li key=${a.k} className=${'t-'+a.tone}>
+        <i></i><div><b>${a.text}</b><small>${a.sub}</small></div>${a.btn||''}</li>`)}</ul>`:html`<${Empty}>Tudo em ordem. Nenhum avião parado, nenhuma rota no vermelho.</${Empty}>`}
+    </div>
+    <div className="panel span2">
+      <h2>Diário de bordo</h2>
+      <ul className="log">${g.log.slice(0,10).map((l,i)=>html`<li key=${i}><span className=${'dot '+TONE_DOT[l.tone]}></span><time>${l.day}</time><span>${l.text}</span></li>`)}</ul>
+    </div>
+  </section>`;
+}
+function CashChart({data}){
+  if(data.length<2)return html`<${Empty}>O gráfico aparece depois do primeiro dia de operação.</${Empty}>`;
+  const W=600,H=140,vals=data.map(h=>h.cash);
+  const mn=Math.min(0,...vals),mx=Math.max(...vals,1);
+  const x=i=>i/(data.length-1)*W,y=v=>H-(v-mn)/(mx-mn||1)*(H-10)-5;
+  const pts=vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const up=vals.at(-1)>=vals[0];
+  return html`<svg className="chart" viewBox=${`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="Evolução do caixa">
+    ${mn<0?html`<line x1="0" x2=${W} y1=${y(0)} y2=${y(0)} className="zero"/>`:''}
+    <polyline points=${`0,${H} ${pts} ${W},${H}`} className=${'area '+(up?'up':'down')}/>
+    <polyline points=${pts} className=${'line '+(up?'up':'down')}/>
+  </svg>
+  <div className="chart-legend"><span>${fmtMoney(vals[0])}</span><span>${fmtMoney(vals.at(-1))}</span></div>`;
+}
+
+// ===================== ROTAS =====================
+function Rotas(){
+  const {game:g}=useGame();
+  const [open,setOpen]=useState(null);const [adding,setAdding]=useState(false);
+  return html`<section>
+    <div className="section-head"><h1>Rotas</h1><${Btn} kind="primary" onClick=${()=>setAdding(!adding)}>${adding?'Cancelar':'Nova rota'}</${Btn}></div>
+    ${adding?html`<${NewRoute} onDone=${()=>setAdding(false)}/>`:''}
+    ${g.routes.length===0&&!adding?html`<${Empty}>Nenhuma rota. Você precisa de uma aeronave e de slots em dois aeroportos.</${Empty}>`:''}
+    ${g.routes.length?html`<div className="table-wrap"><table className="tbl">
+      <thead><tr><th>Rota</th><th>Aeronave</th><th className="c">Freq.</th><th className="r">Tarifa</th><th>Ocupação</th><th>Market share</th><th className="r">Resultado/dia</th></tr></thead>
+      <tbody>${g.routes.map(r=>{
+        const p=g.fleet.find(p=>p.id===r.planeId);const L=r.last;const st=!p?'bad':(L&&!L.flying)?'mid':(L&&L.profit<0)?'bad':'good';
+        return html`<${React.Fragment} key=${r.id}>
+        <tr className=${'row s-'+st+(open===r.id?' open':'')} onClick=${()=>setOpen(open===r.id?null:r.id)} tabIndex="0" onKeyDown=${e=>e.key==='Enter'&&setOpen(open===r.id?null:r.id)}>
+          <td><b className="route">${r.from}<span>→</span>${r.to}</b><small>${r.dist.toLocaleString('pt-BR')} km</small></td>
+          <td>${p?html`<b>${p.reg}</b><small>${MODELS[p.model].name}</small>`:html`<small className="neg">sem aeronave</small>`}</td>
+          <td className="c num">${p?r.freq+'×':'—'}</td>
+          <td className="r num">${fmtMoney(r.price)}</td>
+          <td>${L&&L.flying?html`<div className="cell-bar"><${Bar} v=${L.lf*100} tone="blue"/><span className="num">${Math.round(L.lf*100)}%</span></div>`:html`<small>${L?L.reason:'aguardando'}</small>`}</td>
+          <td>${L&&L.flying?html`<div className="cell-bar"><${Bar} v=${L.share*100} tone="teal"/><span className="num">${Math.round(L.share*100)}%</span></div>`:'—'}</td>
+          <td className="r">${L?html`<${Money} v=${L.profit} signed/>`:'—'}</td>
+        </tr>
+        ${open===r.id?html`<tr className="editor-row"><td colSpan="7"><${RouteEditor} r=${r}/></td></tr>`:''}
+        </${React.Fragment}>`;})}</tbody></table></div>`:''}
+  </section>`;
+}
+function PlaneSelect({value,onChange,dist}){
+  const {game:g}=useGame();
+  return html`<select value=${value||''} onChange=${e=>onChange(e.target.value||null)}>
+    <option value="">Sem aeronave</option>
+    ${g.fleet.map(p=>{const m=MODELS[p.model],used=g.routes.find(r=>r.planeId===p.id);const ok=!dist||(dist<=m.range&&maxFreq(m,dist)>0);
+      return html`<option key=${p.id} value=${p.id} disabled=${!ok}>${p.reg} · ${m.name}${used&&p.id!==value?` (em ${used.from}–${used.to})`:''}${ok?'':' — sem alcance'}</option>`;})}
+  </select>`;
+}
+function RouteEditor({r}){
+  const {game:g,act}=useGame();
+  const p=g.fleet.find(p=>p.id===r.planeId);const m=p&&MODELS[p.model];
+  const fp=fairPrice(r.dist);
+  const prev=p?simRoute(g,r):null;
+  const lease=p&&!p.owned?m.lease:0;
+  const prevProfit=prev&&prev.flying?prev.rev-prev.fuel-prev.crew-prev.fees-prev.svc-lease:null;
+  const upd=patch=>act(s=>actions.updateRoute(s,r.id,patch));
+  const mf=m?maxFreq(m,r.dist):1;
+  return html`<div className="editor">
+    <label><span>Aeronave</span><${PlaneSelect} value=${r.planeId} dist=${r.dist} onChange=${v=>upd({planeId:v})}/></label>
+    <label><span>Frequência (idas e voltas/dia)</span>
+      <div className="stepper"><button onClick=${()=>upd({freq:r.freq-1})} disabled=${!p||r.freq<=1} aria-label="Menos">−</button><b className="num">${r.freq}</b><button onClick=${()=>upd({freq:r.freq+1})} disabled=${!p||r.freq>=mf} aria-label="Mais">+</button><small>máx. ${mf}</small></div></label>
+    <label className="wide"><span>Tarifa econômica <b className="num">${fmtMoney(r.price)}</b> <small>referência de mercado ${fmtMoney(fp)}</small></span>
+      <input type="range" min=${Math.round(fp*0.5/5)*5} max=${Math.round(fp*1.6/5)*5} step="5" value=${r.price} onInput=${e=>upd({price:+e.target.value})}/></label>
+    ${m&&m.j>0&&g.license>=2?html`<label className="wide"><span>Tarifa executiva <b className="num">${fmtMoney(r.priceJ)}</b> <small>referência ${fmtMoney(fp*3.5)}</small></span>
+      <input type="range" min=${Math.round(fp*1.75)} max=${Math.round(fp*5.6)} step="10" value=${r.priceJ} onInput=${e=>upd({priceJ:+e.target.value})}/></label>`:''}
+    <label><span>Serviço de bordo</span><div className="seg">${SERVICE.map((sv,i)=>html`<button key=${i} className=${r.service===i?'on':''} onClick=${()=>upd({service:i})}>${sv.name}</button>`)}</div></label>
+    <div className="preview">
+      ${prev&&prev.flying?html`<div><small>Previsão</small><b className="num">${(prev.pax+prev.paxJ).toLocaleString('pt-BR')} pax · ${Math.round(prev.share*100)}% do mercado</b></div>
+      <div><small>Resultado estimado</small><${Money} v=${prevProfit} signed/></div>`:html`<small>Escale uma aeronave para ver a previsão.</small>`}
+      <${Btn} kind="ghost danger" small onClick=${()=>{if(confirm(`Encerrar ${r.from}–${r.to}? A reputação cai 1 ponto.`))act(s=>actions.closeRoute(s,r.id));}}>Encerrar rota</${Btn}>
+    </div>
+  </div>`;
+}
+function NewRoute({onDone}){
+  const {game:g,act}=useGame();
+  const [from,setFrom]=useState(g.hub);const [to,setTo]=useState(g.slots.find(c=>c!==g.hub)||'');
+  const idle=g.fleet.find(p=>!g.routes.some(r=>r.planeId===p.id));
+  const [plane,setPlane]=useState(idle?idle.id:null);
+  const d=from&&to&&from!==to?dist(from,to):0;
+  const p=g.fleet.find(x=>x.id===plane);const m=p&&MODELS[p.model];
+  let warn='';
+  if(g.slots.length<2)warn='Compre slots em outro aeroporto no Mercado.';
+  else if(!d)warn='Escolha dois aeroportos diferentes.';
+  else if(g.license===0&&d>1500)warn='A licença regional limita rotas a 1.500 km.';
+  else if(m&&d>m.range)warn=`Fora do alcance do ${m.name} (${m.range.toLocaleString('pt-BR')} km).`;
+  else if(g.routes.some(r=>(r.from===from&&r.to===to)||(r.from===to&&r.to===from)))warn='Essa rota já existe.';
+  return html`<div className="panel new-route">
+    <label><span>Origem</span><select value=${from} onChange=${e=>setFrom(e.target.value)}>${g.slots.map(c=>html`<option key=${c} value=${c}>${c} · ${AIRPORTS[c].city}</option>`)}</select></label>
+    <label><span>Destino</span><select value=${to} onChange=${e=>setTo(e.target.value)}><option value="">—</option>${g.slots.map(c=>html`<option key=${c} value=${c}>${c} · ${AIRPORTS[c].city}</option>`)}</select></label>
+    <label><span>Aeronave</span><${PlaneSelect} value=${plane} dist=${d} onChange=${setPlane}/></label>
+    <div className="facts">
+      <div><small>Distância</small><b className="num">${d?d.toLocaleString('pt-BR')+' km':'—'}</b></div>
+      <div><small>Demanda total</small><b className="num">${d?Math.round(baseDemand(from,to)).toLocaleString('pt-BR')+' pax/dia':'—'}</b></div>
+      <div><small>Tarifa de mercado</small><b className="num">${d?fmtMoney(fairPrice(d)):'—'}</b></div>
+    </div>
+    ${warn?html`<p className="warn-line">${warn}</p>`:''}
+    <${Btn} kind="primary" disabled=${!!warn} onClick=${()=>{if(!act(s=>actions.openRoute(s,{from,to,planeId:plane})))onDone();}}>Abrir rota</${Btn}>
+  </div>`;
+}
+
+// ===================== FROTA =====================
+function Frota(){
+  const {game:g,act,setTab}=useGame();
+  if(!g.fleet.length)return html`<section><div className="section-head"><h1>Frota</h1></div><${Empty}>Hangar vazio. <a onClick=${()=>setTab('mercado')}>Arrende sua primeira aeronave</a>.</${Empty}></section>`;
+  return html`<section>
+    <div className="section-head"><h1>Frota</h1><small>${g.fleet.length} aeronave${g.fleet.length>1?'s':''} · ${g.fleet.filter(p=>p.owned).length} própria${g.fleet.filter(p=>p.owned).length===1?'':'s'}</small></div>
+    <div className="table-wrap"><table className="tbl">
+      <thead><tr><th>Matrícula</th><th>Status</th><th>Condição</th><th className="r">Contrato</th><th className="r">Ações</th></tr></thead>
+      <tbody>${g.fleet.map(p=>{
+        const m=MODELS[p.model];const r=g.routes.find(r=>r.planeId===p.id);
+        const st=p.maint>0?'mid':p.condition<40?'bad':!r?'bad':'good';
+        return html`<tr key=${p.id} className=${'row s-'+st}>
+          <td><b>${p.reg}</b><small>${m.name} · ${m.y+m.j} assentos</small></td>
+          <td>${p.maint>0?html`<span className="pill warn"><${Icon} n="wrench" size=${13}/> ${p.maint} dias</span>`:r?html`<span className="pill ok">${r.from}–${r.to}</span>`:html`<span className="pill bad">Parado</span>`}</td>
+          <td><div className="cell-bar"><${Bar} v=${p.condition} label="Condição"/><span className="num">${Math.round(p.condition)}%</span></div></td>
+          <td className="r">${p.owned?html`<b>Própria</b><small>vale ${fmtMoney(planeValue(p))}</small>`:html`<b className="num">${fmtMoney(m.lease)}/dia</b><small>leasing</small>`}</td>
+          <td className="r actions">
+            <${Btn} small kind=${p.condition<40?'warn':''} disabled=${p.maint>0||p.condition>97} onClick=${()=>act(s=>actions.maintain(s,p.id))} title=${`${maintDays(p)} dias fora de operação`}>Manutenção ${fmtMoney(maintCost(p))}</${Btn}>
+            ${!p.owned?html`<${Btn} small disabled=${g.cash<m.price*0.9} onClick=${()=>act(s=>actions.buyOut(s,p.id))}>Comprar ${fmtMoney(m.price*0.9)}</${Btn}>`:''}
+            <${Btn} small kind="ghost danger" onClick=${()=>{if(confirm(p.owned?`Vender ${p.reg} por ${fmtMoney(planeValue(p))}?`:`Devolver ${p.reg} ao arrendador? O depósito não é reembolsado.`))act(s=>actions.release(s,p.id));}}>${p.owned?'Vender':'Devolver'}</${Btn}>
+          </td></tr>`;})}</tbody></table></div>
+  </section>`;
+}
+
+// ===================== MERCADO =====================
+function Mercado(){
+  const [sub,setSub]=useState('avioes');
+  return html`<section>
+    <div className="section-head"><h1>Mercado</h1>
+      <div className="seg">${[['avioes','Aeronaves'],['slots','Slots'],['licencas','Licenças']].map(([k,l])=>html`<button key=${k} className=${sub===k?'on':''} onClick=${()=>setSub(k)}>${l}</button>`)}</div></div>
+    ${sub==='avioes'?html`<${Aeronaves}/>`:sub==='slots'?html`<${Slots}/>`:html`<${Licencas}/>`}
+  </section>`;
+}
+function Aeronaves(){
+  const {game:g,act}=useGame();
+  const maxR=13300;
+  return html`<div className="table-wrap"><table className="tbl">
+    <thead><tr><th>Modelo</th><th className="c">Assentos</th><th>Alcance</th><th className="r">Leasing</th><th className="r">Compra</th><th className="r"></th></tr></thead>
+    <tbody>${Object.entries(MODELS).map(([k,m])=>{const locked=m.tier>g.license;
+      return html`<tr key=${k} className=${'row '+(locked?'locked':'s-good')}>
+        <td><b>${m.name}</b><small>${m.kind}${locked?` · requer licença ${LICENSES[m.tier].name}`:''}</small></td>
+        <td className="c num">${m.j?`${m.j}J + ${m.y}Y`:m.y}</td>
+        <td><div className="cell-bar"><${Bar} v=${m.range/maxR*100} tone="blue"/><span className="num">${m.range.toLocaleString('pt-BR')} km</span></div></td>
+        <td className="r"><b className="num">${fmtMoney(m.lease)}/dia</b><small>depósito ${fmtMoney(m.lease*10)}</small></td>
+        <td className="r num">${fmtMoney(m.price)}</td>
+        <td className="r actions">
+          <${Btn} small kind="primary" disabled=${locked||g.cash<m.lease*10} onClick=${()=>act(s=>actions.lease(s,k))}>Arrendar</${Btn}>
+          <${Btn} small disabled=${locked||g.cash<m.price} onClick=${()=>act(s=>actions.buy(s,k))}>Comprar</${Btn}>
+        </td></tr>`;})}</tbody></table></div>`;
+}
+function Slots(){
+  const {game:g,act}=useGame();
+  const list=Object.keys(AIRPORTS).sort((a,b)=>(g.slots.includes(b)-g.slots.includes(a))||(AIRPORTS[a].intl-AIRPORTS[b].intl)||dist(g.hub,a)-dist(g.hub,b));
+  return html`<div className="table-wrap"><table className="tbl">
+    <thead><tr><th>Aeroporto</th><th>Porte</th><th className="r">Do hub</th><th className="r">Taxa/dia</th><th className="r"></th></tr></thead>
+    <tbody>${list.map(c=>{const a=AIRPORTS[c],own=g.slots.includes(c),locked=a.intl&&g.license<2,d=dist(g.hub,c);
+      return html`<tr key=${c} className=${'row '+(own?'s-good':locked?'locked':'')}>
+        <td><b>${c}</b><small>${a.city}${a.intl?' · internacional':''}</small></td>
+        <td><div className="cell-bar"><${Bar} v=${a.size*10} tone="blue"/><span className="num">${a.size}</span></div></td>
+        <td className="r num">${c===g.hub?'hub':d.toLocaleString('pt-BR')+' km'}</td>
+        <td className="r num">${fmtMoney(slotFee(c))}</td>
+        <td className="r">${own?html`<span className="pill ok">Seu</span>`:html`<${Btn} small kind="primary" disabled=${locked||g.cash<slotCost(c)} onClick=${()=>act(s=>actions.buySlot(s,c))}>${locked?'Licença int.':'Comprar '+fmtMoney(slotCost(c))}</${Btn}>`}</td>
+      </tr>`;})}</tbody></table></div>`;
+}
+function Licencas(){
+  const {game:g,act}=useGame();
+  return html`<ol className="licenses">${LICENSES.map(L=>{const has=g.license>=L.tier,next=L.tier===g.license+1;
+    return html`<li key=${L.tier} className=${has?'has':next?'next':''}>
+      <div><b>${L.name}</b><small>${L.desc}</small></div>
+      ${has?html`<span className="pill ok">Ativa</span>`:next?html`<div className="lic-buy"><${Bar} v=${Math.max(0,g.cash)/L.cost*100} tone="teal"/><${Btn} kind="primary" small disabled=${g.cash<L.cost} onClick=${()=>act(s=>actions.buyLicense(s,L.tier))}>Obter ${fmtMoney(L.cost)}</${Btn}></div>`:html`<small>${fmtMoney(L.cost)}</small>`}
+    </li>`;})}</ol>`;
+}
+
+// ===================== FINANÇAS =====================
+function Financas(){
+  const {game:g,act}=useGame();const d=g.lastDay;
+  const lim=creditLimit(g);
+  const items=d?[['Combustível',d.fuel],['Tripulação',d.crew],['Leasing',d.lease],['Taxas aeroportuárias',d.fees],['Serviço de bordo',d.svc],['Slots',d.slots],['Estrutura',d.overhead],['Juros',d.interest],['Manutenção corretiva',d.maint]].filter(x=>x[1]>0):[];
+  const maxV=Math.max(d?d.rev:1,...items.map(x=>x[1]));
+  const hist=g.history.slice(-60);const hm=Math.max(1,...hist.map(h=>Math.abs(h.profit)));
+  return html`<section className="grid-dash">
+    <div className="panel">
+      <h2>Ontem</h2>
+      ${d?html`<ul className="breakdown">
+        <li className="rev"><span>Receita de passagens</span><${Bar} v=${d.rev/maxV*100} tone="teal"/><b className="num">${fmtMoney(d.rev)}</b></li>
+        ${items.map(([l,v])=>html`<li key=${l}><span>${l}</span><${Bar} v=${v/maxV*100} tone="bad"/><b className="num">${fmtMoney(v)}</b></li>`)}
+        <li className="total"><span>Resultado</span><i></i><${Money} v=${d.profit} signed/></li>
+      </ul>`:html`<${Empty}>Nada a mostrar antes do primeiro dia.</${Empty}>`}
+    </div>
+    <div className="panel">
+      <h2>Resultado diário · 60 dias</h2>
+      ${hist.length>1?html`<div className="bars">${hist.map(h=>html`<span key=${h.day} className="col" title=${`Dia ${h.day}: ${fmtMoney(h.profit)}`}><i className=${h.profit>=0?'up':'down'} style=${{height:Math.max(1,Math.abs(h.profit)/hm*50)+'%'}}></i></span>`)}</div>`:html`<${Empty}>Aguardando dados.</${Empty}>`}
+    </div>
+    <div className="panel span2">
+      <h2>Crédito</h2>
+      <div className="credit">
+        <div><small>Dívida</small><b className="num">${fmtMoney(g.debt)}</b></div>
+        <div><small>Limite</small><b className="num">${fmtMoney(lim)}</b></div>
+        <div><small>Juros/dia</small><b className="num">${fmtMoney(g.debt*0.0006)}</b></div>
+        <div className="credit-actions">
+          <${Btn} disabled=${g.debt+5e6>lim} onClick=${()=>act(s=>actions.borrow(s,5e6))}>Tomar R$ 5 mi</${Btn}>
+          <${Btn} disabled=${g.debt<=0||g.cash<Math.min(5e6,g.debt)} onClick=${()=>act(s=>actions.repay(s,5e6))}>Quitar R$ 5 mi</${Btn}>
+        </div>
+      </div>
+      <p className="note">O limite cresce com o valor da frota própria. Com o caixa abaixo de −R$ 15 mi, os credores assumem a companhia.</p>
+    </div>
+  </section>`;
+}
+
+// ===================== CARTA DE EVENTO (swipe) =====================
+const FX_ICON={cash:'cash',rep:'rep',fleet:'wrench',ops:'ops'};
+const FX_NAME={cash:'Caixa',rep:'Reputação',fleet:'Frota',ops:'Operação'};
+function Fx({fx}){
+  const k=Object.keys(fx);if(!k.length)return html`<small className="fx none">sem impacto</small>`;
+  return html`<span className="fx">${k.map(n=>html`<span key=${n} className=${fx[n]>0?'up':'down'} title=${FX_NAME[n]}><${Icon} n=${FX_ICON[n]} size=${14}/>${fx[n]>0?'▲':'▼'}</span>`)}</span>`;
+}
+function EventCard(){
+  const {game:g,decide,result}=useGame();
+  const [dx,setDx]=useState(0);const [drag,setDrag]=useState(false);const start=useRef(0);
+  const e=EVENTS.find(e=>e.id===g.pendingEvent);
+  useEffect(()=>{
+    const k=ev=>{if(!e||result)return;if(ev.key==='ArrowLeft')decide('L');if(ev.key==='ArrowRight')decide('R');};
+    window.addEventListener('keydown',k);return()=>window.removeEventListener('keydown',k);
+  },[e,result]);
+  if(result)return html`<div className="overlay"><div className="ticket result">
+    <p>${result}</p><${Btn} kind="primary" onClick=${()=>{setDx(0);useGame.setState({result:null});}}>Continuar</${Btn}></div></div>`;
+  if(!e)return null;
+  const T=110,side=dx<-30?'L':dx>30?'R':null,pow=Math.min(1,Math.abs(dx)/T);
+  const down=ev=>{start.current=ev.clientX;setDrag(true);ev.currentTarget.setPointerCapture(ev.pointerId);};
+  const move=ev=>{if(drag)setDx(ev.clientX-start.current);};
+  const up=()=>{setDrag(false);if(dx<-T)decide('L');else if(dx>T)decide('R');else setDx(0);};
+  return html`<div className="overlay" role="dialog" aria-modal="true" aria-labelledby="ev-title">
+    <div className="swipe-hint l" style=${{opacity:side==='L'?pow:0.25}}>${e.L.label}</div>
+    <div className="swipe-hint r" style=${{opacity:side==='R'?pow:0.25}}>${e.R.label}</div>
+    <div className=${'ticket'+(drag?' dragging':'')} style=${{transform:`translateX(${dx}px) rotate(${dx/18}deg)`}}
+      onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}>
+      <div className="ticket-top">
+        <span className="ev-icon"><${Icon} n=${e.icon} size=${34}/></span>
+        <div><small>${fmtDate(g.day)}</small><h3 id="ev-title">${e.title}</h3></div>
+      </div>
+      <p>${e.text}</p>
+      <div className="perf"></div>
+      <div className="ticket-stub">
+        <div className=${side==='L'?'hot':''}><small>← Deslize</small><b>${e.L.label}</b><${Fx} fx=${e.L.fx}/></div>
+        <div className=${side==='R'?'hot':''}><small>Deslize →</small><b>${e.R.label}</b><${Fx} fx=${e.R.fx}/></div>
+      </div>
+    </div>
+    <div className="ev-buttons">
+      <${Btn} onClick=${()=>decide('L')}>← ${e.L.label}</${Btn}>
+      <${Btn} onClick=${()=>decide('R')}>${e.R.label} →</${Btn}>
+    </div>
+  </div>`;
+}
+
+// ===================== MODAIS =====================
+function Offline(){
+  const {offline:o}=useGame();if(!o)return null;
+  const h=Math.floor(o.away/3600),mi=Math.floor(o.away%3600/60);
+  return html`<div className="overlay"><div className="ticket result">
+    <small>Enquanto você esteve fora (${h?h+' h ':''}${mi} min)</small>
+    <h3>${o.days} dia${o.days>1?'s':''} de operação</h3>
+    <div className="facts">
+      <div><small>Resultado</small><${Money} v=${o.profit} signed/></div>
+      <div><small>Reputação</small><b className=${'num '+(o.rep>=0?'pos':'neg')}>${o.rep>=0?'+':''}${o.rep.toFixed(1)}</b></div>
+    </div>
+    <p className="note">Fora do jogo, cada minuto real vale um dia, até 60 dias. Eventos não acontecem nesse período.</p>
+    <${Btn} kind="primary" onClick=${()=>useGame.setState({offline:null})}>Voltar ao comando</${Btn}>
+  </div></div>`;
+}
+function GameOver(){
+  const {game:g,reset}=useGame();if(!g.gameOver)return null;
+  return html`<div className="overlay"><div className="ticket result">
+    <h3>Falência</h3><p>${g.name} operou por ${g.day} dias antes de os credores assumirem.</p>
+    <${Btn} kind="primary" onClick=${reset}>Fundar outra companhia</${Btn}></div></div>`;
+}
+function Toast(){const {toast:t}=useGame();return t?html`<div className=${'toast t-'+t.tone} role="status">${t.text}</div>`:null;}
+
+// ===================== NOVO JOGO =====================
+function NewGameScreen(){
+  const {start}=useGame();
+  const [name,setName]=useState('Asa Norte Linhas Aéreas');const [hub,setHub]=useState('BSB');
+  const diff=c=>AIRPORTS[c].size>=9?'Fácil':AIRPORTS[c].size>=7?'Médio':'Difícil';
+  return html`<main className="newgame">
+    <div className="ng-card">
+      <span className="tail big"><${Icon} n="plane" size=${30}/></span>
+      <h1>Fundar companhia aérea</h1>
+      <p>Você começa com R$ 12 milhões, uma licença regional e slots no hub. Um dia de operação passa a cada segundo.</p>
+      <label><span>Nome</span><input value=${name} maxLength="32" onInput=${e=>setName(e.target.value)}/></label>
+      <span className="lbl">Hub</span>
+      <div className="hubs">${HUBS.map(c=>html`<button key=${c} className=${hub===c?'on':''} onClick=${()=>setHub(c)}>
+        <b>${c}</b><small>${AIRPORTS[c].city}</small><em className=${'d-'+diff(c)}>${diff(c)}</em></button>`)}</div>
+      <${Btn} kind="primary" disabled=${!name.trim()} onClick=${()=>start(name.trim(),hub)}>Iniciar operações</${Btn}>
+    </div>
+  </main>`;
+}
+
+// ===================== APP =====================
+function App(){
+  const {game:g,tab}=useGame();
+  if(!g)return html`<${NewGameScreen}/><${Toast}/>`;
+  const View={painel:Painel,rotas:Rotas,frota:Frota,mercado:Mercado,financas:Financas}[tab];
+  return html`<div className="app">
+    <${TopBar}/><${Tabs}/>
+    <main className="content"><${View}/></main>
+    <footer className="foot"><button className="linkish" onClick=${()=>{if(confirm('Apagar o save e começar do zero?'))useGame.getState().reset();}}>Recomeçar</button></footer>
+    <${EventCard}/><${Offline}/><${GameOver}/><${Toast}/>
+  </div>`;
+}
+
+// boot
+(function(){
+  const t=useGame.getState().theme;if(t)document.documentElement.dataset.theme=t;
+  const g=loadGame();
+  if(g){const off=catchUp(g);useGame.setState({game:g,offline:off});saveGame(g);}
+  ReactDOM.createRoot(document.getElementById('root')).render(html`<${App}/>`);
+  startLoop();
+})();
+
+</script>
+</body>
+</html>
