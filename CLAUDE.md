@@ -344,7 +344,23 @@ Textos da interface: voz ativa, frases curtas, sentence case. Botões dizem exat
 - Objetivos e conquistas para dar direção ao jogador.
 - Revisão do balanceamento do meio e do fim de jogo; a fase internacional quase não foi testada no protótipo.
 
-**Fase 3 — Polimento.** PWA instalável com funcionamento offline, exportar e importar save em arquivo, onboarding mais guiado, sons opcionais.
+**Fase 3 — Modelos de negócio (branches).** Pedido do usuário em 2026-09-24. Começa depois do balanceamento da Fase 2 (etapa 7). Proponha um plano detalhado e espere aprovação antes de implementar. O jogador escolhe um caminho de especialização para a companhia, e cada caminho muda regras, libera aeronaves, aeroportos, eventos e objetivos próprios. Caminhos previstos (a lista pode crescer):
+
+- **Low-cost:** tarifas baixas e demanda mais sensível a preço; serviço de bordo restrito ao Básico; cabines de alta densidade (mais assentos por avião); estrutura e custo por passageiro menores; teto de reputação mais baixo.
+- **Regional:** foco em aeroportos de porte ≤ 6 e rotas curtas; slots e taxas mais baratos nesses aeroportos; bônus de demanda onde há pouca concorrência; frota de turboélices e E-jets.
+- **Aviação de pequeno porte / táxi aéreo:** aviões menores, como o Cessna 208 Grand Caravan (9 a 12 passageiros, turboélice monomotor) e similares; novos destinos pequenos (interior, Amazônia, destinos turísticos) que hoje não existem na lista de aeroportos; operações que exigem pouca infraestrutura.
+- **Cargas:** novo produto além de passageiros: cargueiros (versões F e conversões de aviões atuais), demanda de carga por par em toneladas, contratos (postal, e-commerce), receita por tonelada-km. É um sistema novo de simulação, não só modificadores.
+- **Multinacional:** segunda base (hub) fora do Brasil, novos aeroportos internacionais, parcerias ou codeshare com concorrentes estrangeiros, custos em moeda estrangeira.
+- **Outros candidatos:** full-service premium (foco em executiva e serviço), fretamento e turismo sazonal.
+
+Pontos a decidir no plano da Fase 3:
+1. Quando a escolha acontece: na fundação, num marco (por exemplo, ao obter a licença Nacional) ou em ambos.
+2. Se o jogador pode ter um caminho principal e um secundário, e se pode trocar (com custo).
+3. O que cada caminho perde em troca do que ganha, para nenhum ser dominante (a simulação deve ganhar uma estratégia por caminho).
+4. Ordem sugerida de implementação, do mais simples ao mais complexo: regional e pequeno porte (reaproveitam o motor de passageiros), low-cost, multinacional e, por último, cargas (sistema novo).
+5. Dados das aeronaves novas (capacidade, alcance, velocidade, custos) conferidos antes de entrar no jogo.
+
+**Fase 4 — Polimento.** PWA instalável com funcionamento offline, exportar e importar save em arquivo, onboarding mais guiado, sons opcionais.
 
 ## 14. Problemas conhecidos no protótipo
 
@@ -397,3 +413,4 @@ Plano aprovado em 2026-09-23. Ordem: (1) várias aeronaves por rota, (2) configu
   - alguns eventos dependem do porte da companhia (3+ aviões, 4+ aviões, 3+ rotas, ter jato), para aparecerem ao longo do jogo;
   - cadeias via `GameState.flags` (save v4); o acordo do sindicato bloqueia a greve de pilotos por 365 dias.
 - **Objetivos (etapa 6):** 18 objetivos em ordem de progressão (`src/engine/data/goals.ts`), conferidos no fim de cada dia (inclusive offline). Cumprido, vira conquista (`GameState.achievements`, save v5), dá de 1 a 4 de reputação — nunca dinheiro — e aparece em toast e no diário. O Painel mostra os 3 próximos com progresso e a lista de conquistas.
+- **Roadmap (2026-09-24):** entrou a Fase 3 — Modelos de negócio (branches: low-cost, regional, pequeno porte, cargas, multinacional). O Polimento virou Fase 4. Por isso, na etapa 7 a simulação deve aceitar mais de uma estratégia automática, para depois ganhar uma por caminho.
