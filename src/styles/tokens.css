@@ -1,0 +1,56 @@
+/* Design tokens. Tema segue prefers-color-scheme; data-theme no <html> força claro ou escuro. */
+:root {
+  --bg: #f4f4f6;
+  --panel: #ffffff;
+  --panel2: #ececf0;
+  --line: #dcdce3;
+  --text: #1e1e24;
+  --muted: #686876;
+  --blue: #005b96;
+  --blue-hover: #004a7a;
+  --blue-t: #005b96;
+  --teal: #00a896;
+  --teal-t: #00806f;
+  --alert: #ff6b6b;
+  --alert-t: #d8413f;
+  --on-alert: #1e1e24;
+  --shadow: 0 18px 50px rgba(30, 30, 36, 0.18);
+
+  --f-body: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --f-num: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #1e1e24;
+    --panel: #26262d;
+    --panel2: #2e2e37;
+    --line: #393943;
+    --text: #ececf1;
+    --muted: #9c9caa;
+    --blue-t: #5aa8dd;
+    --teal-t: #2fcdb8;
+    --alert-t: #ff8585;
+    --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #1e1e24;
+  --panel: #26262d;
+  --panel2: #2e2e37;
+  --line: #393943;
+  --text: #ececf1;
+  --muted: #9c9caa;
+  --blue-t: #5aa8dd;
+  --teal-t: #2fcdb8;
+  --alert-t: #ff8585;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}

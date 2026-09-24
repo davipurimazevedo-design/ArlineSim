@@ -1,0 +1,59 @@
+import type { EventIcon } from '../../engine';
+
+// Paths 24×24 próprios (mesmos do protótipo).
+const PATHS: Record<IconName, string> = {
+  plane: 'M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z',
+  fuel: 'M4 21V5a2 2 0 012-2h6a2 2 0 012 2v16M3 21h12M4 11h10M14 8l3 2v8a2 2 0 004 0V9l-3-3',
+  strike: 'M3 10v4h3l7 4V6L6 10H3zM16 9a4 4 0 010 6M18.5 6.5a7.5 7.5 0 010 11',
+  ash: 'M7 17a4 4 0 01-.6-8A6 6 0 0118 10.5 3.3 3.3 0 0117.5 17zM8 20h.01M12 21h.01M16 20h.01',
+  phone: 'M8 2h8a1 1 0 011 1v18a1 1 0 01-1 1H8a1 1 0 01-1-1V3a1 1 0 011-1zM11 18h2',
+  sun: 'M12 7a5 5 0 100 10 5 5 0 000-10zM12 1v3M12 20v3M1 12h3M20 12h3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1',
+  clip: 'M9 2h6v3H9zM7 3.5H5V22h14V3.5h-2M8 11h8M8 15h6',
+  tag: 'M3 12V3h9l9 9-9 9zM7.5 7.5h.01',
+  bird: 'M2 13c4-1.5 6.5.5 8.5 3 1-4.5 5-8.5 11.5-9-3 2.2-4 5-5 8-1.8 4.3-7.3 6.2-12.5 3',
+  star: 'M12 2.5l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17.4l-6.1 3.5 1.5-6.8-5.2-4.6 6.9-.7z',
+  bug: 'M3 4h18v12H3zM8 20h8M12 16v4M12 7v4M12 13.5h.01',
+  ball: 'M12 2a10 10 0 100 20 10 10 0 000-20zM12 7l4.5 3.3-1.7 5.2H9.2l-1.7-5.2z',
+  key: 'M14.5 3a6.5 6.5 0 00-6.2 8.6L2 18v4h4v-2h2v-2h2l1.9-1.9A6.5 6.5 0 1014.5 3zM16.5 7.5h.01',
+  wrench: 'M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z',
+  cash: 'M2 6h20v12H2zM12 9a3 3 0 100 6 3 3 0 000-6zM6 12h.01M18 12h.01',
+  rep: 'M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z',
+  ops: 'M12 2a10 10 0 100 20 10 10 0 000-20zM12 6v6l4 2',
+  moon: 'M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z',
+  grid: 'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',
+  route: 'M5 19a2 2 0 100-4 2 2 0 000 4zM19 9a2 2 0 100-4 2 2 0 000 4zM5 15V9a4 4 0 014-4h4M19 9v6a4 4 0 01-4 4h-4',
+  store: 'M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6',
+  chart: 'M3 3v18h18M7 15l4-4 3 3 5-6',
+};
+
+export type IconName =
+  | EventIcon
+  | 'plane' | 'wrench' | 'cash' | 'rep' | 'ops' | 'moon' | 'grid' | 'route' | 'store' | 'chart';
+
+const FILLED = new Set<IconName>(['plane']);
+
+interface Props {
+  n: IconName;
+  size?: number;
+  className?: string;
+}
+
+export function Icon({ n, size = 18, className = '' }: Props) {
+  const filled = FILLED.has(n);
+  return (
+    <svg
+      className={'ic ' + className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      fill={filled ? 'currentColor' : 'none'}
+      stroke={filled ? 'none' : 'currentColor'}
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d={PATHS[n]} />
+    </svg>
+  );
+}

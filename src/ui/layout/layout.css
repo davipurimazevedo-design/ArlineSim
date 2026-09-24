@@ -1,0 +1,208 @@
+.app {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 16px 96px;
+}
+.top {
+  position: sticky;
+  top: var(--safe-top);
+  z-index: 20;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.brand {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+.brand strong {
+  font-family: var(--f-num);
+  font-size: 19px;
+  font-weight: 700;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+.tail {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--blue);
+  color: #fff;
+  transform: rotate(-45deg);
+  flex: none;
+}
+.tail .ic {
+  transform: rotate(45deg);
+}
+.tail.big {
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+}
+.stats {
+  display: flex;
+  gap: 22px;
+  margin-left: auto;
+  align-items: center;
+}
+.stat b {
+  font-family: var(--f-num);
+  font-size: 20px;
+  font-weight: 600;
+  display: block;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.stat.rep {
+  width: 110px;
+}
+.stat.rep .bar {
+  margin-top: 6px;
+}
+.speed {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  flex: none;
+}
+.speed button {
+  background: none;
+  border: 0;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-family: var(--f-num);
+  font-weight: 600;
+  min-width: 36px;
+  color: var(--muted);
+}
+.speed button + button {
+  border-left: 1px solid var(--line);
+}
+.speed button[aria-pressed='true'] {
+  background: var(--blue);
+  color: #fff;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 10px 0 0;
+  border-bottom: 1px solid var(--line);
+}
+.tabs button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: 0;
+  padding: 10px 14px 12px;
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.tabs button[aria-current='page'] {
+  color: var(--text);
+  border-bottom-color: var(--teal);
+}
+.tabs em {
+  font-style: normal;
+  font-family: var(--f-num);
+  font-size: 12px;
+  background: var(--alert);
+  color: var(--on-alert);
+  border-radius: 9px;
+  padding: 0 6px;
+  font-weight: 700;
+}
+.content {
+  padding: 22px 0;
+}
+.foot {
+  text-align: center;
+}
+.linkish {
+  background: none;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  .app {
+    padding: 0 12px calc(90px + var(--safe-bottom));
+  }
+  .top {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .brand {
+    flex: 1;
+  }
+  .brand strong {
+    max-width: 150px;
+  }
+  .stats {
+    order: 3;
+    width: 100%;
+    margin: 0;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .speed {
+    margin-left: auto;
+  }
+  .speed button {
+    padding: 6px 7px;
+    min-width: 30px;
+  }
+  .hide-s {
+    display: none;
+  }
+  .tabs {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    background: var(--panel);
+    border-top: 1px solid var(--line);
+    border-bottom: 0;
+    padding: 4px 4px var(--safe-bottom);
+    justify-content: space-around;
+  }
+  .tabs button {
+    flex-direction: column;
+    gap: 2px;
+    font-size: 11px;
+    padding: 8px 4px;
+    border-bottom: 0;
+    border-top: 2px solid transparent;
+    flex: 1;
+    margin-bottom: 0;
+  }
+  .tabs button[aria-current='page'] {
+    border-top-color: var(--teal);
+  }
+  .tabs em {
+    position: absolute;
+    top: 4px;
+    right: 18%;
+  }
+}

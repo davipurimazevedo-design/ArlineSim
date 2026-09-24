@@ -1,0 +1,201 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: max(20px, var(--safe-top)) 20px max(20px, var(--safe-bottom));
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  overflow-y: auto;
+}
+.overlay.top {
+  z-index: 60;
+}
+
+/* cartão de embarque */
+.ticket {
+  width: min(380px, 100%);
+  background: var(--panel);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.3, 1);
+  animation: deal 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.ticket.dragging {
+  transition: none;
+  cursor: grabbing;
+}
+@keyframes deal {
+  from {
+    transform: translateY(40px) rotate(-4deg);
+    opacity: 0;
+  }
+}
+.ticket-top {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 20px 22px 6px;
+}
+.ev-icon {
+  width: 62px;
+  height: 62px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: var(--blue);
+  color: #fff;
+  flex: none;
+}
+.ticket h3 {
+  font-size: 26px;
+  line-height: 1.05;
+}
+.ticket > p {
+  padding: 4px 22px 18px;
+  margin: 0;
+  font-size: 16px;
+}
+.perf {
+  height: 22px;
+  position: relative;
+  margin: 0 -1px;
+}
+.perf::before {
+  content: '';
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: 50%;
+  border-top: 2px dashed var(--line);
+}
+.perf::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 0 50%, var(--bg) 10px, transparent 11px),
+    radial-gradient(circle at 100% 50%, var(--bg) 10px, transparent 11px);
+}
+.ticket-stub {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.ticket-stub > div {
+  padding: 12px 16px 18px;
+  transition: background 0.15s;
+  border-radius: 0 0 0 16px;
+}
+.ticket-stub > div + div {
+  border-left: 1px solid var(--line);
+  text-align: right;
+  border-radius: 0 0 16px 0;
+}
+.ticket-stub > div.hot {
+  background: var(--panel2);
+}
+.ticket-stub b {
+  display: block;
+  font-family: var(--f-num);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.15;
+  margin: 3px 0 6px;
+}
+.fx {
+  display: inline-flex;
+  gap: 8px;
+}
+.fx span {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+}
+.fx .up {
+  color: var(--teal-t);
+}
+.fx .down {
+  color: var(--alert-t);
+}
+.fx.none {
+  display: inline;
+}
+.swipe-hint {
+  position: fixed;
+  top: 50%;
+  font-family: var(--f-num);
+  font-size: 22px;
+  font-weight: 600;
+  max-width: 22vw;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+.swipe-hint.l {
+  left: 24px;
+}
+.swipe-hint.r {
+  right: 24px;
+  text-align: right;
+}
+.ev-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* cartas de texto (resultado, offline, falência, confirmação) */
+.ticket.result {
+  cursor: default;
+  padding: 22px;
+  display: grid;
+  gap: 14px;
+  touch-action: auto;
+  user-select: text;
+}
+.ticket.result p {
+  margin: 0;
+  font-size: 16px;
+}
+.ticket.result .btn {
+  justify-self: start;
+}
+.ticket.result .row-btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.facts {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+.facts b,
+.facts .num {
+  font-size: 20px;
+}
+.note {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 12px 0 0;
+}
+.ticket.result .note {
+  margin: 0;
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  .swipe-hint {
+    display: none;
+  }
+}
