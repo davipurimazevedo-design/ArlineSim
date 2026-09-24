@@ -23,7 +23,9 @@ export function Rotas() {
         </Btn>
       </div>
       {adding && <NewRoute onDone={() => setAdding(false)} />}
-      {g.routes.length === 0 && !adding && <Empty>Nenhuma rota. Você precisa de uma aeronave e de slots em dois aeroportos.</Empty>}
+      {g.routes.length === 0 && !adding && (
+        <Empty>Nenhuma rota. Você precisa de uma aeronave e de slots em dois aeroportos.</Empty>
+      )}
       {g.routes.length > 0 && (
         <div className="table-wrap">
           <table className="tbl">
@@ -86,7 +88,9 @@ export function Rotas() {
                           <small>{L ? L.reason : 'aguardando'}</small>
                         )}
                       </td>
-                      <td>{L?.flying ? <CellBar v={L.share * 100} tone="teal" label="Market share" /> : '—'}</td>
+                      <td>
+                        {L?.flying ? <CellBar v={L.share * 100} tone="teal" label="Market share" /> : '—'}
+                      </td>
                       <td className="r">{L ? <Money v={L.profit} signed /> : '—'}</td>
                     </tr>
                     {isOpen && (

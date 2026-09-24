@@ -24,7 +24,10 @@ export default tseslint.config(
     files: ['src/engine/**/*.ts'],
     languageOptions: { globals: {} },
     rules: {
-      'no-restricted-imports': ['error', { patterns: ['react', 'react-dom', 'zustand', '*/store/*', '*/ui/*'] }],
+      'no-restricted-imports': [
+        'error',
+        { patterns: ['react', 'react-dom', 'zustand', '*/store/*', '*/ui/*'] },
+      ],
       'no-restricted-globals': ['error', 'window', 'document', 'localStorage', 'navigator'],
       'no-restricted-properties': ['error', { object: 'Math', property: 'random', message: 'Use o rng.ts.' }],
     },

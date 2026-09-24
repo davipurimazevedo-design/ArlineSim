@@ -20,9 +20,7 @@ export function Tabs() {
         <button key={k} type="button" aria-current={tab === k ? 'page' : undefined} onClick={() => setTab(k)}>
           <Icon n={icon} size={18} />
           <span>{label}</span>
-          {k === 'frota' && alerts > 0 && (
-            <em aria-label={`${alerts} com condição baixa`}>{alerts}</em>
-          )}
+          {k === 'frota' && alerts > 0 && <em aria-label={`${alerts} com condição baixa`}>{alerts}</em>}
         </button>
       ))}
     </nav>

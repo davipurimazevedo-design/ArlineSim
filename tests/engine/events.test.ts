@@ -41,7 +41,18 @@ const mod = (s: GameState, type: string) => s.mods.find((m) => m.type === type);
 describe('catálogo', () => {
   it('tem os 12 eventos com duas opções', () => {
     expect(EVENTS.map((e) => e.id)).toEqual([
-      'greve', 'querosene', 'cinzas', 'influencer', 'feriado', 'anac', 'guerra', 'passaro', 'patrocinio', 'sistema', 'copa', 'slotbarato',
+      'greve',
+      'querosene',
+      'cinzas',
+      'influencer',
+      'feriado',
+      'anac',
+      'guerra',
+      'passaro',
+      'patrocinio',
+      'sistema',
+      'copa',
+      'slotbarato',
     ]);
   });
 
@@ -94,10 +105,18 @@ describe('resolveEvent', () => {
     let { s } = run('cinzas', 'L');
     expect(mod(s, 'halt')).toMatchObject({ until: 54 });
     expect(s.reputation).toBe(52);
-    const hit = run('cinzas', 'R', seedWhere((x) => x < 0.35));
+    const hit = run(
+      'cinzas',
+      'R',
+      seedWhere((x) => x < 0.35),
+    );
     expect(hit.s.fleet.map((p) => p.condition)).toEqual([55, 35]);
     expect(hit.s.reputation).toBe(38);
-    const miss = run('cinzas', 'R', seedWhere((x) => x >= 0.35));
+    const miss = run(
+      'cinzas',
+      'R',
+      seedWhere((x) => x >= 0.35),
+    );
     expect(miss.s.fleet.map((p) => p.condition)).toEqual([80, 60]);
     expect(miss.out).toBe('Os voos passaram ao largo da nuvem. Nada aconteceu.');
     ({ s } = miss);
@@ -133,10 +152,18 @@ describe('resolveEvent', () => {
     let { s, before } = run('anac', 'L');
     expect(s.cash).toBe(before.cash - 240000);
     expect(s.fleet.map((p) => p.condition)).toEqual([90, 70]);
-    const fined = run('anac', 'R', seedWhere((x) => x < 0.45));
+    const fined = run(
+      'anac',
+      'R',
+      seedWhere((x) => x < 0.45),
+    );
     expect(fined.s.cash).toBe(fined.before.cash - 800000);
     expect(fined.s.reputation).toBe(45);
-    const ok = run('anac', 'R', seedWhere((x) => x >= 0.45));
+    const ok = run(
+      'anac',
+      'R',
+      seedWhere((x) => x >= 0.45),
+    );
     expect(ok.s.cash).toBe(ok.before.cash);
     ({ s } = ok);
     expect(s.reputation).toBe(50);
@@ -159,10 +186,18 @@ describe('resolveEvent', () => {
   });
 
   it('passaro: inspeção visual', () => {
-    const hit = run('passaro', 'R', seedWhere((x) => x < 0.4));
+    const hit = run(
+      'passaro',
+      'R',
+      seedWhere((x) => x < 0.4),
+    );
     expect(hit.s.fleet[0]!.condition).toBe(45);
     expect(hit.s.reputation).toBe(46);
-    const ok = run('passaro', 'R', seedWhere((x) => x >= 0.4));
+    const ok = run(
+      'passaro',
+      'R',
+      seedWhere((x) => x >= 0.4),
+    );
     expect(ok.s.fleet[0]!.condition).toBe(80);
   });
 
@@ -224,7 +259,9 @@ describe('resolveEvent', () => {
         resolveEvent(b, side);
         expect(a.cash).toBe(b.cash);
         expect(a.reputation).toBe(b.reputation);
-        expect(a.fleet.map((p) => [p.condition, p.maint])).toEqual(b.fleet.map((p) => [p.condition, p.maint]));
+        expect(a.fleet.map((p) => [p.condition, p.maint])).toEqual(
+          b.fleet.map((p) => [p.condition, p.maint]),
+        );
         expect(modVal(a, 'demand')).toBe(modVal(b, 'demand'));
       }
     }

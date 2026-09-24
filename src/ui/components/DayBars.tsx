@@ -9,7 +9,10 @@ export function DayBars({ data }: { data: HistoryEntry[] }) {
     <div className="bars" role="img" aria-label={`Resultado diário dos últimos ${data.length} dias`}>
       {data.map((h) => (
         <span key={h.day} className="col" title={`Dia ${h.day}: ${fmtMoney(h.profit)}`}>
-          <i className={h.profit >= 0 ? 'up' : 'down'} style={{ height: Math.max(1, (Math.abs(h.profit) / hm) * 50) + '%' }} />
+          <i
+            className={h.profit >= 0 ? 'up' : 'down'}
+            style={{ height: Math.max(1, (Math.abs(h.profit) / hm) * 50) + '%' }}
+          />
         </span>
       ))}
     </div>

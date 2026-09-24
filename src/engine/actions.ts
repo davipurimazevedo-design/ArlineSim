@@ -20,7 +20,16 @@ import {
 } from './formulas';
 import { addLog, changeRep, findPlane, unassignPlane } from './helpers';
 import { randInt, uid } from './rng';
-import type { ActionResult, AirportCode, GameState, LicenseTier, ModelKey, Plane, Route, ServiceLevel } from './types';
+import type {
+  ActionResult,
+  AirportCode,
+  GameState,
+  LicenseTier,
+  ModelKey,
+  Plane,
+  Route,
+  ServiceLevel,
+} from './types';
 
 const REG_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // sem I e O
 
@@ -36,8 +45,15 @@ export function newReg(s: GameState): string {
 
 function addPlane(s: GameState, model: ModelKey, owned: boolean): Plane {
   const p: Plane = {
-    id: uid(s), reg: newReg(s), model, owned,
-    condition: 100, maint: 0, restore: true, hours: 0, since: s.day,
+    id: uid(s),
+    reg: newReg(s),
+    model,
+    owned,
+    condition: 100,
+    maint: 0,
+    restore: true,
+    hours: 0,
+    since: s.day,
   };
   s.fleet.push(p);
   return p;

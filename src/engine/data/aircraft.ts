@@ -1,5 +1,6 @@
 import type { AircraftModel, ModelKey } from '../types';
 
+// prettier-ignore
 export const MODELS: Record<ModelKey, AircraftModel> = {
   AT7: { name: 'ATR 72-600', kind: 'Turboélice', tier: 0, y: 70, j: 0, range: 1500, speed: 500, fuelKm: 7, crewH: 1800, lease: 28000, price: 55e6, wearH: 0.08, util: 15 },
   E295: { name: 'Embraer E195-E2', kind: 'Jato regional', tier: 1, y: 132, j: 0, range: 4800, speed: 830, fuelKm: 11, crewH: 3000, lease: 52000, price: 105e6, wearH: 0.07, util: 16 },

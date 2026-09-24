@@ -23,7 +23,9 @@ export function newGame(name: string, hub: AirportCode, seed: number, now = 0): 
     routes: [],
     mods: [],
     history: [],
-    log: [{ day: 1, text: `${name} recebe o certificado de operação em ${AIRPORTS[hub].city}.`, tone: 'info' }],
+    log: [
+      { day: 1, text: `${name} recebe o certificado de operação em ${AIRPORTS[hub].city}.`, tone: 'info' },
+    ],
     nextEvent: FIRST_EVENT_DAY,
     pendingEvent: null,
     usedEvents: {},

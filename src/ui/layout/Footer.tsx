@@ -8,7 +8,14 @@ export function Footer() {
       <button
         type="button"
         className="linkish"
-        onClick={() => ask({ text: 'Apagar o save e começar do zero?', okLabel: 'Apagar e recomeçar', danger: true, onOk: reset })}
+        onClick={() =>
+          ask({
+            text: 'Apagar o save e começar do zero?',
+            okLabel: 'Apagar e recomeçar',
+            danger: true,
+            onOk: reset,
+          })
+        }
       >
         Recomeçar
       </button>

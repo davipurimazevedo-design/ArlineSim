@@ -15,7 +15,13 @@ function Card() {
   const ref = useDialog<HTMLDivElement>();
   return (
     <div className="overlay">
-      <div ref={ref} className="ticket result" role="alertdialog" aria-modal="true" aria-labelledby="go-title">
+      <div
+        ref={ref}
+        className="ticket result"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="go-title"
+      >
         <h3 id="go-title">Falência</h3>
         <p>
           {name} operou por {day} dias antes de os credores assumirem.

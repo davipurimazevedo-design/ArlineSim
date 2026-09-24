@@ -43,15 +43,28 @@ export function RouteEditor({ r }: { r: Route }) {
     <div className="editor">
       <label className="field" htmlFor={uid + 'plane'}>
         <span>Aeronave</span>
-        <PlaneSelect id={uid + 'plane'} value={r.planeId} dist={r.dist} onChange={(v) => upd({ planeId: v })} />
+        <PlaneSelect
+          id={uid + 'plane'}
+          value={r.planeId}
+          dist={r.dist}
+          onChange={(v) => upd({ planeId: v })}
+        />
       </label>
       <div className="field">
         <span>Frequência (idas e voltas/dia)</span>
-        <Stepper value={r.freq} min={1} max={mf} disabled={!p} onChange={(v) => upd({ freq: v })} label="Frequência" />
+        <Stepper
+          value={r.freq}
+          min={1}
+          max={mf}
+          disabled={!p}
+          onChange={(v) => upd({ freq: v })}
+          label="Frequência"
+        />
       </div>
       <label className="field wide" htmlFor={uid + 'price'}>
         <span>
-          Tarifa econômica <b className="num">{fmtMoney(r.price)}</b> <small>referência de mercado {fmtMoney(fp)}</small>
+          Tarifa econômica <b className="num">{fmtMoney(r.price)}</b>{' '}
+          <small>referência de mercado {fmtMoney(fp)}</small>
         </span>
         <input
           id={uid + 'price'}
@@ -66,7 +79,8 @@ export function RouteEditor({ r }: { r: Route }) {
       {hasJ && (
         <label className="field wide" htmlFor={uid + 'priceJ'}>
           <span>
-            Tarifa executiva <b className="num">{fmtMoney(r.priceJ)}</b> <small>referência {fmtMoney(fairPriceJ(r.dist))}</small>
+            Tarifa executiva <b className="num">{fmtMoney(r.priceJ)}</b>{' '}
+            <small>referência {fmtMoney(fairPriceJ(r.dist))}</small>
           </span>
           <input
             id={uid + 'priceJ'}
@@ -81,7 +95,12 @@ export function RouteEditor({ r }: { r: Route }) {
       )}
       <div className="field">
         <span>Serviço de bordo</span>
-        <Segmented label="Serviço de bordo" value={r.service} options={SERVICE_OPTIONS} onChange={(v) => upd({ service: v })} />
+        <Segmented
+          label="Serviço de bordo"
+          value={r.service}
+          options={SERVICE_OPTIONS}
+          onChange={(v) => upd({ service: v })}
+        />
       </div>
       <div className="preview" aria-live="polite">
         {prev?.flying && prevProfit !== null ? (
@@ -98,7 +117,11 @@ export function RouteEditor({ r }: { r: Route }) {
             </div>
           </>
         ) : (
-          <small>{p ? (prev?.reason ?? '') + '. Sem previsão enquanto a rota não voa.' : 'Escale uma aeronave para ver a previsão.'}</small>
+          <small>
+            {p
+              ? (prev?.reason ?? '') + '. Sem previsão enquanto a rota não voa.'
+              : 'Escale uma aeronave para ver a previsão.'}
+          </small>
         )}
         <Btn
           kind="ghost danger"

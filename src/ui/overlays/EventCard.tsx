@@ -53,7 +53,14 @@ function Card({ e }: { e: GameEvent }) {
   };
 
   return (
-    <div className="overlay" ref={ref} role="dialog" aria-modal="true" aria-labelledby="ev-title" aria-describedby="ev-text">
+    <div
+      className="overlay"
+      ref={ref}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="ev-title"
+      aria-describedby="ev-text"
+    >
       <div className="swipe-hint l" style={{ opacity: side === 'L' ? pow : 0.25 }} aria-hidden="true">
         {e.L.label}
       </div>

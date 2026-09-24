@@ -25,7 +25,10 @@ export function NewGame() {
           <Icon n="plane" size={30} />
         </span>
         <h1>Fundar companhia aérea</h1>
-        <p>Você começa com R$ 12 milhões, uma licença regional e slots no hub. Um dia de operação passa a cada segundo.</p>
+        <p>
+          Você começa com R$ 12 milhões, uma licença regional e slots no hub. Um dia de operação passa a cada
+          segundo.
+        </p>
         <label>
           <span>Nome</span>
           <input type="text" value={name} maxLength={32} onChange={(e) => setName(e.target.value)} />

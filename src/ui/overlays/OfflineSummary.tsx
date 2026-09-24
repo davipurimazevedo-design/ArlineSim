@@ -38,7 +38,9 @@ function Card({ o }: { o: Summary }) {
             </b>
           </div>
         </div>
-        <p className="note">Fora do jogo, cada minuto real vale um dia, até 60 dias. Eventos não acontecem nesse período.</p>
+        <p className="note">
+          Fora do jogo, cada minuto real vale um dia, até 60 dias. Eventos não acontecem nesse período.
+        </p>
         <Btn kind="primary" onClick={close}>
           Voltar ao comando
         </Btn>

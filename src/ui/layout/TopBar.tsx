@@ -66,7 +66,11 @@ export function TopBar() {
             {v === 0 ? '❚❚' : v + '×'}
           </button>
         ))}
-        <button type="button" onClick={() => setTheme(dark ? 'light' : 'dark')} aria-label={dark ? 'Usar tema claro' : 'Usar tema escuro'}>
+        <button
+          type="button"
+          onClick={() => setTheme(dark ? 'light' : 'dark')}
+          aria-label={dark ? 'Usar tema claro' : 'Usar tema escuro'}
+        >
           <Icon n={dark ? 'sun' : 'moon'} size={15} />
         </button>
       </div>

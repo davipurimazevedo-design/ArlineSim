@@ -15,7 +15,13 @@ const MOD_LABEL: Record<ModType, string> = {
   wear: 'Desgaste',
 };
 
-const TONE_DOT: Record<Tone, string> = { good: 'teal', bad: 'alert', warn: 'alert', info: 'muted', event: 'blue' };
+const TONE_DOT: Record<Tone, string> = {
+  good: 'teal',
+  bad: 'alert',
+  warn: 'alert',
+  info: 'muted',
+  event: 'blue',
+};
 
 interface Alert {
   k: string;
@@ -41,12 +47,16 @@ export function Painel() {
     alerts.push({
       k: 'm' + i,
       tone: bad ? 'bad' : 'good',
-      text: m.type === 'halt' ? 'Operações suspensas' : `${MOD_LABEL[m.type]} ${m.value > 1 ? '+' : ''}${Math.round((m.value - 1) * 100)}%`,
+      text:
+        m.type === 'halt'
+          ? 'Operações suspensas'
+          : `${MOD_LABEL[m.type]} ${m.value > 1 ? '+' : ''}${Math.round((m.value - 1) * 100)}%`,
       sub: `${m.until - g.day} dias`,
     });
   });
   for (const p of g.fleet) {
-    if (p.maint > 0) alerts.push({ k: 'mt' + p.id, tone: 'info', text: `${p.reg} em manutenção`, sub: `${p.maint} dias` });
+    if (p.maint > 0)
+      alerts.push({ k: 'mt' + p.id, tone: 'info', text: `${p.reg} em manutenção`, sub: `${p.maint} dias` });
     else if (p.condition < 40)
       alerts.push({
         k: 'c' + p.id,
@@ -73,9 +83,20 @@ export function Painel() {
       });
   }
   for (const r of g.routes) {
-    if (!r.planeId) alerts.push({ k: 'r' + r.id, tone: 'bad', text: `${r.from}–${r.to} sem aeronave`, sub: 'rota não opera' });
+    if (!r.planeId)
+      alerts.push({
+        k: 'r' + r.id,
+        tone: 'bad',
+        text: `${r.from}–${r.to} sem aeronave`,
+        sub: 'rota não opera',
+      });
     else if (r.last?.flying && r.last.profit < 0)
-      alerts.push({ k: 'l' + r.id, tone: 'bad', text: `${r.from}–${r.to} no prejuízo`, sub: fmtMoney(r.last.profit) + '/dia' });
+      alerts.push({
+        k: 'l' + r.id,
+        tone: 'bad',
+        text: `${r.from}–${r.to} no prejuízo`,
+        sub: fmtMoney(r.last.profit) + '/dia',
+      });
   }
 
   return (
@@ -109,7 +130,9 @@ export function Painel() {
                 Mercado
               </button>
             </li>
-            <li className={g.slots.length > 1 ? 'done' : ''}>Compre slots em outra cidade até 1.500 km do hub</li>
+            <li className={g.slots.length > 1 ? 'done' : ''}>
+              Compre slots em outra cidade até 1.500 km do hub
+            </li>
             <li>
               Abra a rota em{' '}
               <button type="button" className="link" onClick={() => setTab('rotas')}>

@@ -163,8 +163,9 @@
   touch-action: auto;
   user-select: text;
 }
-.ticket.result p {
+.ticket.result > p {
   margin: 0;
+  padding: 0;
   font-size: 16px;
 }
 .ticket.result .btn {

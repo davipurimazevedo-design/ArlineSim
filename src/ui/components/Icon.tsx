@@ -21,11 +21,13 @@ const PATHS: Record<IconName, string> = {
   ops: 'M12 2a10 10 0 100 20 10 10 0 000-20zM12 6v6l4 2',
   moon: 'M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z',
   grid: 'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',
-  route: 'M5 19a2 2 0 100-4 2 2 0 000 4zM19 9a2 2 0 100-4 2 2 0 000 4zM5 15V9a4 4 0 014-4h4M19 9v6a4 4 0 01-4 4h-4',
+  route:
+    'M5 19a2 2 0 100-4 2 2 0 000 4zM19 9a2 2 0 100-4 2 2 0 000 4zM5 15V9a4 4 0 014-4h4M19 9v6a4 4 0 01-4 4h-4',
   store: 'M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6',
   chart: 'M3 3v18h18M7 15l4-4 3 3 5-6',
 };
 
+// prettier-ignore
 export type IconName =
   | EventIcon
   | 'plane' | 'wrench' | 'cash' | 'rep' | 'ops' | 'moon' | 'grid' | 'route' | 'store' | 'chart';

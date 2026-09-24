@@ -86,7 +86,14 @@ describe('simRoute', () => {
   });
 
   it('é idêntica ao protótipo em vários cenários', () => {
-    const pairs: [AirportCode, AirportCode][] = [['BSB', 'CNF'], ['GRU', 'GIG'], ['GRU', 'REC'], ['GRU', 'LIS'], ['BSB', 'GYN'], ['GIG', 'MIA']];
+    const pairs: [AirportCode, AirportCode][] = [
+      ['BSB', 'CNF'],
+      ['GRU', 'GIG'],
+      ['GRU', 'REC'],
+      ['GRU', 'LIS'],
+      ['BSB', 'GYN'],
+      ['GIG', 'MIA'],
+    ];
     for (const key of MODEL_KEYS) {
       for (const [a, b] of pairs) {
         for (const lic of [0, 1, 2] as const) {
@@ -95,12 +102,26 @@ describe('simRoute', () => {
           s.reputation = 63;
           s.license = lic;
           s.fuelIdx = 1.13;
-          s.mods = [{ type: 'demand', value: 1.2, until: 100 }, { type: 'fuel', value: 0.9, until: 100 }];
+          s.mods = [
+            { type: 'demand', value: 1.2, until: 100 },
+            { type: 'fuel', value: 0.9, until: 100 },
+          ];
           const p = addTestPlane(s, key, { condition: 45 });
           const r = addTestRoute(s, a, b, p.id, { freq: 1, price: fairPrice(0) + 333, service: 2, ai: 1.4 });
           const mine = simRoute(s, r);
           const theirs = proto.simRoute(JSON.parse(JSON.stringify(s)), JSON.parse(JSON.stringify(r)));
-          for (const k of ['pax', 'paxJ', 'rev', 'fuel', 'crew', 'fees', 'svc', 'share', 'lf', 'hours'] as const) {
+          for (const k of [
+            'pax',
+            'paxJ',
+            'rev',
+            'fuel',
+            'crew',
+            'fees',
+            'svc',
+            'share',
+            'lf',
+            'hours',
+          ] as const) {
             expect(mine[k]).toBeCloseTo(theirs[k], 6);
           }
         }

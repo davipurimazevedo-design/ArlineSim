@@ -16,7 +16,13 @@ export function CashChart({ data }: { data: HistoryEntry[] }) {
   const dir = lastV >= first ? 'up' : 'down';
   return (
     <>
-      <svg className="chart" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={`Evolução do caixa: de ${fmtMoney(first)} para ${fmtMoney(lastV)}`}>
+      <svg
+        className="chart"
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="none"
+        role="img"
+        aria-label={`Evolução do caixa: de ${fmtMoney(first)} para ${fmtMoney(lastV)}`}
+      >
         {mn < 0 && <line x1="0" x2={W} y1={y(0)} y2={y(0)} className="zero" />}
         <polyline points={`0,${H} ${pts} ${W},${H}`} className={'area ' + dir} />
         <polyline points={pts} className={'line ' + dir} />

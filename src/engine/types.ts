@@ -1,5 +1,6 @@
 // Tipos do motor. O GameState é 100% serializável em JSON.
 
+// prettier-ignore
 export type AirportCode =
   | 'GRU' | 'GIG' | 'BSB' | 'CNF' | 'SSA' | 'REC' | 'FOR' | 'POA' | 'CWB'
   | 'VCP' | 'FLN' | 'MAO' | 'GYN' | 'BEL' | 'SLZ' | 'NAT' | 'CGB' | 'THE'
@@ -188,6 +189,7 @@ export interface SimResult {
 export type FxKey = 'cash' | 'rep' | 'fleet' | 'ops';
 export type Fx = Partial<Record<FxKey, 1 | -1>>;
 
+// prettier-ignore
 export type EventIcon =
   | 'strike' | 'fuel' | 'ash' | 'phone' | 'sun' | 'clip'
   | 'tag' | 'bird' | 'star' | 'bug' | 'ball' | 'key';

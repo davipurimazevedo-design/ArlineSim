@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import * as actions from '../../src/engine/actions';
 import { MODELS } from '../../src/engine/data/aircraft';
-import { creditLimit, dist, fairPrice, maintCost, maintDays, maxFreq, planeValue, slotCost } from '../../src/engine/formulas';
+import {
+  creditLimit,
+  dist,
+  fairPrice,
+  maintCost,
+  maintDays,
+  maxFreq,
+  planeValue,
+  slotCost,
+} from '../../src/engine/formulas';
 import { addTestPlane, addTestRoute, makeGame } from './helpers';
 
 describe('frota', () => {
@@ -117,20 +126,32 @@ describe('openRoute', () => {
     const r = s.routes[0]!;
     const d = dist('BSB', 'CNF');
     expect(r).toMatchObject({
-      from: 'BSB', to: 'CNF', dist: d, planeId: atr.id, service: 1, ai: 1.2, opened: s.day,
-      freq: Math.min(2, maxFreq(MODELS.AT7, d)), price: fairPrice(d), priceJ: Math.round((fairPrice(d) * 3.5) / 10) * 10,
+      from: 'BSB',
+      to: 'CNF',
+      dist: d,
+      planeId: atr.id,
+      service: 1,
+      ai: 1.2,
+      opened: s.day,
+      freq: Math.min(2, maxFreq(MODELS.AT7, d)),
+      price: fairPrice(d),
+      priceJ: Math.round((fairPrice(d) * 3.5) / 10) * 10,
     });
     expect(s.log[0]?.text).toBe(`Nova rota BSB–CNF (${d.toLocaleString('pt-BR')} km).`);
   });
 
   it('origem = destino', () => {
     const { s, atr } = setup();
-    expect(actions.openRoute(s, { from: 'BSB', to: 'BSB', planeId: atr.id })).toBe('Escolha dois aeroportos diferentes.');
+    expect(actions.openRoute(s, { from: 'BSB', to: 'BSB', planeId: atr.id })).toBe(
+      'Escolha dois aeroportos diferentes.',
+    );
   });
 
   it('exige slots nos dois aeroportos', () => {
     const { s, atr } = setup();
-    expect(actions.openRoute(s, { from: 'BSB', to: 'REC', planeId: atr.id })).toBe('Você precisa de slots nos dois aeroportos.');
+    expect(actions.openRoute(s, { from: 'BSB', to: 'REC', planeId: atr.id })).toBe(
+      'Você precisa de slots nos dois aeroportos.',
+    );
   });
 
   it('par já existente em qualquer sentido', () => {
@@ -141,13 +162,17 @@ describe('openRoute', () => {
 
   it('fora do alcance', () => {
     const { s, atr } = setup();
-    expect(actions.openRoute(s, { from: 'BSB', to: 'MAO', planeId: atr.id })).toBe('Fora do alcance do ATR 72-600.');
+    expect(actions.openRoute(s, { from: 'BSB', to: 'MAO', planeId: atr.id })).toBe(
+      'Fora do alcance do ATR 72-600.',
+    );
   });
 
   it('licença regional limita a 1.500 km', () => {
     const { s } = setup();
     const jet = addTestPlane(s, 'E295');
-    expect(actions.openRoute(s, { from: 'BSB', to: 'MAO', planeId: jet.id })).toBe('Licença regional limita rotas a 1.500 km.');
+    expect(actions.openRoute(s, { from: 'BSB', to: 'MAO', planeId: jet.id })).toBe(
+      'Licença regional limita rotas a 1.500 km.',
+    );
     s.license = 1;
     expect(actions.openRoute(s, { from: 'BSB', to: 'MAO', planeId: jet.id })).toBeNull();
   });

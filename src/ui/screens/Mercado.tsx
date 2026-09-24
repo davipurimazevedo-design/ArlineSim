@@ -74,7 +74,12 @@ function Aeronaves() {
                 </td>
                 <td className="c num">{m.j ? `${m.j}J + ${m.y}Y` : m.y}</td>
                 <td>
-                  <CellBar v={(m.range / MAX_RANGE) * 100} tone="blue" label="Alcance" text={`${fmtInt(m.range)} km`} />
+                  <CellBar
+                    v={(m.range / MAX_RANGE) * 100}
+                    tone="blue"
+                    label="Alcance"
+                    text={`${fmtInt(m.range)} km`}
+                  />
                 </td>
                 <td className="r">
                   <b className="num">{fmtMoney(m.lease)}/dia</b>
@@ -82,10 +87,19 @@ function Aeronaves() {
                 </td>
                 <td className="r num">{fmtMoney(m.price)}</td>
                 <td className="r actions">
-                  <Btn small kind="primary" disabled={locked || g.cash < dep} onClick={() => act((s) => actions.lease(s, k))}>
+                  <Btn
+                    small
+                    kind="primary"
+                    disabled={locked || g.cash < dep}
+                    onClick={() => act((s) => actions.lease(s, k))}
+                  >
                     Arrendar
                   </Btn>
-                  <Btn small disabled={locked || g.cash < m.price} onClick={() => act((s) => actions.buy(s, k))}>
+                  <Btn
+                    small
+                    disabled={locked || g.cash < m.price}
+                    onClick={() => act((s) => actions.buy(s, k))}
+                  >
                     Comprar
                   </Btn>
                 </td>
@@ -130,7 +144,10 @@ function Slots() {
             const locked = a.intl && g.license < 2;
             const cost = slotCost(c);
             return (
-              <tr key={c} className={`row ${mine ? 's-good' : locked ? 'locked' : ''}${i % 2 ? ' zebra' : ''}`}>
+              <tr
+                key={c}
+                className={`row ${mine ? 's-good' : locked ? 'locked' : ''}${i % 2 ? ' zebra' : ''}`}
+              >
                 <td>
                   <b>{c}</b>
                   <small>
@@ -147,7 +164,12 @@ function Slots() {
                   {mine ? (
                     <Pill tone="ok">Seu</Pill>
                   ) : (
-                    <Btn small kind="primary" disabled={locked || g.cash < cost} onClick={() => act((s) => actions.buySlot(s, c))}>
+                    <Btn
+                      small
+                      kind="primary"
+                      disabled={locked || g.cash < cost}
+                      onClick={() => act((s) => actions.buySlot(s, c))}
+                    >
                       {locked ? 'Licença int.' : 'Comprar ' + fmtMoney(cost)}
                     </Btn>
                   )}
@@ -179,8 +201,17 @@ function Licencas() {
               <Pill tone="ok">Ativa</Pill>
             ) : next ? (
               <div className="lic-buy">
-                <Bar v={(Math.max(0, g.cash) / L.cost) * 100} tone="teal" label={`Caixa até ${fmtMoney(L.cost)}`} />
-                <Btn kind="primary" small disabled={g.cash < L.cost} onClick={() => act((s) => actions.buyLicense(s, L.tier))}>
+                <Bar
+                  v={(Math.max(0, g.cash) / L.cost) * 100}
+                  tone="teal"
+                  label={`Caixa até ${fmtMoney(L.cost)}`}
+                />
+                <Btn
+                  kind="primary"
+                  small
+                  disabled={g.cash < L.cost}
+                  onClick={() => act((s) => actions.buyLicense(s, L.tier))}
+                >
                   Obter {fmtMoney(L.cost)}
                 </Btn>
               </div>

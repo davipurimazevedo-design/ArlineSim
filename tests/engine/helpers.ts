@@ -11,18 +11,43 @@ export function makeGame(hub: AirportCode = 'BSB', seed = 1): GameState {
 let n = 0;
 export function addTestPlane(s: GameState, model: ModelKey = 'AT7', extra: Partial<Plane> = {}): Plane {
   const p: Plane = {
-    id: 'p' + ++n, reg: 'PR-T' + String.fromCharCode(65 + (n % 26)) + String.fromCharCode(65 + ((n / 26) | 0) % 26),
-    model, owned: false, condition: 100, maint: 0, restore: true, hours: 0, since: s.day, ...extra,
+    id: 'p' + ++n,
+    reg: 'PR-T' + String.fromCharCode(65 + (n % 26)) + String.fromCharCode(65 + (((n / 26) | 0) % 26)),
+    model,
+    owned: false,
+    condition: 100,
+    maint: 0,
+    restore: true,
+    hours: 0,
+    since: s.day,
+    ...extra,
   };
   s.fleet.push(p);
   return p;
 }
 
-export function addTestRoute(s: GameState, from: AirportCode, to: AirportCode, planeId: string | null, extra: Partial<Route> = {}): Route {
+export function addTestRoute(
+  s: GameState,
+  from: AirportCode,
+  to: AirportCode,
+  planeId: string | null,
+  extra: Partial<Route> = {},
+): Route {
   const d = dist(from, to);
   const r: Route = {
-    id: 'r' + ++n, from, to, dist: d, planeId, freq: 2, price: fairPrice(d), priceJ: defaultPriceJ(d),
-    service: 1, ai: 1.2, opened: s.day, last: null, ...extra,
+    id: 'r' + ++n,
+    from,
+    to,
+    dist: d,
+    planeId,
+    freq: 2,
+    price: fairPrice(d),
+    priceJ: defaultPriceJ(d),
+    service: 1,
+    ai: 1.2,
+    opened: s.day,
+    last: null,
+    ...extra,
   };
   s.routes.push(r);
   for (const c of [from, to]) if (!s.slots.includes(c)) s.slots.push(c);

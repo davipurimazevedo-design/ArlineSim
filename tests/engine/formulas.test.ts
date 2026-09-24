@@ -63,7 +63,8 @@ describe('baseDemand', () => {
     expect(baseDemand('GRU', 'EZE')).toBeCloseTo(14 * 10 * 8 * 0.7);
   });
   it('é idêntica ao protótipo', () => {
-    for (const a of AIRPORT_CODES) for (const b of AIRPORT_CODES) expect(baseDemand(a, b)).toBe(proto.baseDemand(a, b));
+    for (const a of AIRPORT_CODES)
+      for (const b of AIRPORT_CODES) expect(baseDemand(a, b)).toBe(proto.baseDemand(a, b));
   });
 });
 
@@ -77,7 +78,9 @@ describe('maxFreq', () => {
     expect(maxFreq(MODELS.A339, 9400)).toBe(0);
   });
   it('é idêntica ao protótipo', () => {
-    for (const k of MODEL_KEYS) for (let d = 100; d < 14000; d += 113) expect(maxFreq(MODELS[k], d)).toBe(proto.maxFreq(proto.MODELS[k], d));
+    for (const k of MODEL_KEYS)
+      for (let d = 100; d < 14000; d += 113)
+        expect(maxFreq(MODELS[k], d)).toBe(proto.maxFreq(proto.MODELS[k], d));
   });
 });
 
@@ -133,7 +136,8 @@ describe('modificadores', () => {
 
 describe('formatação', () => {
   it('fmtMoney igual ao protótipo', () => {
-    for (const v of [0, 999, 1000, 1499, 25_000, 1e6, 12e6, -3.25e6, 1.234e9, -500]) expect(fmtMoney(v)).toBe(proto.fmtMoney(v));
+    for (const v of [0, 999, 1000, 1499, 25_000, 1e6, 12e6, -3.25e6, 1.234e9, -500])
+      expect(fmtMoney(v)).toBe(proto.fmtMoney(v));
   });
   it('fmtDate começa em 1º de janeiro de 2026', () => {
     expect(fmtDate(1)).toBe('01 de jan de 2026');

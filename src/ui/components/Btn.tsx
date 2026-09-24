@@ -8,5 +8,11 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export function Btn({ kind = '', small, className = '', type = 'button', ...rest }: Props) {
-  return <button type={type} className={['btn', kind, small ? 'sm' : '', className].filter(Boolean).join(' ')} {...rest} />;
+  return (
+    <button
+      type={type}
+      className={['btn', kind, small ? 'sm' : '', className].filter(Boolean).join(' ')}
+      {...rest}
+    />
+  );
 }

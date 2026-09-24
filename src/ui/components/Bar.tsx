@@ -12,7 +12,14 @@ export function Bar({ v, tone, label }: Props) {
   const t = tone ?? (v >= 60 ? 'good' : v >= 40 ? 'mid' : 'bad');
   const w = Math.max(0, Math.min(100, v));
   return (
-    <div className="bar" role="meter" aria-valuenow={Math.round(w)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
+    <div
+      className="bar"
+      role="meter"
+      aria-valuenow={Math.round(w)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label={label}
+    >
       <i className={'bar-' + t} style={{ width: w + '%' }} />
     </div>
   );

@@ -103,7 +103,11 @@ export function Frota() {
                       Manutenção {fmtMoney(maintCost(p))}
                     </Btn>
                     {!p.owned && (
-                      <Btn small disabled={g.cash < buyout} onClick={() => act((s) => actions.buyOut(s, p.id))}>
+                      <Btn
+                        small
+                        disabled={g.cash < buyout}
+                        onClick={() => act((s) => actions.buyOut(s, p.id))}
+                      >
                         Comprar {fmtMoney(buyout)}
                       </Btn>
                     )}

@@ -14,7 +14,13 @@ function ConfirmCard({ req }: { req: ConfirmRequest }) {
   const ref = useDialog<HTMLDivElement>(close);
   return (
     <div className="overlay top">
-      <div ref={ref} className="ticket result" role="alertdialog" aria-modal="true" aria-labelledby="confirm-text">
+      <div
+        ref={ref}
+        className="ticket result"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirm-text"
+      >
         <p id="confirm-text">{req.text}</p>
         <div className="row-btns">
           <Btn

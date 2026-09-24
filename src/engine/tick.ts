@@ -30,8 +30,19 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
   // 1. dia
   s.day++;
   const day: DayReport = {
-    day: s.day, rev: 0, fuel: 0, crew: 0, lease: 0, fees: 0, svc: 0,
-    slots: 0, overhead: 0, interest: 0, maint: 0, pax: 0, profit: 0,
+    day: s.day,
+    rev: 0,
+    fuel: 0,
+    crew: 0,
+    lease: 0,
+    fees: 0,
+    svc: 0,
+    slots: 0,
+    overhead: 0,
+    interest: 0,
+    maint: 0,
+    pax: 0,
+    profit: 0,
   };
 
   // 2. querosene: passeio aleatório com reversão à média
@@ -49,8 +60,13 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
     day.svc += x.svc;
     day.pax += x.pax + x.paxJ;
     r.last = {
-      pax: x.pax, paxJ: x.paxJ, share: x.share, lf: x.lf,
-      profit: routeProfit(s, r, x), reason: x.reason, flying: x.flying,
+      pax: x.pax,
+      paxJ: x.paxJ,
+      share: x.share,
+      lf: x.lf,
+      profit: routeProfit(s, r, x),
+      reason: x.reason,
+      flying: x.flying,
     };
     if (s.day % 30 === 0) {
       if (x.share > 0.55) r.ai = clamp(r.ai + 0.06, 0.8, 2.2);
@@ -93,7 +109,15 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
 
   // 8. relatório do dia
   const cost =
-    day.fuel + day.crew + day.lease + day.fees + day.svc + day.slots + day.overhead + day.interest + day.maint;
+    day.fuel +
+    day.crew +
+    day.lease +
+    day.fees +
+    day.svc +
+    day.slots +
+    day.overhead +
+    day.interest +
+    day.maint;
   day.profit = day.rev - cost;
   s.cash += day.profit;
 
@@ -109,7 +133,12 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
   // 10. limpeza e histórico
   s.mods = s.mods.filter((m) => m.until > s.day);
   s.lastDay = day;
-  s.history.push({ day: s.day, cash: Math.round(s.cash), profit: Math.round(day.profit), rep: Math.round(s.reputation) });
+  s.history.push({
+    day: s.day,
+    cash: Math.round(s.cash),
+    profit: Math.round(day.profit),
+    rep: Math.round(s.reputation),
+  });
   if (s.history.length > HISTORY_MAX) s.history.splice(0, s.history.length - HISTORY_MAX);
 
   // 11. falência (encerra o tick antes do sorteio de eventos)

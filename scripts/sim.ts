@@ -86,7 +86,9 @@ console.log(`Asa Norte · simulação headless · semente ${SEED} · ${DAYS} dia
 for (const hub of HUBS) {
   const { snaps, s } = simulate(hub, SEED, DAYS);
   console.log(`Hub ${hub}`);
-  console.log(`${pad('dia', 5)} ${pad('caixa', 14)} ${pad('reputação', 10)} ${pad('resultado/dia', 15)} ${pad('rotas', 6)}`);
+  console.log(
+    `${pad('dia', 5)} ${pad('caixa', 14)} ${pad('reputação', 10)} ${pad('resultado/dia', 15)} ${pad('rotas', 6)}`,
+  );
   for (const x of snaps)
     console.log(
       `${pad(String(x.day), 5)} ${pad(fmtMoney(x.cash), 14)} ${pad(x.rep.toFixed(1), 10)} ${pad(fmtMoney(x.profit), 15)} ${pad(String(x.routes), 6)}`,
@@ -97,7 +99,9 @@ for (const hub of HUBS) {
 
 if (SEEDS > 1) {
   console.log(`Caixa no dia ${DAYS} em ${SEEDS} sementes (${SEED}…${SEED + SEEDS - 1})`);
-  console.log(`${pad('hub', 5)} ${pad('mínimo', 14)} ${pad('mediana', 14)} ${pad('máximo', 14)} ${pad('falências', 10)}`);
+  console.log(
+    `${pad('hub', 5)} ${pad('mínimo', 14)} ${pad('mediana', 14)} ${pad('máximo', 14)} ${pad('falências', 10)}`,
+  );
   for (const hub of HUBS) {
     const runs = Array.from({ length: SEEDS }, (_, i) => simulate(hub, SEED + i, DAYS).s);
     const cash = runs.map((s) => s.cash).sort((a, b) => a - b);

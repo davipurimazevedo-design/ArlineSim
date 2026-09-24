@@ -16,6 +16,9 @@ import { App } from './App';
 import { useGame } from './store/gameStore';
 import { startLoop } from './store/loop';
 
+// depuração: acesso ao store pelo console apenas em desenvolvimento
+if (import.meta.env.DEV) (window as unknown as { __store: typeof useGame }).__store = useGame;
+
 const theme = useGame.getState().theme;
 if (theme) document.documentElement.dataset.theme = theme;
 

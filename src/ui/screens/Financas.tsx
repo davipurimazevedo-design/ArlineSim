@@ -78,17 +78,20 @@ export function Financas() {
           </div>
           <div className="credit-actions">
             <Btn disabled={g.debt + LOAN_STEP > lim} onClick={() => act((s) => actions.borrow(s, LOAN_STEP))}>
-              Tomar {fmtMoney(LOAN_STEP)}
+              Tomar R$ 5 mi
             </Btn>
             <Btn
               disabled={g.debt <= 0 || g.cash < Math.min(LOAN_STEP, g.debt)}
               onClick={() => act((s) => actions.repay(s, LOAN_STEP))}
             >
-              Quitar {fmtMoney(LOAN_STEP)}
+              Quitar R$ 5 mi
             </Btn>
           </div>
         </div>
-        <p className="note">O limite cresce com o valor da frota própria. Com o caixa abaixo de −R$ 15 mi, os credores assumem a companhia.</p>
+        <p className="note">
+          O limite cresce com o valor da frota própria. Com o caixa abaixo de −R$ 15 mi, os credores assumem a
+          companhia.
+        </p>
       </div>
     </section>
   );

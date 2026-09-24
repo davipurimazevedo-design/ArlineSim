@@ -17,8 +17,19 @@ import type { GameState, Route, SimResult } from './types';
 /** Simula um dia de operação de uma rota. Não altera o estado. */
 export function simRoute(s: GameState, r: Route): SimResult {
   const res: SimResult = {
-    id: r.id, pax: 0, paxJ: 0, rev: 0, fuel: 0, crew: 0, fees: 0, svc: 0,
-    share: 0, lf: 0, flying: false, hours: 0, reason: '',
+    id: r.id,
+    pax: 0,
+    paxJ: 0,
+    rev: 0,
+    fuel: 0,
+    crew: 0,
+    fees: 0,
+    svc: 0,
+    share: 0,
+    lf: 0,
+    flying: false,
+    hours: 0,
+    reason: '',
   };
   const p = findPlane(s, r.planeId);
   if (!p) return { ...res, reason: 'Sem aeronave' };

@@ -17,7 +17,8 @@ export function useDialog<T extends HTMLElement>(onEscape?: () => void) {
     const el = ref.current;
     if (!el) return;
     const prev = document.activeElement as HTMLElement | null;
-    const first = el.querySelector<HTMLElement>('[data-autofocus]') ?? el.querySelector<HTMLElement>(FOCUSABLE) ?? el;
+    const first =
+      el.querySelector<HTMLElement>('[data-autofocus]') ?? el.querySelector<HTMLElement>(FOCUSABLE) ?? el;
     first.focus({ preventScroll: true });
 
     const onKey = (e: KeyboardEvent) => {

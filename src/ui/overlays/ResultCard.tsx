@@ -13,7 +13,13 @@ function Card({ text }: { text: string }) {
   const ref = useDialog<HTMLDivElement>(close);
   return (
     <div className="overlay">
-      <div ref={ref} className="ticket result" role="dialog" aria-modal="true" aria-label="Desfecho do evento">
+      <div
+        ref={ref}
+        className="ticket result"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Desfecho do evento"
+      >
         <p>{text}</p>
         <Btn kind="primary" onClick={close}>
           Continuar

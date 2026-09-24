@@ -137,6 +137,8 @@
 
 /* tabelas estilo escalação */
 .table-wrap {
+  position: relative;
+  container-type: inline-size;
   overflow-x: auto;
   background: var(--panel);
   border: 1px solid var(--line);
@@ -191,6 +193,10 @@
 }
 .tbl .r {
   text-align: right;
+}
+.tbl .num,
+.tbl small {
+  white-space: nowrap;
 }
 .tbl .c {
   text-align: center;
@@ -494,7 +500,7 @@
   .editor {
     position: sticky;
     left: 0;
-    width: min(100vw - 26px, 100%);
+    width: 100cqw;
   }
   .breakdown li {
     grid-template-columns: 100px 1fr 84px;
