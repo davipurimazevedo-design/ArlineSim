@@ -39,8 +39,10 @@ function run(id: string, side: Side, seed = 1) {
 const mod = (s: GameState, type: string) => s.mods.find((m) => m.type === type);
 
 describe('catálogo', () => {
-  it('tem os 12 eventos com duas opções', () => {
-    expect(EVENTS.map((e) => e.id)).toEqual([
+  it('tem 30 eventos com ids únicos, começando pelos 12 do protótipo', () => {
+    expect(EVENTS).toHaveLength(30);
+    expect(new Set(EVENTS.map((e) => e.id)).size).toBe(30);
+    expect(EVENTS.slice(0, 12).map((e) => e.id)).toEqual([
       'greve',
       'querosene',
       'cinzas',
@@ -62,7 +64,7 @@ describe('catálogo', () => {
 });
 
 describe('pickEvent', () => {
-  it('não repete antes de 120 dias e respeita pré-requisitos', () => {
+  it('não repete antes de 180 dias e respeita pré-requisitos', () => {
     const s = makeGame();
     s.day = 200;
     expect(eligibleEvents(s).map((e) => e.id)).not.toContain('passaro'); // sem frota
@@ -70,9 +72,9 @@ describe('pickEvent', () => {
     expect(eligibleEvents(s).map((e) => e.id)).toContain('passaro');
     const e = pickEvent(s)!;
     expect(s.usedEvents[e.id]).toBe(200);
-    s.day = 320;
+    s.day = 380;
     expect(eligibleEvents(s).map((x) => x.id)).not.toContain(e.id);
-    s.day = 321;
+    s.day = 381;
     expect(eligibleEvents(s).map((x) => x.id)).toContain(e.id);
   });
 

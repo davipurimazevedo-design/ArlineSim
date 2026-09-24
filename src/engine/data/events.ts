@@ -2,8 +2,9 @@
 import { AIRPORT_CODES, AIRPORTS } from './airports';
 import { fmtMoney } from '../format';
 import { maintCost, slotAllowed, slotCost } from '../formulas';
-import { addMod, changeRep, hitFleet, scaleCost } from '../helpers';
+import { addMod, changeRep, hitFleet, scaleCost, setFlag } from '../helpers';
 import { chance } from '../rng';
+import { MORE_EVENTS } from './moreEvents';
 import type { AirportCode, GameEvent, GameState, Plane } from '../types';
 
 const firstAvailable = (s: GameState): Plane | undefined => s.fleet.find((p) => !p.maint);
@@ -15,12 +16,14 @@ function slotCandidates(s: GameState): AirportCode[] {
 /** Evento no-op quando o pré-requisito sumiu entre o sorteio e a decisão. */
 const NOTHING = 'Nada aconteceu.';
 
-export const EVENTS: GameEvent[] = [
+const BASE_EVENTS: GameEvent[] = [
   {
     id: 'greve',
     icon: 'strike',
     title: 'Greve de pilotos',
     text: 'O sindicato exige 15% de reajuste. Sem acordo, ninguém decola amanhã.',
+    // o acordo do evento "sindicato" impede nova greve por um ano
+    need: (s) => !((s.flags.greve_bloqueio ?? 0) > s.day),
     L: {
       label: 'Ceder ao reajuste',
       fx: { cash: -1 },
@@ -35,6 +38,7 @@ export const EVENTS: GameEvent[] = [
       apply: (s) => {
         addMod(s, 'halt', 1, 3);
         changeRep(s, -6);
+        setFlag(s, 'greve_dura');
         return 'Três dias de greve. Toda a malha parada.';
       },
     },
@@ -51,6 +55,7 @@ export const EVENTS: GameEvent[] = [
         const c = 250000 * scaleCost(s);
         s.cash -= c;
         addMod(s, 'fuel', 0.9, 45);
+        setFlag(s, 'hedge');
         return `Hedge contratado por ${fmtMoney(c)}. Combustível 10% abaixo do mercado por 45 dias.`;
       },
     },
@@ -110,6 +115,7 @@ export const EVENTS: GameEvent[] = [
       fx: { rep: -1 },
       apply: (s) => {
         changeRep(s, -7);
+        setFlag(s, 'video_ignorado');
         return 'O assunto virou meme. Reputação -7.';
       },
     },
@@ -158,6 +164,7 @@ export const EVENTS: GameEvent[] = [
       label: 'Pedir prazo',
       fx: { cash: -1, rep: -1 },
       apply: (s) => {
+        setFlag(s, 'anac_prazo');
         if (chance(s, 0.45)) {
           const c = 400000 * scaleCost(s);
           s.cash -= c;
@@ -240,6 +247,7 @@ export const EVENTS: GameEvent[] = [
         s.cash -= c;
         changeRep(s, 6);
         addMod(s, 'demand', 1.08, 90);
+        setFlag(s, 'patrocinio');
         return 'Marca na camisa. Reputação +6 e demanda +8% por 90 dias.';
       },
     },
@@ -316,5 +324,7 @@ export const EVENTS: GameEvent[] = [
     },
   },
 ];
+
+export const EVENTS: GameEvent[] = [...BASE_EVENTS, ...MORE_EVENTS];
 
 export const EVENTS_BY_ID: Record<string, GameEvent> = Object.fromEntries(EVENTS.map((e) => [e.id, e]));

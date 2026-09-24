@@ -1,5 +1,5 @@
 import { MODELS } from './data/aircraft';
-import { pickEvent } from './events';
+import { EVENT_GAP_MIN, EVENT_GAP_SPREAD, pickEvent } from './events';
 import {
   BANKRUPTCY_CASH,
   clamp,
@@ -155,6 +155,6 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
   if (!opts.noEvents && !s.pendingEvent && s.day >= s.nextEvent) {
     const ev = pickEvent(s);
     if (ev) s.pendingEvent = ev.id;
-    s.nextEvent = s.day + 20 + randInt(s, 20);
+    s.nextEvent = s.day + EVENT_GAP_MIN + randInt(s, EVENT_GAP_SPREAD);
   }
 }

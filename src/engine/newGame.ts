@@ -3,8 +3,8 @@ import { START_CASH } from './formulas';
 import { toSeed } from './rng';
 import type { AirportCode, GameState } from './types';
 
-export const SAVE_VERSION = 3;
-export const FIRST_EVENT_DAY = 18;
+export const SAVE_VERSION = 4;
+export const FIRST_EVENT_DAY = 25;
 
 export function newGame(name: string, hub: AirportCode, seed: number, now = 0): GameState {
   return {
@@ -29,6 +29,7 @@ export function newGame(name: string, hub: AirportCode, seed: number, now = 0): 
     nextEvent: FIRST_EVENT_DAY,
     pendingEvent: null,
     usedEvents: {},
+    flags: {},
     lastDay: null,
     speed: 1,
     savedAt: now,

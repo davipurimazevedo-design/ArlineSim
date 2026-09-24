@@ -181,6 +181,8 @@ export interface GameState {
   nextEvent: number;
   pendingEvent: string | null;
   usedEvents: Record<string, number>;
+  /** marcas de escolhas passadas (cadeias de eventos): nome → dia */
+  flags: Record<string, number>;
   lastDay: DayReport | null;
   speed: Speed;
   savedAt: number;
@@ -216,7 +218,10 @@ export type Fx = Partial<Record<FxKey, 1 | -1>>;
 // prettier-ignore
 export type EventIcon =
   | 'strike' | 'fuel' | 'ash' | 'phone' | 'sun' | 'clip'
-  | 'tag' | 'bird' | 'star' | 'bug' | 'ball' | 'key';
+  | 'tag' | 'bird' | 'star' | 'bug' | 'ball' | 'key'
+  | 'mask' | 'family' | 'gift' | 'handshake' | 'trophy' | 'siren'
+  | 'lock' | 'search' | 'gavel' | 'wave' | 'app' | 'cone'
+  | 'tower' | 'engine' | 'pilot' | 'dollar' | 'arrival' | 'rain';
 
 export type Side = 'L' | 'R';
 
@@ -233,6 +238,10 @@ export interface GameEvent {
   title: string;
   text: string;
   need?: (s: GameState) => boolean;
+  /** evento sazonal: só elegível entre estes dias do ano (1–365, inclusive) */
+  window?: [number, number];
+  /** dias mínimos até se repetir (padrão: EVENT_COOLDOWN; sazonais: SEASONAL_COOLDOWN) */
+  cooldown?: number;
   L: EventOption;
   R: EventOption;
 }

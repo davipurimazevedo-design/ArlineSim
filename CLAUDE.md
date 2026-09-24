@@ -390,3 +390,9 @@ Plano aprovado em 2026-09-23. Ordem: (1) várias aeronaves por rota, (2) configu
 - Na etapa de balanceamento, corrigir os comportamentos mantidos na Fase 1 (modificadores N−1 dias, rota sem aeronave sem validação, IA no calendário global) e tornar a guerra tarifária temporária.
 - Os textos dos 18 eventos novos passam pela revisão do usuário **antes** de serem implementados.
 - Save sobe para `v: 2`, com migração dos saves da Fase 1.
+- **Eventos (etapa 5, aprovada em 2026-09-24):** 30 no total (12 do protótipo + 18 em `src/engine/data/moreEvents.ts`, textos em `docs/eventos-fase2.md`). Pedido do usuário: cartas aleatórias e sem aparecer toda hora. Por isso:
+  - intervalo entre cartas de 30 a 59 dias (era 20–39); primeira carta no dia 25 (era 18);
+  - um evento não se repete antes de 180 dias (era 120); sazonais, no máximo uma vez por ano;
+  - sazonais só dentro da janela do calendário, com 60% de prioridade (não 100%);
+  - alguns eventos dependem do porte da companhia (3+ aviões, 4+ aviões, 3+ rotas, ter jato), para aparecerem ao longo do jogo;
+  - cadeias via `GameState.flags` (save v4); o acordo do sindicato bloqueia a greve de pilotos por 365 dias.

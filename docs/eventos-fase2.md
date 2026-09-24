@@ -1,4 +1,4 @@
-# Eventos novos da Fase 2 — rascunho para revisão
+# Eventos novos da Fase 2 — aprovados em 2026-09-24 (implementados em src/engine/data/moreEvents.ts)
 
 18 eventos novos, que somados aos 12 atuais chegam a 30. Pode editar este arquivo direto: rótulos, textos e desfechos. Os efeitos também podem mudar.
 

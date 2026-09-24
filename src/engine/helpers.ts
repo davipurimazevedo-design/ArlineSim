@@ -28,6 +28,25 @@ export function findPlane(s: GameState, id: string | null): Plane | undefined {
   return id ? s.fleet.find((p) => p.id === id) : undefined;
 }
 
+/** Marca uma escolha para cadeias de eventos. */
+export function setFlag(s: GameState, name: string, day = s.day): void {
+  s.flags[name] = day;
+}
+
+/**
+ * Evento de cadeia pronto: a marca existe, já passaram `after` dias
+ * e o evento ainda não saiu desde que a marca foi feita.
+ */
+export function chainReady(s: GameState, flag: string, after: number, eventId: string): boolean {
+  const f = s.flags[flag];
+  return f !== undefined && s.day >= f + after && (s.usedEvents[eventId] ?? -Infinity) < f;
+}
+
+/** Dia do ano (1–365) de um dia de jogo; o dia 1 é 1º de janeiro. */
+export function dayOfYear(day: number): number {
+  return ((day - 1) % 365) + 1;
+}
+
 /** Tira a aeronave de qualquer rota em que esteja escalada. */
 export function unassignPlane(s: GameState, planeId: string): void {
   for (const r of s.routes) r.planes = r.planes.filter((x) => x.id !== planeId);

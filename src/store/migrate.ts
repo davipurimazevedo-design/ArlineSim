@@ -29,6 +29,8 @@ const MIGRATIONS: Record<number, (g: Raw) => Raw> = {
       rivals: Array.isArray(r.rivals) ? r.rivals : rivalsFor(r.from as AirportCode, r.to as AirportCode),
     })),
   }),
+  // v3 → v4: marcas para cadeias de eventos
+  3: (g) => ({ ...g, flags: g.flags && typeof g.flags === 'object' ? g.flags : {} }),
 };
 
 /** Valida e migra um save cru. Devolve null se não for aproveitável. */

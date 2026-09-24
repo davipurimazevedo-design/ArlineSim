@@ -59,6 +59,15 @@ describe('save', () => {
   });
 });
 
+describe('migração v3 → v4', () => {
+  it('acrescenta as marcas das cadeias de eventos', () => {
+    const { flags: _f, ...s } = makeGame();
+    const g = migrate(JSON.parse(JSON.stringify({ ...s, v: 3 })))!;
+    expect(g.v).toBe(SAVE_VERSION);
+    expect(g.flags).toEqual({});
+  });
+});
+
 describe('migração v2 → v3', () => {
   it('acrescenta cabine e concorrentes a um save da etapa 1 da Fase 2', () => {
     const s = makeGame();

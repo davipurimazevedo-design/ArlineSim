@@ -121,15 +121,15 @@ describe('tick', () => {
     expect(s.day).toBe(day);
   });
 
-  it('sorteia o primeiro evento no dia 18 e agenda o próximo em 20–39 dias', () => {
+  it('sorteia o primeiro evento no dia 25 e agenda o próximo em 30–59 dias', () => {
     const s = makeGame();
-    for (let i = 0; i < 16; i++) tick(s);
-    expect(s.day).toBe(17);
+    for (let i = 0; i < 23; i++) tick(s);
+    expect(s.day).toBe(24);
     expect(s.pendingEvent).toBeNull();
     tick(s);
     expect(s.pendingEvent).not.toBeNull();
-    expect(s.nextEvent).toBeGreaterThanOrEqual(38);
-    expect(s.nextEvent).toBeLessThanOrEqual(57);
+    expect(s.nextEvent).toBeGreaterThanOrEqual(55);
+    expect(s.nextEvent).toBeLessThanOrEqual(84);
   });
 
   it('remove modificadores vencidos e limita histórico e diário', () => {
