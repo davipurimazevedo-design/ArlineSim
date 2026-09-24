@@ -11,10 +11,12 @@ import {
   REGIONAL_MAX_KM,
   routeExists,
   routeOfPlane,
+  overlapsOf,
   type AirportCode,
 } from '../../../engine';
 import { useGame } from '../../../store/gameStore';
 import { Btn } from '../../components/Btn';
+import { overlapNames } from './overlapText';
 import { PlaneSelect } from './PlaneSelect';
 
 export function NewRoute({ onDone }: { onDone: () => void }) {
@@ -29,6 +31,25 @@ export function NewRoute({ onDone }: { onDone: () => void }) {
   const d = to && from !== to ? dist(from, to) : 0;
   const p = g.fleet.find((x) => x.id === plane);
   const m = p && MODELS[p.model];
+
+  // rotas próprias que disputariam passageiros com a nova
+  const overlaps =
+    to && d
+      ? overlapsOf(g, {
+          id: '',
+          from,
+          to,
+          dist: d,
+          planes: [],
+          price: 0,
+          priceJ: 0,
+          service: 1,
+          ai: 0,
+          rivals: [],
+          opened: 0,
+          last: null,
+        })
+      : [];
 
   let warn = '';
   if (g.slots.length < 2) warn = 'Compre slots em outro aeroporto no Mercado.';
@@ -76,6 +97,11 @@ export function NewRoute({ onDone }: { onDone: () => void }) {
           <b className="num">{d ? fmtMoney(fairPrice(d)) : '—'}</b>
         </div>
       </div>
+      {!warn && overlaps.length > 0 && (
+        <p className="warn-line" role="note">
+          Vai disputar passageiros com {overlapNames(overlaps)}.
+        </p>
+      )}
       {warn && (
         <p className="warn-line" role="alert">
           {warn}

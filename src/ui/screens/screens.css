@@ -337,6 +337,7 @@
 }
 .warn-line {
   grid-column: 1 / -1;
+  font-size: 14px;
   margin: 0;
   color: var(--alert-t);
   font-weight: 500;

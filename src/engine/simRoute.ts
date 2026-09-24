@@ -14,6 +14,7 @@ import {
   seatsOf,
 } from './formulas';
 import { findPlane } from './helpers';
+import { overlapFactor } from './overlap';
 import type { GameState, Plane, Route, SimResult } from './types';
 
 function emptyResult(r: Route, reason: string): SimResult {
@@ -32,6 +33,7 @@ function emptyResult(r: Route, reason: string): SimResult {
     hours: 0,
     planeHours: {},
     freq: 0,
+    overlap: 1,
     reason,
   };
 }
@@ -71,7 +73,8 @@ export function simRoute(s: GameState, r: Route): SimResult {
     if (p.condition < 50) worn += (seats.y + seats.j) * f * 2;
   }
 
-  const demand = baseDemand(r.from, r.to) * modVal(s, 'demand') * seasonality(s.day);
+  const overlap = overlapFactor(s, r);
+  const demand = baseDemand(r.from, r.to) * modVal(s, 'demand') * seasonality(s.day) * overlap;
   const priceF = Math.pow(fp / r.price, 2.2);
   // com um avião só, equivale ao protótipo: −0,1 se a condição estiver abaixo de 50
   const q = 0.75 + 0.5 * (s.reputation / 100) + svc.q - 0.1 * (worn / (capY + capJ));
@@ -119,6 +122,7 @@ export function simRoute(s: GameState, r: Route): SimResult {
     hours,
     planeHours,
     freq,
+    overlap,
   };
 }
 

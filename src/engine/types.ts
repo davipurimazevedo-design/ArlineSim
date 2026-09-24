@@ -205,6 +205,8 @@ export interface SimResult {
   planeHours: Record<string, number>;
   /** frequência total das aeronaves que voaram */
   freq: number;
+  /** multiplicador da demanda por rotas próprias que disputam os mesmos passageiros (1 = nenhuma) */
+  overlap: number;
   reason: string;
 }
 

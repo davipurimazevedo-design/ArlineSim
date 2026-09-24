@@ -10,6 +10,7 @@ import {
   routeFreq,
   routePlanes,
   routeProfit,
+  overlapsOf,
   rivalShares,
   seatsOf,
   SERVICE,
@@ -24,6 +25,7 @@ import { Btn } from '../../components/Btn';
 import { Money } from '../../components/Money';
 import { Segmented } from '../../components/Segmented';
 import { Stepper } from '../../components/Stepper';
+import { overlapNames } from './overlapText';
 import { PlaneSelect } from './PlaneSelect';
 
 const SERVICE_OPTIONS = SERVICE.map((sv, i) => [i as ServiceLevel, sv.name] as const);
@@ -142,6 +144,12 @@ export function RouteEditor({ r }: { r: Route }) {
             onChange={(e) => upd({ priceJ: +e.target.value })}
           />
         </label>
+      )}
+      {prev?.flying && prev.overlap < 0.995 && (
+        <p className="warn-line full" role="note">
+          Divide passageiros com {overlapNames(overlapsOf(g, r))}: demanda −
+          {Math.round((1 - prev.overlap) * 100)}%.
+        </p>
       )}
       {prev?.flying && (
         <div className="field full">

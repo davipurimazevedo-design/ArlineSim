@@ -1,5 +1,5 @@
 import { Fragment, useState } from 'react';
-import { fmtInt, fmtMoney, MODELS, rivalShares, routeFreq, type Route } from '../../../engine';
+import { fmtInt, fmtMoney, MODELS, overlapsOf, rivalShares, routeFreq, type Route } from '../../../engine';
 import { useGame } from '../../../store/gameStore';
 import { CellBar } from '../../components/Bar';
 import { Btn } from '../../components/Btn';
@@ -69,6 +69,9 @@ export function Rotas() {
                           {r.to}
                         </b>
                         <small>{fmtInt(r.dist)} km</small>
+                        {overlapsOf(g, r).length > 0 && r.planes.length > 0 && (
+                          <small className="neg">divide demanda</small>
+                        )}
                       </td>
                       <td>
                         {p ? (

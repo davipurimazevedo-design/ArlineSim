@@ -6,6 +6,7 @@ export * from './data/service';
 export * from './data/cabins';
 export * from './data/competitors';
 export { rivalShares } from './rivals';
+export { overlapsOf, overlapFactor, type Overlap } from './overlap';
 export { EVENTS, EVENTS_BY_ID } from './data/events';
 export * from './formulas';
 export * from './format';
