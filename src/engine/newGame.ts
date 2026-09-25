@@ -54,7 +54,8 @@ export function newGame(
     flags: {},
     achievements: {},
     lastDay: null,
-    speed: 1,
+    // começa pausado: o jogador escolhe quando o tempo anda (pedido do usuário)
+    speed: 0,
     savedAt: now,
     gameOver: false,
   };

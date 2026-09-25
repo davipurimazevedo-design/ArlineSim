@@ -477,6 +477,7 @@ Plano em `docs/fase4-plano.md`, aprovado com estas escolhas:
   - tarifa acima de 1.500 km a R$ 0,22/km e acima de 3.500 km a R$ 0,12/km.
   - Tabela e motivos em `docs/fase4-pendentes.md`, seção 6.
 - **Ajustes pedidos pelo usuário depois da Fase 4 (2026-09-25):**
+  - **Começa pausado:** jogo novo e jogo salvo abrem com a velocidade em pausa; o tempo fora continua sendo aplicado ao abrir.
   - **Ritmo:** 1× = 1 dia a cada 2 segundos (era 1 s; `MS_PER_DAY` em `store/loop.ts`). Cartas a cada 45–89 dias (eram 30–59) e a primeira no dia 40 (era 25). O tempo offline continua 1 dia por minuto real.
   - **Manutenção automática** (`GameState.autoMaint`, save v12): quando a condição cai abaixo do limite (Desligada, 40, 50, 60 ou 70%) e há caixa, o avião entra em manutenção sozinho. O custo aparece em Finanças. Padrão 50%, inclusive nos saves antigos. O robô da simulação a desliga e mantém a regra própria (abaixo de 45%).
   - **Primeiros passos** viram um cartão flutuante em todas as telas (`ui/screens/Onboarding.tsx`). O destaque segue o contexto: aba → Nova rota → Criar rota (com o formulário aberto) → linha da rota → tarifa → velocidade → Frota → manutenção automática. A carta de evento é o último passo, porque depende do jogo.

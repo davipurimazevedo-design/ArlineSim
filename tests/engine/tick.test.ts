@@ -239,3 +239,10 @@ describe('correções do balanceamento', () => {
     expect(during.share).toBeGreaterThan(after.share);
   });
 });
+
+describe('jogo novo', () => {
+  it('começa pausado', async () => {
+    const { newGame } = await import('../../src/engine/newGame');
+    expect(newGame('x', 'BSB', 1).speed).toBe(0);
+  });
+});

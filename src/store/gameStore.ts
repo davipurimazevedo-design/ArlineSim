@@ -101,6 +101,8 @@ export const useGame = create<Store>()(
 
     boot: async () => {
       const g = await loadGame();
+      // ao abrir o jogo, ele começa pausado (o tempo fora ainda é aplicado pelo catchUpNow)
+      if (g) g.speed = 0;
       set({ game: g, loaded: true });
       if (g) {
         get().catchUpNow();
