@@ -222,6 +222,7 @@ export function NewRoute({ onDone }: { onDone: () => void }) {
 
       <Btn
         kind="primary"
+        data-tut-target="criar-rota"
         disabled={!args || !plan || !!plan.error}
         onClick={() => {
           if (args && !act((s) => createRoute(s, args))) onDone();

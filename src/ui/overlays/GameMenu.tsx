@@ -122,8 +122,9 @@ function Panel() {
         <section>
           <h4>Sons</h4>
           <div className="sound-row">
+            <span className="sound-label">Efeitos</span>
             <Segmented
-              label="Sons"
+              label="Efeitos sonoros"
               value={sound.on ? 'on' : 'off'}
               options={[
                 ['on', 'Ligados'],
@@ -132,12 +133,13 @@ function Panel() {
               onChange={(v) => setSoundPrefs({ on: v === 'on' })}
             />
             <label className="volume">
-              <span>Volume</span>
+              <span className="sr-only">Volume dos efeitos</span>
               <input
                 type="range"
                 min={0}
                 max={1}
                 step={0.05}
+                aria-label="Volume dos efeitos"
                 value={sound.volume}
                 disabled={!sound.on}
                 onChange={(e) => setSoundPrefs({ volume: +e.target.value })}
@@ -152,6 +154,35 @@ function Panel() {
               />
             </label>
           </div>
+          <div className="sound-row">
+            <span className="sound-label">Música</span>
+            <Segmented
+              label="Música de fundo"
+              value={sound.music ? 'on' : 'off'}
+              options={[
+                ['on', 'Ligada'],
+                ['off', 'Desligada'],
+              ]}
+              onChange={(v) => {
+                unlockAudio();
+                setSoundPrefs({ music: v === 'on' });
+              }}
+            />
+            <label className="volume">
+              <span className="sr-only">Volume da música</span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                aria-label="Volume da música"
+                value={sound.musicVolume}
+                disabled={!sound.music}
+                onChange={(e) => setSoundPrefs({ musicVolume: +e.target.value })}
+              />
+            </label>
+          </div>
+          <p className="note">A música é gerada no próprio jogo e toca depois do primeiro toque ou clique.</p>
         </section>
 
         <section>

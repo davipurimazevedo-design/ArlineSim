@@ -345,6 +345,8 @@ interface RunResult {
 
 function simulate(strategy: StrategyId, hub: AirportCode, seed: number, days: number): RunResult {
   const s = newGame('Simulação', hub, seed, 0, MODEL);
+  // o robô faz a própria manutenção (abaixo de 45%), como na referência da seção 11
+  s.autoMaint = 0;
   const bot: Bot = { seeded: { seed: (seed ^ 0x9e3779b9) >>> 0 }, reserve: 4e6 };
   const cashAt: Record<number, number> = {};
   const licenseDay: [number | null, number | null] = [null, null];

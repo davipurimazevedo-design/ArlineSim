@@ -117,7 +117,7 @@ export function RouteEditor({ r }: { r: Route }) {
           </Btn>
         </div>
       </div>
-      <label className="field wide" htmlFor={uid + 'price'}>
+      <label className="field wide" htmlFor={uid + 'price'} data-tut-target="tarifa">
         <span>
           {cargo ? 'Frete por tonelada' : 'Tarifa econômica'}{' '}
           <b className="num">{cargo ? fmtReais(r.price) : fmtMoney(r.price)}</b>{' '}

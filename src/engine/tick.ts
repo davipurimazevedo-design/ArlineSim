@@ -8,7 +8,8 @@ import { processContracts } from './contracts';
 import { codeshareDailyCost, driftFx } from './international';
 import { extraHubsDailyCost, maintCostFor, maintDaysFor } from './hubs';
 import { BANKRUPTCY_CASH, clamp, dailyInterest, baseCompetition, modVal } from './formulas';
-import { addLog, changeRep, routeOfPlane } from './helpers';
+import { addLog, changeRep, routeOfPlane, setFlag } from './helpers';
+import { fmtMoney } from './format';
 import { chance, randInt, randRange } from './rng';
 import { driftRivals } from './rivals';
 import { rules, slotFeeFor } from './rules';
@@ -106,6 +107,18 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
     if (h > 0) {
       p.condition = clamp(p.condition - h * m.wearH * modVal(s, 'wear') * ageWearFactor(p, s.day), 0, 100);
       p.hours += h;
+    }
+    // manutenção automática: abaixo do limite escolhido, se houver caixa
+    if (s.autoMaint > 0 && p.condition < s.autoMaint) {
+      const c = maintCostFor(s, p);
+      if (s.cash >= c) {
+        p.maint = maintDaysFor(s, p);
+        p.restore = true;
+        day.maint += c;
+        setFlag(s, 'tut_manut');
+        addLog(s, `Manutenção automática do ${p.reg}: ${fmtMoney(c)}, ${p.maint} dias.`, 'info');
+        continue;
+      }
     }
     if (p.condition < 25 && chance(s, 0.06)) {
       const cost = Math.round(maintCostFor(s, p) * 1.5);

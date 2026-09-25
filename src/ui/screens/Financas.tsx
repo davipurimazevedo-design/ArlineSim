@@ -33,7 +33,7 @@ export function Financas() {
           ['Slots', d.slots],
           ['Estrutura', d.overhead],
           ['Juros', d.interest],
-          ['Manutenção corretiva', d.maint],
+          ['Manutenção (panes e automática)', d.maint],
         ] as [string, number][]
       ).filter((x) => x[1] > 0)
     : [];

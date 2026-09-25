@@ -1,3 +1,4 @@
+import * as actions from '../../src/engine/actions';
 import { describe, expect, it } from 'vitest';
 import { MODELS } from '../../src/engine/data/aircraft';
 import { slotFee } from '../../src/engine/formulas';
@@ -81,6 +82,7 @@ describe('tick', () => {
 
   it('pane: avião abaixo de 25% quebra em algum momento, com custo 1,5× e +2 dias', () => {
     const s = makeGame('BSB', 7);
+    s.autoMaint = 0; // sem a manutenção automática, que se anteciparia à pane
     const p = addTestPlane(s, 'AT7', { condition: 20 });
     let days = 0;
     while (p.maint === 0 && days < 500) {
@@ -123,15 +125,41 @@ describe('tick', () => {
     expect(s.day).toBe(day);
   });
 
-  it('sorteia o primeiro evento no dia 25 e agenda o próximo em 30–59 dias', () => {
+  it('sorteia o primeiro evento no dia 40 e agenda o próximo em 45–89 dias', () => {
     const s = makeGame();
-    for (let i = 0; i < 23; i++) tick(s);
-    expect(s.day).toBe(24);
+    for (let i = 0; i < 38; i++) tick(s);
+    expect(s.day).toBe(39);
     expect(s.pendingEvent).toBeNull();
     tick(s);
     expect(s.pendingEvent).not.toBeNull();
-    expect(s.nextEvent).toBeGreaterThanOrEqual(55);
-    expect(s.nextEvent).toBeLessThanOrEqual(84);
+    expect(s.nextEvent).toBeGreaterThanOrEqual(85);
+    expect(s.nextEvent).toBeLessThanOrEqual(129);
+  });
+
+  it('manutenção automática: abaixo do limite, entra sozinha se houver caixa', () => {
+    const s = makeGame();
+    s.nextEvent = 1e9;
+    expect(s.autoMaint).toBe(50);
+    const p = addTestPlane(s, 'AT7', { condition: 48 });
+    tick(s);
+    expect(p.maint).toBeGreaterThan(0);
+    expect(s.lastDay!.maint).toBeGreaterThan(0);
+    expect(s.log[0]?.text).toContain('Manutenção automática');
+    // sem caixa, espera
+    const t = makeGame();
+    t.nextEvent = 1e9;
+    t.cash = 0;
+    const q = addTestPlane(t, 'AT7', { condition: 48 });
+    tick(t);
+    expect(q.maint).toBe(0);
+    // desligada
+    const u = makeGame();
+    u.nextEvent = 1e9;
+    expect(actions.setAutoMaint(u, 0)).toBeNull();
+    expect(actions.setAutoMaint(u, 33)).toBe('Limite inválido.');
+    const r = addTestPlane(u, 'AT7', { condition: 48 });
+    tick(u);
+    expect(r.maint).toBe(0);
   });
 
   it('remove modificadores vencidos e limita histórico e diário', () => {

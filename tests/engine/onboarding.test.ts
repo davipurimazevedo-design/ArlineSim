@@ -32,11 +32,14 @@ describe('primeiros passos', () => {
     actions.updateRoute(s, r.id, { price: r.price - 20 });
     expect(tutorialProgress(s).current?.id).toBe('dias');
     for (let i = 0; i < 8; i++) tick(s, { noEvents: true });
+    expect(tutorialProgress(s).current?.id).toBe('manutencao');
+    expect(actions.setAutoMaint(s, 60)).toBeNull();
+    expect(tutorialProgress(s).current?.id).toBe('segunda');
+    expect(createRoute(s, { from: 'BSB', to: 'GYN', planeId: null, leaseModel: 'AT7' })).toBeNull();
+    // a carta de evento vem por último: depende do jogo, não do jogador
     expect(tutorialProgress(s).current?.id).toBe('evento');
     s.usedEvents.greve = s.day;
-    expect(tutorialProgress(s).current?.id).toBe('manutencao');
-    expect(actions.maintain(s, s.fleet[0]!.id)).toBeNull();
-    expect(tutorialProgress(s).current?.id).toBe('segunda');
+    expect(tutorialProgress(s).current).toBeNull();
   });
 
   it('o texto do primeiro passo muda com o modelo de negócio', () => {

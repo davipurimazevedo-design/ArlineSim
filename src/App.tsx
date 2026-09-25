@@ -1,5 +1,4 @@
-import { useEffect, type ComponentType } from 'react';
-import { tutorialTarget } from './engine';
+import type { ComponentType } from 'react';
 import { useSoundEffects } from './ui/useSoundEffects';
 import { useGame, type Tab } from './store/gameStore';
 import { ConfirmDialog } from './ui/components/ConfirmDialog';
@@ -17,6 +16,7 @@ import { Financas } from './ui/screens/Financas';
 import { Frota } from './ui/screens/Frota';
 import { Mercado } from './ui/screens/Mercado';
 import { NewGame } from './ui/screens/NewGame';
+import { Onboarding } from './ui/screens/Onboarding';
 import { Painel } from './ui/screens/Painel';
 import { Rotas } from './ui/screens/rotas/Rotas';
 
@@ -33,14 +33,6 @@ export function App() {
   const hasGame = useGame((s) => !!s.game);
   const tab = useGame((s) => s.tab);
   useSoundEffects();
-  // destaque do passo atual do tutorial: fora da aba Rotas, o botão Nova rota vira a aba Rotas
-  const tut = useGame((s) => (s.game ? tutorialTarget(s.game) : null));
-  const target =
-    tut === 'nova-rota' && tab !== 'rotas' ? 'rotas' : tut === 'rotas' && tab === 'rotas' ? null : tut;
-  useEffect(() => {
-    if (target) document.body.dataset.tut = target;
-    else delete document.body.dataset.tut;
-  }, [target]);
 
   if (!loaded) return <div className="loading">Carregando…</div>;
   if (!hasGame)
@@ -60,6 +52,7 @@ export function App() {
         <View />
       </main>
       <Footer />
+      <Onboarding />
       <UpdateBanner />
       <EventCard />
       <ResultCard />

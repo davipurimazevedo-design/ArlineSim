@@ -1,7 +1,11 @@
 // Liga os sons aos acontecimentos do jogo, observando as mudanças do store.
 import { useEffect } from 'react';
 import { useGame } from '../store/gameStore';
+import { startMusic } from './music';
 import { play, unlockAudio } from './sound';
+
+/** elementos que soam ao passar o mouse e ao clicar */
+const CLICKABLE = 'button, [role="button"], a[href], select, summary, input[type="range"], tr.row';
 
 /** marcos de caixa que tocam o som de dinheiro ao serem cruzados para cima */
 const CASH_MARKS = [10e6, 25e6, 50e6, 100e6, 250e6, 500e6, 1e9, 2e9, 5e9];
@@ -11,6 +15,23 @@ export function useSoundEffects(): void {
     const unlock = () => unlockAudio();
     window.addEventListener('pointerdown', unlock);
     window.addEventListener('keydown', unlock);
+    const stopMusic = startMusic();
+
+    // interface: "tic" ao entrar num botão com o mouse (não no toque) e clique ao apertar
+    let hovered: Element | null = null;
+    const onOver = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return;
+      const el = (e.target as Element | null)?.closest?.(CLICKABLE) ?? null;
+      if (el === hovered) return;
+      hovered = el;
+      if (el && !(el as HTMLButtonElement).disabled) play('hover');
+    };
+    const onDown = (e: PointerEvent) => {
+      const el = (e.target as Element | null)?.closest?.(CLICKABLE);
+      if (el && !(el as HTMLButtonElement).disabled) play('click');
+    };
+    document.addEventListener('pointerover', onOver);
+    document.addEventListener('pointerdown', onDown);
 
     const unsub = useGame.subscribe((st, prev) => {
       const g = st.game;
@@ -32,6 +53,9 @@ export function useSoundEffects(): void {
 
     return () => {
       unsub();
+      stopMusic();
+      document.removeEventListener('pointerover', onOver);
+      document.removeEventListener('pointerdown', onDown);
       window.removeEventListener('pointerdown', unlock);
       window.removeEventListener('keydown', unlock);
     };

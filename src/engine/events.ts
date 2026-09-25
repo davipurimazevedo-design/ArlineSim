@@ -10,8 +10,9 @@ export const SEASONAL_COOLDOWN = 300;
 /** Chance de um sazonal elegível ter prioridade no sorteio. */
 export const SEASONAL_PRIORITY = 0.6;
 /** Intervalo entre cartas: de EVENT_GAP_MIN a EVENT_GAP_MIN + EVENT_GAP_SPREAD − 1 dias. */
-export const EVENT_GAP_MIN = 30;
-export const EVENT_GAP_SPREAD = 30;
+// Fase 4 (pedido do usuário): cartas mais espaçadas, para dar tempo de absorver cada uma (era 30 + 0–29)
+export const EVENT_GAP_MIN = 45;
+export const EVENT_GAP_SPREAD = 45;
 
 function inWindow(e: GameEvent, day: number): boolean {
   if (!e.window) return true;

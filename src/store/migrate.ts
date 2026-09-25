@@ -74,6 +74,8 @@ const MIGRATIONS: Record<number, (g: Raw) => Raw> = {
     usedMarket: Array.isArray(g.usedMarket) ? g.usedMarket : [],
     nextUsedMarket: typeof g.nextUsedMarket === 'number' ? g.nextUsedMarket : 0,
   }),
+  // v11 → v12: manutenção automática (ligada em 50% também nos saves antigos, a pedido do usuário)
+  11: (g) => ({ ...g, autoMaint: typeof g.autoMaint === 'number' ? g.autoMaint : 50 }),
 };
 
 /** Valida e migra um save cru. Devolve null se não for aproveitável. */

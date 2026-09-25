@@ -6,6 +6,12 @@ import { Icon } from '../components/Icon';
 import { Money } from '../components/Money';
 
 const SPEEDS: Speed[] = [0, 1, 2, 4];
+/** 1× = um dia a cada 2 segundos */
+const SPEED_LABEL: Record<number, string> = {
+  1: 'Um dia a cada 2 segundos',
+  2: 'Um dia por segundo',
+  4: 'Dois dias por segundo',
+};
 
 function subscribeScheme(cb: () => void) {
   const mq = matchMedia('(prefers-color-scheme: dark)');
@@ -69,7 +75,7 @@ export function TopBar() {
             type="button"
             aria-pressed={g.speed === v}
             onClick={() => setSpeed(v)}
-            aria-label={v ? `${v} ${v > 1 ? 'dias' : 'dia'} por segundo` : 'Pausar'}
+            aria-label={v ? SPEED_LABEL[v] : 'Pausar'}
           >
             {v === 0 ? '❚❚' : v + '×'}
           </button>

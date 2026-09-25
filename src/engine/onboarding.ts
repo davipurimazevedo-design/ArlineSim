@@ -6,6 +6,9 @@ import type { GameState } from './types';
 /** Partes da interface que podem ser destacadas (atributo data-tut-target). */
 export type TutTarget = 'nova-rota' | 'rotas' | 'velocidade' | 'frota' | null;
 
+/** Alvos refinados pela interface conforme o que está aberto (ver ui/screens/Onboarding.tsx). */
+export type TutUiTarget = Exclude<TutTarget, null> | 'criar-rota' | 'rota-linha' | 'tarifa' | 'auto-manut';
+
 export interface TutStep {
   id: string;
   title: string;
@@ -49,17 +52,10 @@ export const TUT_STEPS: TutStep[] = [
     target: 'velocidade',
   },
   {
-    id: 'evento',
-    title: 'Responder uma carta de evento',
-    hint: () => 'De tempos em tempos chega uma carta. Arraste para um lado ou use os botões para decidir.',
-    done: (s) => Object.keys(s.usedEvents).length > 0 && !s.pendingEvent,
-    target: null,
-  },
-  {
     id: 'manutencao',
-    title: 'Fazer uma manutenção',
+    title: 'Cuidar da manutenção',
     hint: () =>
-      'Em Frota, faça a manutenção de um avião gasto. Abaixo de 40% de condição, o risco de pane dispara.',
+      'Em Frota, escolha o limite da manutenção automática (ou faça uma manutenção à mão). Avião gasto quebra e fica dias no chão.',
     done: (s) => s.flags.tut_manut !== undefined,
     target: 'frota',
   },
@@ -70,6 +66,14 @@ export const TUT_STEPS: TutStep[] = [
       'Com o caixa crescendo, abra outra rota. Rotas que saem do hub ganham passageiros de conexão.',
     done: (s) => flying(s).length >= 2,
     target: 'nova-rota',
+  },
+  {
+    id: 'evento',
+    title: 'Responder uma carta de evento',
+    hint: () =>
+      'Cartas de evento chegam de tempos em tempos (a primeira, por volta do dia 40). Arraste para um lado ou use os botões.',
+    done: (s) => Object.keys(s.usedEvents).length > 0 && !s.pendingEvent,
+    target: null,
   },
 ];
 
@@ -130,7 +134,7 @@ export const TIPS: Tip[] = [
   },
   {
     id: 'dica_condicao',
-    text: 'Um avião está gasto. Abaixo de 40% de condição ele pode quebrar e ficar dias no chão: faça a manutenção em Frota.',
+    text: 'Um avião está gasto. Abaixo de 40% de condição ele pode quebrar e ficar dias no chão. Em Frota, faça a manutenção ou ajuste a manutenção automática.',
     when: (s) => s.fleet.some((p) => p.condition < 45 && !p.maint),
   },
   {

@@ -209,7 +209,7 @@ describe('cadeias', () => {
 });
 
 describe('frequência das cartas', () => {
-  it('em 3 anos saem de 18 a 37 cartas, sem repetir um avulso em menos de 180 dias', () => {
+  it('em 3 anos saem de 11 a 24 cartas (intervalo de 45 a 89 dias), sem repetir um avulso em menos de 180 dias', () => {
     const s = setup(null, 11);
     s.day = 1;
     s.nextEvent = 25;
@@ -226,7 +226,7 @@ describe('frequência das cartas', () => {
       cards++;
       resolveEvent(s, 'L');
     }
-    expect(cards).toBeGreaterThanOrEqual(18);
-    expect(cards).toBeLessThanOrEqual(37);
+    expect(cards).toBeGreaterThanOrEqual(11);
+    expect(cards).toBeLessThanOrEqual(24);
   });
 });

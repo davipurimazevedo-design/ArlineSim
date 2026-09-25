@@ -211,7 +211,8 @@
 .update-banner {
   position: fixed;
   left: 50%;
-  bottom: calc(76px + var(--safe-bottom, 0px));
+  /* no topo: embaixo ficam a barra de abas, o toast e o cartão de primeiros passos */
+  top: calc(12px + env(safe-area-inset-top, 0px));
   transform: translateX(-50%);
   z-index: 40;
   display: flex;
@@ -227,11 +228,15 @@
   max-width: calc(100% - 32px);
 }
 
-/* tutorial: destaque pulsante no passo atual (body[data-tut] = alvo) */
+/* tutorial: destaque pulsante no próximo clique (body[data-tut] = alvo; ver Onboarding.tsx) */
 body[data-tut='rotas'] [data-tut-target='rotas'],
 body[data-tut='frota'] [data-tut-target='frota'],
 body[data-tut='nova-rota'] [data-tut-target='nova-rota'],
-body[data-tut='velocidade'] [data-tut-target='velocidade'] {
+body[data-tut='criar-rota'] [data-tut-target='criar-rota'],
+body[data-tut='rota-linha'] [data-tut-target='rota-linha'],
+body[data-tut='tarifa'] [data-tut-target='tarifa'],
+body[data-tut='velocidade'] [data-tut-target='velocidade'],
+body[data-tut='auto-manut'] [data-tut-target='auto-manut'] {
   outline: 2px solid var(--teal);
   outline-offset: 2px;
   animation: tut-pulse 1.6s ease-in-out infinite;
@@ -245,5 +250,81 @@ body[data-tut='velocidade'] [data-tut-target='velocidade'] {
 @media (prefers-reduced-motion: reduce) {
   body[data-tut] [data-tut-target] {
     animation: none;
+  }
+}
+
+/* primeiros passos: cartão flutuante em todas as telas */
+.coach {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + var(--safe-bottom, 0px));
+  z-index: 30;
+  width: min(340px, calc(100% - 32px));
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--teal);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  font-size: 14px;
+}
+.coach p {
+  margin: 0;
+}
+.coach-head,
+.coach-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.coach-head small {
+  color: var(--muted);
+}
+.coach-action {
+  color: var(--teal-t);
+  font-weight: 600;
+}
+.coach-hint {
+  color: var(--muted);
+  font-size: 13px;
+}
+.coach-steps {
+  margin: 4px 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+}
+.coach-steps .done {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.coach-steps .now {
+  font-weight: 600;
+}
+.coach .btn {
+  justify-self: start;
+}
+.coach-pill {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + var(--safe-bottom, 0px));
+  z-index: 30;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  color: var(--teal-t);
+  font-weight: 600;
+  cursor: pointer;
+}
+/* no celular a barra de abas fica embaixo: o cartão sobe acima dela */
+@media (max-width: 760px) {
+  .coach,
+  .coach-pill {
+    bottom: calc(76px + var(--safe-bottom, 0px));
   }
 }

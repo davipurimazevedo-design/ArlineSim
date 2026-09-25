@@ -203,6 +203,21 @@ export function financeUsed(s: GameState, offerId: string, days: FinanceTerm): A
   return null;
 }
 
+/** Limites oferecidos para a manutenção automática (0 = desligada). */
+export const AUTO_MAINT_OPTIONS = [0, 40, 50, 60, 70] as const;
+
+export function setAutoMaint(s: GameState, pct: number): ActionResult {
+  if (!(AUTO_MAINT_OPTIONS as readonly number[]).includes(pct)) return 'Limite inválido.';
+  s.autoMaint = pct;
+  setFlag(s, 'tut_manut');
+  addLog(
+    s,
+    pct ? `Manutenção automática abaixo de ${pct}% de condição.` : 'Manutenção automática desligada.',
+    'info',
+  );
+  return null;
+}
+
 /** Quitar o saldo devedor de um avião financiado. */
 export function payoffLoan(s: GameState, id: string): ActionResult {
   const p = findPlane(s, id);

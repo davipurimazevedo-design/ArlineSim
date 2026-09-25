@@ -5,8 +5,11 @@ import { START_CASH_BY_DIFFICULTY } from './formulas';
 import { toSeed } from './rng';
 import type { AirportCode, BusinessModelId, GameState } from './types';
 
-export const SAVE_VERSION = 11;
-export const FIRST_EVENT_DAY = 25;
+export const SAVE_VERSION = 12;
+/** primeira carta (Fase 4: era 25, para o jogador montar a primeira rota com calma) */
+export const FIRST_EVENT_DAY = 40;
+/** manutenção automática padrão de um jogo novo */
+export const DEFAULT_AUTO_MAINT = 50;
 
 export function newGame(
   name: string,
@@ -31,6 +34,7 @@ export function newGame(
     fxIdx: 1,
     codeshare: false,
     contracts: [],
+    autoMaint: DEFAULT_AUTO_MAINT,
     usedMarket: [],
     nextUsedMarket: 0,
     cargoOffer: null,

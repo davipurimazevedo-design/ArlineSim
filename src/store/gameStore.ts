@@ -47,6 +47,10 @@ interface Store {
   menu: boolean;
   /** há uma versão nova do jogo instalada, esperando o jogador atualizar (PWA) */
   updateReady: boolean;
+  /** criador de rotas aberto (aba Rotas) */
+  routeForm: boolean;
+  /** rota aberta no editor (aba Rotas) */
+  routeOpen: string | null;
 
   boot: () => Promise<void>;
   start: (name: string, hub: AirportCode, model?: BusinessModelId) => void;
@@ -92,6 +96,8 @@ export const useGame = create<Store>()(
     theme: loadTheme(),
     menu: false,
     updateReady: false,
+    routeForm: false,
+    routeOpen: null,
 
     boot: async () => {
       const g = await loadGame();

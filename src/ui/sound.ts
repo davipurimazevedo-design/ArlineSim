@@ -1,33 +1,52 @@
-// Sons sintetizados com Web Audio: nada para baixar. Ligados por padrão em volume baixo;
-// a preferência fica no aparelho (localStorage), fora do save.
+// Sons sintetizados com Web Audio: nada para baixar. Efeitos e música ligados por padrão em
+// volume baixo; a preferência fica no aparelho (localStorage), fora do save.
 import { useSyncExternalStore } from 'react';
 
-export type SoundName = 'event' | 'choose' | 'achievement' | 'route' | 'pane' | 'cash' | 'bankrupt';
+export type SoundName =
+  'event' | 'choose' | 'achievement' | 'route' | 'pane' | 'cash' | 'bankrupt' | 'hover' | 'click';
 
 export interface SoundPrefs {
+  /** efeitos (jogo e interface) */
   on: boolean;
   /** 0–1 */
   volume: number;
+  /** música de fundo */
+  music: boolean;
+  /** 0–1 */
+  musicVolume: number;
 }
 
 const PREFS_KEY = 'asanorte-sound';
-const DEFAULT_PREFS: SoundPrefs = { on: true, volume: 0.35 };
-/** intervalo mínimo entre dois sons iguais, e entre quaisquer dois sons */
+const DEFAULT_PREFS: SoundPrefs = { on: true, volume: 0.35, music: true, musicVolume: 0.3 };
+/** intervalo mínimo entre dois sons iguais, e entre quaisquer dois sons do jogo */
 const SAME_GAP_MS = 1500;
 const ANY_GAP_MS = 350;
+/** sons de interface: bem curtos, com intervalo próprio (não atrasam os do jogo) */
+const UI_GAP_MS = 60;
 
 let prefs: SoundPrefs = load();
 const listeners = new Set<() => void>();
 
+const clamp01 = (v: unknown, d: number) => (typeof v === 'number' ? Math.min(1, Math.max(0, v)) : d);
+
 function load(): SoundPrefs {
   try {
     const raw = JSON.parse(localStorage.getItem(PREFS_KEY) ?? 'null') as Partial<SoundPrefs> | null;
-    if (raw && typeof raw.on === 'boolean' && typeof raw.volume === 'number')
-      return { on: raw.on, volume: Math.min(1, Math.max(0, raw.volume)) };
+    if (raw && typeof raw === 'object')
+      return {
+        on: typeof raw.on === 'boolean' ? raw.on : DEFAULT_PREFS.on,
+        volume: clamp01(raw.volume, DEFAULT_PREFS.volume),
+        music: typeof raw.music === 'boolean' ? raw.music : DEFAULT_PREFS.music,
+        musicVolume: clamp01(raw.musicVolume, DEFAULT_PREFS.musicVolume),
+      };
   } catch {
     /* localStorage indisponível */
   }
   return DEFAULT_PREFS;
+}
+
+export function getSoundPrefs(): SoundPrefs {
+  return prefs;
 }
 
 export function setSoundPrefs(p: Partial<SoundPrefs>): void {
@@ -40,17 +59,16 @@ export function setSoundPrefs(p: Partial<SoundPrefs>): void {
   listeners.forEach((f) => f());
 }
 
-export function useSoundPrefs(): SoundPrefs {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      return () => listeners.delete(cb);
-    },
-    () => prefs,
-  );
+export function onSoundPrefs(cb: () => void): () => void {
+  listeners.add(cb);
+  return () => listeners.delete(cb);
 }
 
-// ---------------------------------------------------------------- síntese
+export function useSoundPrefs(): SoundPrefs {
+  return useSyncExternalStore(onSoundPrefs, () => prefs);
+}
+
+// ---------------------------------------------------------------- contexto de áudio
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -65,6 +83,18 @@ export function unlockAudio(): void {
   }
   if (ctx.state === 'suspended') void ctx.resume();
 }
+
+/** Contexto já liberado e tocando (null antes do primeiro gesto). */
+export function audioContext(): AudioContext | null {
+  return ctx && ctx.state === 'running' ? ctx : null;
+}
+
+/** curva perceptiva: o padrão (0,35) fica baixo, mas audível */
+export function perceptual(v: number): number {
+  return Math.pow(v, 1.5);
+}
+
+// ---------------------------------------------------------------- síntese
 
 /** Nota com envelope curto. `slide` desliza a frequência até o fim. */
 function tone(
@@ -81,7 +111,7 @@ function tone(
   osc.frequency.setValueAtTime(freq, t);
   if (slide) osc.frequency.exponentialRampToValueAtTime(slide, t + dur);
   env.gain.setValueAtTime(0.0001, t);
-  env.gain.exponentialRampToValueAtTime(gain, t + 0.015);
+  env.gain.exponentialRampToValueAtTime(gain, t + Math.min(0.015, dur / 3));
   env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   osc.connect(env).connect(master);
   osc.start(t);
@@ -136,20 +166,28 @@ const SOUNDS: Record<SoundName, () => void> = {
   bankrupt: () => {
     [392, 330, 262, 196].forEach((f, i) => tone(f, i * 0.22, 0.4, { type: 'triangle', gain: 0.3 }));
   },
+  // interface: um "tic" quase imperceptível ao passar o mouse e um clique macio
+  hover: () => tone(2200, 0, 0.035, { gain: 0.05 }),
+  click: () => tone(900, 0, 0.06, { type: 'triangle', gain: 0.16, slide: 620 }),
 };
 
 const lastPlayed: Partial<Record<SoundName, number>> = {};
 let lastAny = 0;
+let lastUi = 0;
 
 /** Toca um som, se ligado, com a aba visível e fora do intervalo mínimo. */
 export function play(name: SoundName): void {
   if (!prefs.on || prefs.volume <= 0 || document.hidden) return;
   if (!ctx || !master || ctx.state !== 'running') return;
   const now = performance.now();
-  if (now - (lastPlayed[name] ?? -Infinity) < SAME_GAP_MS || now - lastAny < ANY_GAP_MS) return;
-  lastPlayed[name] = now;
-  lastAny = now;
-  // curva perceptiva: o padrão (0,35) fica baixo, mas audível
-  master.gain.setValueAtTime(Math.pow(prefs.volume, 1.5), ctx.currentTime);
+  if (name === 'hover' || name === 'click') {
+    if (now - lastUi < UI_GAP_MS) return;
+    lastUi = now;
+  } else {
+    if (now - (lastPlayed[name] ?? -Infinity) < SAME_GAP_MS || now - lastAny < ANY_GAP_MS) return;
+    lastPlayed[name] = now;
+    lastAny = now;
+  }
+  master.gain.setValueAtTime(perceptual(prefs.volume), ctx.currentTime);
   SOUNDS[name]();
 }

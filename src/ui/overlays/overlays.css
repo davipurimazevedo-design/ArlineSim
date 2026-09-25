@@ -259,3 +259,7 @@
   font-size: 14px;
   color: var(--muted);
 }
+.sound-label {
+  min-width: 64px;
+  font-size: 14px;
+}

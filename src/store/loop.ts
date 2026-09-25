@@ -1,9 +1,11 @@
-// Game loop: requestAnimationFrame acumulando tempo real; um tick a cada 1000/speed ms,
+// Game loop: requestAnimationFrame acumulando tempo real; um tick a cada MS_PER_DAY/speed ms,
 // no máximo 8 por frame. Pausa com a aba oculta, com carta pendente ou de resultado aberta,
 // com o resumo offline aberto, com uma confirmação ou o menu "Jogo" aberto e em fim de jogo.
 import { useGame } from './gameStore';
 
 const MAX_TICKS_PER_FRAME = 8;
+/** duração de um dia de jogo no 1× (Fase 4, a pedido do usuário: era 1 s) */
+export const MS_PER_DAY = 2000;
 
 export function startLoop(): () => void {
   let acc = 0;
@@ -27,7 +29,7 @@ export function startLoop(): () => void {
       !document.hidden;
     if (running) {
       acc += dt;
-      const step = 1000 / g.speed;
+      const step = MS_PER_DAY / g.speed;
       const n = Math.min(MAX_TICKS_PER_FRAME, Math.floor(acc / step));
       if (n > 0) {
         st.advance(n);

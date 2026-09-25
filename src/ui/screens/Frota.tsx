@@ -24,6 +24,15 @@ import { Btn } from '../components/Btn';
 import { Empty } from '../components/Empty';
 import { Icon } from '../components/Icon';
 import { Pill } from '../components/Pill';
+import { Segmented } from '../components/Segmented';
+
+const AUTO_OPTIONS = [
+  [0, 'Desligada'],
+  [40, '40%'],
+  [50, '50%'],
+  [60, '60%'],
+  [70, '70%'],
+] as const;
 
 export function Frota() {
   const g = useGameState();
@@ -52,6 +61,15 @@ export function Frota() {
     <section>
       <div className="section-head">
         <h1>Frota</h1>
+        <div className="auto-maint" data-tut-target="auto-manut">
+          <span>Manutenção automática abaixo de</span>
+          <Segmented
+            label="Manutenção automática"
+            value={g.autoMaint}
+            options={AUTO_OPTIONS}
+            onChange={(v) => act((s) => actions.setAutoMaint(s, v))}
+          />
+        </div>
         <small>
           {g.fleet.length} aeronave{g.fleet.length > 1 ? 's' : ''} · {owned} própria{owned === 1 ? '' : 's'}
         </small>

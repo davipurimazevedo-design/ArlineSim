@@ -841,3 +841,14 @@
   justify-self: start;
   margin-top: 8px;
 }
+
+/* manutenção automática (Frota) */
+.auto-maint {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--muted);
+}

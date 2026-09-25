@@ -11,7 +11,7 @@ import {
   type Route,
   type RouteKind,
 } from '../../../engine';
-import { useGameState } from '../../../store/gameStore';
+import { useGame, useGameState } from '../../../store/gameStore';
 import { CellBar } from '../../components/Bar';
 import { Btn } from '../../components/Btn';
 import { Empty } from '../../components/Empty';
@@ -22,8 +22,10 @@ import { RouteEditor } from './RouteEditor';
 
 export function Rotas() {
   const g = useGameState();
-  const [open, setOpen] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
+  const open = useGame((s) => s.routeOpen);
+  const setOpen = (id: string | null) => useGame.setState({ routeOpen: id });
+  const adding = useGame((s) => s.routeForm);
+  const setAdding = (v: boolean) => useGame.setState({ routeForm: v });
   const [filter, setFilter] = useState<'all' | RouteKind>('all');
   const toggle = (id: string) => setOpen(open === id ? null : id);
   const showFilter = hasCargoDivision(g) || g.routes.some((r) => r.kind === 'cargo');
@@ -83,6 +85,7 @@ export function Rotas() {
                 return (
                   <Fragment key={r.id}>
                     <tr
+                      data-tut-target={i === 0 ? 'rota-linha' : undefined}
                       className={`row s-${st}${i % 2 ? ' zebra' : ''}${isOpen ? ' open' : ''}`}
                       onClick={() => toggle(r.id)}
                       tabIndex={0}

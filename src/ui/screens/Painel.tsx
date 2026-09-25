@@ -18,7 +18,6 @@ import { CashChart } from '../components/CashChart';
 import { Empty } from '../components/Empty';
 import { Money } from '../components/Money';
 import { GoalsPanel } from './GoalsPanel';
-import { Onboarding } from './Onboarding';
 
 const MOD_LABEL: Record<ModType, string> = {
   fuel: 'Combustível',
@@ -156,8 +155,6 @@ export function Painel() {
           <b className="num">{g.routes.length}</b>
         </div>
       </div>
-
-      <Onboarding />
 
       <div className="panel">
         <h2>Caixa · últimos {g.history.length} dias</h2>

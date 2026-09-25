@@ -247,6 +247,8 @@ export interface GameState {
   codeshare: boolean;
   /** contratos de carga em vigor */
   contracts: CargoContract[];
+  /** manutenção automática: entra quando a condição cai abaixo deste % (0 = desligada) */
+  autoMaint: number;
   /** aviões usados à venda (lista renovada a cada 30 dias) */
   usedMarket: UsedOffer[];
   /** dia da próxima lista de usados */
