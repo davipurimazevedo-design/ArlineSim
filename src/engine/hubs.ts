@@ -29,9 +29,10 @@ export function routeTouchesHub(s: GameState, r: Route): boolean {
   return isHub(s, r.from) || isHub(s, r.to);
 }
 
-/** Rotas da companhia, com aeronave, que tocam o aeroporto. */
+/** Rotas de passageiros da companhia, com aeronave, que tocam o aeroporto (a carga não faz conexão). */
 export function routesAt(s: GameState, code: AirportCode): number {
-  return s.routes.filter((r) => r.planes.length > 0 && (r.from === code || r.to === code)).length;
+  return s.routes.filter((r) => r.kind === 'pax' && r.planes.length > 0 && (r.from === code || r.to === code))
+    .length;
 }
 
 /** Demanda extra de conexão de um hub para uma rota que o toca (sem contar a própria rota). */

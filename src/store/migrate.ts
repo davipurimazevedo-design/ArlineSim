@@ -55,6 +55,18 @@ const MIGRATIONS: Record<number, (g: Raw) => Raw> = {
     fxIdx: typeof g.fxIdx === 'number' ? g.fxIdx : 1,
     codeshare: g.codeshare === true,
   }),
+  // v9 → v10: divisão Cargas (tipo de rota, contratos e receita de carga no relatório do dia)
+  9: (g) => ({
+    ...g,
+    routes: list(g.routes).map((r) => ({ ...r, kind: r.kind === 'cargo' ? 'cargo' : 'pax' })),
+    contracts: Array.isArray(g.contracts) ? g.contracts : [],
+    cargoOffer: g.cargoOffer ?? null,
+    nextCargoOffer: typeof g.nextCargoOffer === 'number' ? g.nextCargoOffer : 0,
+    lastDay:
+      g.lastDay && typeof g.lastDay === 'object'
+        ? { cargo: 0, contracts: 0, tons: 0, ...(g.lastDay as Raw) }
+        : null,
+  }),
 };
 
 /** Valida e migra um save cru. Devolve null se não for aproveitável. */

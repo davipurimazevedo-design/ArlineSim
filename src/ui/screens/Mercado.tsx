@@ -41,6 +41,17 @@ import {
   CODESHARE_PARTNER,
   FOREIGN_HUB_FEE_FACTOR,
   fmtDec,
+  hasCargoDivision,
+  isFreighter,
+  CARGO_CLIENTS_BY_ID,
+  cargoCapacityOn,
+  clientName,
+  contractEnd,
+  contractMet,
+  CONTRACT_GRACE,
+  CONTRACT_PENALTY_DAYS,
+  MAX_CONTRACTS,
+  type CargoContract,
 } from '../../engine';
 import { useGame, useGameState } from '../../store/gameStore';
 import { Bar, CellBar } from '../components/Bar';
@@ -104,7 +115,7 @@ function Aeronaves() {
           <thead>
             <tr>
               <th>Modelo</th>
-              <th className="c">Assentos</th>
+              <th className="c">Capacidade</th>
               <th>Alcance</th>
               <th className="r">Leasing</th>
               <th className="r">Compra</th>
@@ -118,12 +129,16 @@ function Aeronaves() {
             {[...MODEL_KEYS]
               .sort(
                 (a, b) =>
-                  MODELS[a].tier - MODELS[b].tier || MODELS[a].y + MODELS[a].j - (MODELS[b].y + MODELS[b].j),
+                  Number(isFreighter(a)) - Number(isFreighter(b)) ||
+                  MODELS[a].tier - MODELS[b].tier ||
+                  MODELS[a].y + MODELS[a].j - (MODELS[b].y + MODELS[b].j) ||
+                  (MODELS[a].cargo ?? 0) - (MODELS[b].cargo ?? 0),
               )
               .map((k, i) => {
                 const m = MODELS[k];
+                const noDivision = !!m.cargo && !hasCargoDivision(g);
                 const outOfModel = !modelAllowed(g, k);
-                const locked = outOfModel || m.tier > g.license;
+                const locked = noDivision || outOfModel || m.tier > g.license;
                 const dep = leaseDeposit(k);
                 const q = financeQuote(k, term);
                 const canFinance = !locked && g.cash >= q.down && q.principal <= finLeft;
@@ -133,17 +148,21 @@ function Aeronaves() {
                       <b>{m.name}</b>
                       <small>
                         {m.kind}
-                        {outOfModel
-                          ? g.businessModel === 'pequeno' && !hasRegionalCert(g)
-                            ? ' · requer certificação regional'
-                            : ` · fora do modelo ${BUSINESS_MODELS[g.businessModel].name}`
-                          : m.tier > g.license
-                            ? ` · requer licença ${LICENSES[m.tier].name}`
-                            : ''}
+                        {noDivision
+                          ? ' · requer a divisão Cargas'
+                          : outOfModel
+                            ? g.businessModel === 'pequeno' && !hasRegionalCert(g)
+                              ? ' · requer certificação regional'
+                              : ` · fora do modelo ${BUSINESS_MODELS[g.businessModel].name}`
+                            : m.tier > g.license
+                              ? ` · requer licença ${LICENSES[m.tier].name}`
+                              : ''}
                         {CABINS[k] ? ' · cabine configurável' : ''}
                       </small>
                     </td>
-                    <td className="c num">{m.j ? `${m.j}J + ${m.y}Y` : m.y}</td>
+                    <td className="c num">
+                      {m.cargo ? `${fmtDec(m.cargo)} t` : m.j ? `${m.j}J + ${m.y}Y` : m.y}
+                    </td>
                     <td>
                       <CellBar
                         v={(m.range / MAX_RANGE) * 100}
@@ -467,6 +486,7 @@ function Divisoes() {
           );
         })}
       </ol>
+      {hasCargoDivision(g) && <Contratos />}
       {hasIntlDivision(g) && (
         <>
           <h2 className="hub-open-title">Base internacional</h2>
@@ -517,6 +537,96 @@ function Divisoes() {
             </li>
           </ol>
         </>
+      )}
+    </>
+  );
+}
+
+function ContractRow({ c, offer }: { c: CargoContract; offer?: boolean }) {
+  const g = useGameState();
+  const act = useGame((s) => s.act);
+  const ask = useGame((s) => s.ask);
+  const client = CARGO_CLIENTS_BY_ID[c.client];
+  const cap = cargoCapacityOn(g, c.from, c.to);
+  const ok = contractMet(g, c);
+  return (
+    <li className={offer ? 'next' : ok ? 'has' : 'warn'}>
+      <div>
+        <b>{clientName(c)}</b>
+        <small>
+          {client?.what ?? 'carga'} · {c.from}–{c.to} · {fmtDec(c.tons)} t/dia
+          {c.minCond ? ` · condição ≥ ${c.minCond}%` : ''} · {fmtMoney(c.pay)}/dia
+        </small>
+        <small>
+          {offer
+            ? `${c.days} dias · responda até ${c.expires - g.day} dias · ${CONTRACT_GRACE} dias para montar a capacidade`
+            : `faltam ${contractEnd(c) - g.day} dias · capacidade no par ${fmtDec(cap.tons)} t/dia${
+                ok
+                  ? ''
+                  : c.miss
+                    ? ` · FALTANDO há ${c.miss} de ${CONTRACT_GRACE} dias`
+                    : ` · monte a capacidade: prazo de ${CONTRACT_GRACE} dias`
+              }`}
+        </small>
+      </div>
+      {offer ? (
+        <div className="row-btns">
+          <Btn
+            kind="primary"
+            small
+            disabled={g.contracts.length >= MAX_CONTRACTS}
+            onClick={() => act((s) => actions.acceptCargoOffer(s))}
+          >
+            Aceitar
+          </Btn>
+          <Btn small kind="ghost" onClick={() => act((s) => actions.declineCargoOffer(s))}>
+            Recusar
+          </Btn>
+        </div>
+      ) : (
+        <Btn
+          small
+          kind="ghost danger"
+          onClick={() =>
+            ask({
+              text: `Encerrar o contrato com a ${clientName(c)}? Multa de ${fmtMoney(c.pay * CONTRACT_PENALTY_DAYS)} e perda de reputação.`,
+              okLabel: 'Encerrar',
+              danger: true,
+              onOk: () => act((s) => actions.cancelContract(s, c.id)),
+            })
+          }
+        >
+          Encerrar
+        </Btn>
+      )}
+    </li>
+  );
+}
+
+function Contratos() {
+  const g = useGameState();
+  return (
+    <>
+      <h2 className="hub-open-title">Cargas</h2>
+      <ul className="hub-rules">
+        <li>
+          <b>Rotas de carga:</b> crie em Rotas → Nova rota → Carga. Só cargueiros voam nelas; pesam o frete, a
+          frequência e a condição dos aviões.
+        </li>
+        <li>
+          <b>Contratos:</b> clientes pagam um valor fixo por dia enquanto você mantiver a capacidade exigida
+          no par (t/dia num sentido). Sem ela por {CONTRACT_GRACE} dias seguidos, o contrato é rompido com
+          multa de {CONTRACT_PENALTY_DAYS} dias de pagamento. Até {MAX_CONTRACTS} ao mesmo tempo.
+        </li>
+      </ul>
+      <ol className="licenses contracts">
+        {g.cargoOffer && <ContractRow c={g.cargoOffer} offer />}
+        {g.contracts.map((c) => (
+          <ContractRow key={c.id} c={c} />
+        ))}
+      </ol>
+      {!g.cargoOffer && g.contracts.length === 0 && (
+        <Empty>Nenhum contrato ainda. Propostas chegam de tempos em tempos e ficam 15 dias à espera.</Empty>
       )}
     </>
   );

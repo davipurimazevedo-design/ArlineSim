@@ -1,10 +1,22 @@
 import { Fragment, useState } from 'react';
-import { fmtInt, fmtMoney, MODELS, overlapsOf, rivalShares, routeFreq, type Route } from '../../../engine';
+import {
+  fmtInt,
+  fmtMoney,
+  fmtReais,
+  hasCargoDivision,
+  MODELS,
+  overlapsOf,
+  rivalShares,
+  routeFreq,
+  type Route,
+  type RouteKind,
+} from '../../../engine';
 import { useGameState } from '../../../store/gameStore';
 import { CellBar } from '../../components/Bar';
 import { Btn } from '../../components/Btn';
 import { Empty } from '../../components/Empty';
 import { Money } from '../../components/Money';
+import { Segmented } from '../../components/Segmented';
 import { NewRoute } from './NewRoute';
 import { RouteEditor } from './RouteEditor';
 
@@ -12,12 +24,27 @@ export function Rotas() {
   const g = useGameState();
   const [open, setOpen] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [filter, setFilter] = useState<'all' | RouteKind>('all');
   const toggle = (id: string) => setOpen(open === id ? null : id);
+  const showFilter = hasCargoDivision(g) || g.routes.some((r) => r.kind === 'cargo');
+  const routes = g.routes.filter((r) => !showFilter || filter === 'all' || r.kind === filter);
 
   return (
     <section>
       <div className="section-head">
         <h1>Rotas</h1>
+        {showFilter && (
+          <Segmented
+            label="Tipo de rota"
+            value={filter}
+            options={[
+              ['all', 'Todas'],
+              ['pax', 'Passageiros'],
+              ['cargo', 'Carga'],
+            ]}
+            onChange={setFilter}
+          />
+        )}
         <Btn kind="primary" onClick={() => setAdding(!adding)} aria-expanded={adding}>
           {adding ? 'Cancelar' : 'Nova rota'}
         </Btn>
@@ -26,7 +53,8 @@ export function Rotas() {
       {g.routes.length === 0 && !adding && (
         <Empty>Nenhuma rota. Você precisa de uma aeronave e de slots em dois aeroportos.</Empty>
       )}
-      {g.routes.length > 0 && (
+      {g.routes.length > 0 && routes.length === 0 && <Empty>Nenhuma rota deste tipo.</Empty>}
+      {routes.length > 0 && (
         <div className="table-wrap">
           <table className="tbl">
             <thead>
@@ -41,7 +69,7 @@ export function Rotas() {
               </tr>
             </thead>
             <tbody>
-              {g.routes.map((r, i) => {
+              {routes.map((r, i) => {
                 const assigned = r.planes.map((x) => g.fleet.find((p) => p.id === x.id)).filter((p) => !!p);
                 const p = assigned[0];
                 const L = r.last;
@@ -68,7 +96,9 @@ export function Rotas() {
                           <span>→</span>
                           {r.to}
                         </b>
-                        <small>{fmtInt(r.dist)} km</small>
+                        <small>
+                          {fmtInt(r.dist)} km{r.kind === 'cargo' ? ' · carga' : ''}
+                        </small>
                         {overlapsOf(g, r).length > 0 && r.planes.length > 0 && (
                           <small className="neg">divide demanda</small>
                         )}
@@ -89,7 +119,9 @@ export function Rotas() {
                         )}
                       </td>
                       <td className="c num">{p ? routeFreq(r) + '×' : '—'}</td>
-                      <td className="r num">{fmtMoney(r.price)}</td>
+                      <td className="r num">
+                        {r.kind === 'cargo' ? `${fmtReais(r.price)}/t` : fmtMoney(r.price)}
+                      </td>
                       <td>
                         {L?.flying ? (
                           <CellBar v={L.lf * 100} tone="blue" label="Ocupação" />

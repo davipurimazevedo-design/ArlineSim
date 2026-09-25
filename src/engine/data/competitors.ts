@@ -2,7 +2,7 @@
 // os concorrentes dividem essa força entre si (pesos que somam 1), conforme a personalidade.
 import type { Airport } from '../types';
 
-export type RivalId = 'horizonte' | 'aerovia' | 'ipe' | 'sabia' | 'atlantica';
+export type RivalId = 'horizonte' | 'aerovia' | 'ipe' | 'sabia' | 'atlantica' | 'rotanorte';
 
 export interface Competitor {
   id: RivalId;
@@ -50,6 +50,14 @@ export const COMPETITORS: Record<RivalId, Competitor> = {
     style: 'Internacional, voos longos',
     weight: 1,
     serves: (_a, _b, intl) => intl,
+  },
+  rotanorte: {
+    id: 'rotanorte',
+    name: 'Rota Norte Cargo',
+    style: 'Carga aérea, malha nacional',
+    weight: 1,
+    // só nas rotas de carga (cargoRivals), nunca nas de passageiros
+    serves: () => false,
   },
 };
 

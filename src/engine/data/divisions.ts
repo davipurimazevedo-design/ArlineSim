@@ -23,10 +23,9 @@ export const DIVISIONS: Record<DivisionId, Division> = {
   cargas: {
     id: 'cargas',
     name: 'Cargas',
-    cost: 30e6,
-    license: 1,
-    desc: 'Cargueiros e rotas de carga, com demanda em toneladas e contratos.',
-    soon: true,
+    cost: 8e6,
+    license: 0,
+    desc: 'Cargueiros e rotas de carga, com demanda em toneladas e contratos com clientes.',
   },
 };
 

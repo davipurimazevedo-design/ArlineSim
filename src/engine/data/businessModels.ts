@@ -1,5 +1,5 @@
 // Modelos de negócio (Fase 3): escolhidos na fundação, mudam regras do motor via rules(s).
-import { SMALL_MODELS } from './aircraft';
+import { SMALL_FREIGHTERS, SMALL_MODELS } from './aircraft';
 import type { Airport, BusinessModelId, LicenseTier, ModelKey, ServiceLevel } from '../types';
 
 export type { BusinessModelId };
@@ -17,8 +17,10 @@ export interface Rules {
   services: ServiceLevel[];
   /** teto de reputação */
   repCap: number;
-  /** aeronaves que o modelo opera (null = todas, conforme a licença) */
+  /** aeronaves de passageiros que o modelo opera (null = todas, conforme a licença) */
   models: ModelKey[] | null;
+  /** cargueiros que o modelo opera, com a divisão Cargas (null = todos, conforme a licença) */
+  freighters: ModelKey[] | null;
   /** cabines com executiva permitidas */
   allowJ: boolean;
   /** licença mais alta que o modelo pode obter */
@@ -56,6 +58,7 @@ const NEUTRAL: Rules = {
   services: [1, 0, 2],
   repCap: 100,
   models: null,
+  freighters: null,
   allowJ: true,
   maxLicense: 2,
   aiStep: 0.06,
@@ -154,6 +157,7 @@ export const BUSINESS_MODELS: Record<BusinessModelId, BusinessModel> = {
     rules: {
       ...NEUTRAL,
       models: SMALL_MODELS,
+      freighters: SMALL_FREIGHTERS,
       maxLicense: 0,
       overheadFactor: 0.2,
       // taxas aeroportuárias reais são por pouso e peso: avião leve paga uma fração

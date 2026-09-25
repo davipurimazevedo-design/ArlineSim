@@ -1,6 +1,6 @@
-# Fase 3, etapa 5 — Divisão Cargas: proposta para aprovação
+# Fase 3, etapa 5 — Divisão Cargas
 
-Rascunho de 2026-09-24. Nada disto está implementado. Os números marcados como **ajustável** serão calibrados no rebalanceamento do fim da Fase 3.
+Aprovado em 2026-09-24 e implementado (etapa 5). Ver a seção 6 para as decisões e a calibração feita na implementação. Os números marcados como **ajustável** serão calibrados no rebalanceamento do fim da Fase 3.
 
 ## 1. Cargueiros
 
@@ -12,14 +12,14 @@ Mesmo método de conversão das outras aeronaves (âncora ATR 72-600: 2,44 R$ po
 | **No jogo: carga** | **1,4 t** | **3,0 t** | 9,2 t | 24 t | 57 t |
 | Velocidade | 343 km/h (Cessna) | 389 km/h (Cessna) | 510 | 840 | 850 |
 | Alcance real | 1.689 km máximo (Cessna) | 1.741 km máximo (Cessna) | 1.908 km com carga máxima | 3.700 km com carga máxima | 6.110 km com carga máxima |
-| **No jogo: alcance** | 1.300 km (com carga cheia, **estimativa**) | 1.400 km (com carga cheia, **estimativa**) | 1.900 | 3.700 | 6.100 |
+| **No jogo: alcance** | 1.300 km (com carga cheia, **estimativa**) | 1.400 km (com carga cheia, **estimativa**) | 1.900 | 3.700 | 7.000 (carga parcial; seção 6) |
 | Decolagem real | 658 m (426 m de corrida) | 823 m (527 m de corrida) | como o ATR 72 | — | — |
 | **No jogo: pista mínima / terra** | 700 m / **sim** | 900 m / não | 1.000 m / não | 1.600 m / não | 2.200 m / não |
 | **No jogo: preço** | R$ 6,5 mi | R$ 18,9 mi | R$ 59 mi | R$ 37 mi | R$ 12 mi (convertido e antigo) |
 | **No jogo: leasing/dia** | R$ 4,4 mil (*) | R$ 12,7 mil (*) | R$ 29,6 mil | R$ 24,7 mil | R$ 14,8 mil |
 | **No jogo: combustível/km** | R$ 2,80 (o cesto dá arrasto) | R$ 4,10 | R$ 7 | R$ 13,30 | R$ 28 |
 | **No jogo: tripulação/h** | R$ 500 (1 piloto, **estimativa**) | R$ 800 (**estimativa**) | R$ 1.200 | R$ 2.600 | R$ 5.000 |
-| **No jogo: utilização** | 11 h/dia | 12 h/dia | 14 h/dia | 15 h/dia | 16 h/dia |
+| **No jogo: utilização** | 11 h/dia | 12 h/dia | 14 h/dia | 15 h/dia | 18 h/dia (seção 6) |
 | Licença | Táxi aéreo | Táxi aéreo | Regional | Nacional | Internacional |
 
 (*) Sem leasing público: regra de ~1% do valor por mês, como no Caravan e no SkyCourier de passageiros.
@@ -34,7 +34,7 @@ Mesmo método de conversão das outras aeronaves (âncora ATR 72-600: 2,44 R$ po
 
 ### Demanda, em toneladas por dia
 
-`demanda (t/dia) = 0,1 × porte A × porte B × peso logístico A × peso logístico B × fator de distância` (**ajustável**)
+`demanda (t/dia) = 0,3 × porte A × porte B × peso logístico A × peso logístico B × fator de distância` (**ajustável**)
 
 - **Peso logístico por aeroporto** (padrão 1,0):
   - Viracopos (VCP): **3,0**, o maior terminal de carga do país;
@@ -43,13 +43,13 @@ Mesmo método de conversão das outras aeronaves (âncora ATR 72-600: 2,44 R$ po
   - Confins (CNF), Recife, Fortaleza, Salvador, Porto Alegre, Curitiba e Belém: 1,2 a 1,3;
   - Miami (MIA): 2,5, a principal porta de carga Brasil–EUA.
 - **Distância:** pesa ao contrário da de passageiros. Abaixo de 400 km a carga vai de caminhão (×0,3). Acima de 1.500 km o avião ganha (×1,2).
-- **Cidades remotas** (porte 1 e 2, Amazônia): a carga aérea é quase a única opção, então ganham ×1,5 de demanda e o prêmio de tarifa das rotas remotas. É o nicho do Caravan Cargo.
+- **Cidades remotas** (porte 1 e 2, Amazônia): a carga aérea é quase a única opção, então ganham ×3 de demanda e o prêmio de tarifa das rotas remotas. É o nicho do Caravan Cargo.
 
-Exemplos com a fórmula: GRU–MAO ~45 t/dia (um 737-800BCF com um voo por dia leva 48 t, ida e volta); VCP–REC ~20 t/dia (um ATR 72-600F); um par porte 6 com uma cidade remota de porte 2, ~2 t/dia (um Caravan Cargo).
+Exemplos (com a escala final 0,3, seção 6): GRU–MAO ~135 t/dia; VCP–CNF ~49 t/dia; Manaus–Tefé ~13 t/dia.
 
 ### Receita e concorrência
 
-- **Tarifa de referência por tonelada:** `R$ 1.000 + R$ 2 × km` (**ajustável**). Por exemplo, GRU–MAO (2.690 km) fica em ~R$ 6.400/t, cerca de R$ 6,40 por kg. O jogador ajusta a tarifa como nas rotas de passageiros.
+- **Tarifa de referência por tonelada:** R$ 2.000 + R$ 2/km até 1.500 km, R$ 1/km até 3.500 km e R$ 0,50/km depois (**ajustável**). Por exemplo, GRU–MAO (2.690 km) fica em R$ 6.190/t, cerca de R$ 6,20 por kg. O jogador ajusta a tarifa como nas rotas de passageiros.
 - **Sem reputação nem serviço de bordo.** O que pesa é a **pontualidade** (condição média dos cargueiros da rota) e a **frequência**.
 - **Concorrência:** uma nova concorrente fictícia, **Rota Norte Cargo**, com reação igual à da IA de passageiros (a cada 30 dias de rota).
 - **Custos:** combustível, tripulação, leasing e desgaste como nos outros aviões, mais uma **taxa de manuseio** por tonelada (R$ 120/t no Brasil; no exterior, cotada em dólar).
@@ -92,3 +92,22 @@ Com a divisão aberta, as rotas de **passageiros** também levariam um pouco de 
 - Cessna SkyCourier cargueiro, especificações oficiais (3.039 kg, três LD3, 25 m³, 389 km/h, 1.741 km, decolagem 823 m): https://cessna.txtav.com/en/turboprop/skycourier-freighter
 - SkyCourier, dados gerais e preço de lançamento: https://en.wikipedia.org/wiki/Cessna_408_SkyCourier
 - Demais cargueiros: fontes em `fase3-aeronaves.md`, seção 4.
+
+## 6. Decisões e calibração (implementação)
+
+- **Decisões do usuário:** tudo como proposto. Cargas abre para qualquer modelo desde a licença Regional, por R$ 8 mi; o Pequeno porte, com R$ 5 mi de capital, precisa crescer um pouco antes. Contratos e números da tabela aprovados. A **carga no porão ficou de fora** por enquanto, para não inflar ainda mais a economia; volta a ser discutida no rebalanceamento.
+- **Calibração**, comparando o lucro por avião com o do avião de passageiros equivalente:
+  - **Escala da demanda:** 0,3, em vez de 0,15. Com 0,15 os cargueiros voavam com 30–40% de ocupação e davam prejuízo.
+  - **Frete:** R$ 2.000 + R$ 2/km até 1.500 km, R$ 1/km até 3.500 km e R$ 0,50/km depois, desacelerando como a tarifa de passageiros. No formato linear, o 767-300F dava R$ 572 mil/dia em VCP–MIA.
+  - **767-300F:** alcance de 7.000 km. O dado real de 6.110 km é com carga máxima; com carga parcial ele chega a Miami, o uso principal. Utilização de 18 h/dia (widebody cargueiro voa muito).
+  - **Frequência padrão:** 1 voo por dia para cargueiro novo.
+  - **Resultado (lucro/dia por avião, 1 voo/dia):**
+
+    | Passageiros | Carga |
+    |---|---|
+    | A320neo GRU–MAO: R$ 199 mil | 737-800BCF GRU–MAO: R$ 175 mil |
+    | A330-900 GRU–MIA: R$ 99 mil | 767-300F VCP–MIA: R$ 121 mil |
+    | Caravan EX Manaus–Tefé: R$ 8 mil | Caravan Cargo: R$ 7 mil; SkyCourier cargueiro: R$ 16 mil |
+    | ATR 72 GRU–CNF, 2 voos: R$ 40 mil | ATR 72-600F VCP–CNF, 2 voos: R$ 30 mil |
+
+- **Pendente para o rebalanceamento:** o 767-300F é barato demais para comprar (R$ 12 mi, com manutenção proporcional ao preço); os robôs da simulação ainda não operam carga.

@@ -22,9 +22,10 @@ export function maxFreqFor(s: GameState, model: ModelKey, d: number): number {
   return Math.max(0, Math.floor((m.util + rules(s).utilBonus) / (2 * blockHours(m, d))));
 }
 
-/** O modelo de negócio opera essa aeronave? */
+/** O modelo de negócio opera essa aeronave? (A divisão Cargas é checada à parte.) */
 export function modelAllowed(s: GameState, model: ModelKey): boolean {
-  const list = rules(s).models;
+  const R = rules(s);
+  const list = MODELS[model].cargo ? R.freighters : R.models;
   return !list || list.includes(model);
 }
 

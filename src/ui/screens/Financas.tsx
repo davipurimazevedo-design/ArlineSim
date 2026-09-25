@@ -37,7 +37,16 @@ export function Financas() {
         ] as [string, number][]
       ).filter((x) => x[1] > 0)
     : [];
-  const maxV = Math.max(d ? d.rev : 1, ...items.map((x) => x[1]), 1);
+  const revenue: [string, number][] = d
+    ? (
+        [
+          ['Receita de passagens', d.rev],
+          ['Receita de carga', d.cargo],
+          ['Contratos de carga', d.contracts],
+        ] as [string, number][]
+      ).filter((x, i) => i === 0 || x[1] > 0)
+    : [];
+  const maxV = Math.max(...revenue.map((x) => x[1]), ...items.map((x) => x[1]), 1);
 
   return (
     <section className="grid-dash">
@@ -45,11 +54,13 @@ export function Financas() {
         <h2>Ontem</h2>
         {d ? (
           <ul className="breakdown">
-            <li>
-              <span>Receita de passagens</span>
-              <Bar v={(d.rev / maxV) * 100} tone="teal" label="Receita" />
-              <b className="num">{fmtMoney(d.rev)}</b>
-            </li>
+            {revenue.map(([l, v]) => (
+              <li key={l}>
+                <span>{l}</span>
+                <Bar v={(v / maxV) * 100} tone="teal" label={l} />
+                <b className="num">{fmtMoney(v)}</b>
+              </li>
+            ))}
             {items.map(([l, v]) => (
               <li key={l}>
                 <span>{l}</span>

@@ -2,6 +2,7 @@ import { MODELS } from './data/aircraft';
 import { EVENT_GAP_MIN, EVENT_GAP_SPREAD, pickEvent } from './events';
 import { checkGoals } from './goals';
 import { payInstallment } from './finance';
+import { processContracts } from './contracts';
 import { codeshareDailyCost, driftFx } from './international';
 import { extraHubsDailyCost, maintCostFor, maintDaysFor } from './hubs';
 import { BANKRUPTCY_CASH, clamp, dailyInterest, baseCompetition, modVal } from './formulas';
@@ -34,6 +35,9 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
     crew: 0,
     lease: 0,
     loans: 0,
+    cargo: 0,
+    contracts: 0,
+    tons: 0,
     fees: 0,
     svc: 0,
     slots: 0,
@@ -53,7 +57,9 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
   for (const r of s.routes) {
     const x = simRoute(s, r);
     byRoute.set(r.id, x);
-    day.rev += x.rev;
+    if (r.kind === 'cargo') day.cargo += x.rev;
+    else day.rev += x.rev;
+    day.tons += x.tons;
     day.fuel += x.fuel;
     day.crew += x.crew;
     day.fees += x.fees;
@@ -109,6 +115,9 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
     }
   }
 
+  // 6b. contratos de carga
+  day.contracts = processContracts(s);
+
   // 7. custos fixos
   day.slots = s.slots.reduce((a, c) => a + slotFeeFor(s, c), 0);
   day.overhead =
@@ -127,7 +136,7 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
     day.overhead +
     day.interest +
     day.maint;
-  day.profit = day.rev - cost;
+  day.profit = day.rev + day.cargo + day.contracts - cost;
   s.cash += day.profit;
 
   // 9. reputação tende a um alvo

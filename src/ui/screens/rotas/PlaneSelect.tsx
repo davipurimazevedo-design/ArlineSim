@@ -1,4 +1,12 @@
-import { maxFreqFor, MODELS, routeOfPlane, runwayIssue, type AirportCode } from '../../../engine';
+import {
+  isFreighter,
+  maxFreqFor,
+  MODELS,
+  routeOfPlane,
+  runwayIssue,
+  type AirportCode,
+  type RouteKind,
+} from '../../../engine';
 import { useGameState } from '../../../store/gameStore';
 
 interface Props {
@@ -13,6 +21,8 @@ interface Props {
   /** texto da opção vazia */
   emptyLabel?: string;
   id?: string;
+  /** tipo de rota: só aparecem cargueiros na carga e aviões de passageiros na de passageiros */
+  kind?: RouteKind;
 }
 
 export function PlaneSelect({
@@ -23,13 +33,14 @@ export function PlaneSelect({
   exclude = [],
   emptyLabel = 'Sem aeronave',
   id,
+  kind = 'pax',
 }: Props) {
   const g = useGameState();
   return (
     <select id={id} value={value ?? ''} onChange={(e) => onChange(e.target.value || null)}>
       <option value="">{emptyLabel}</option>
       {g.fleet
-        .filter((p) => !exclude.includes(p.id))
+        .filter((p) => !exclude.includes(p.id) && isFreighter(p.model) === (kind === 'cargo'))
         .map((p) => {
           const m = MODELS[p.model];
           const used = routeOfPlane(g, p.id);

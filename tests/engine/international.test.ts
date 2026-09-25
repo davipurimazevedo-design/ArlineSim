@@ -36,9 +36,11 @@ describe('base internacional', () => {
     expect(actions.buyDivision(s, 'internacional')).toMatch(/já está aberta/);
   });
 
-  it('cargas ainda não está disponível', () => {
+  it('as duas divisões podem ser abertas', () => {
     const s = intlGame();
-    expect(actions.buyDivision(s, 'cargas')).toMatch(/não disponível/);
+    expect(actions.buyDivision(s, 'cargas')).toBeNull();
+    expect(actions.buyDivision(s, 'internacional')).toBeNull();
+    expect(s.divisions).toEqual(['cargas', 'internacional']);
   });
 
   it('hub no exterior só com a divisão', () => {

@@ -449,6 +449,19 @@
 .licenses li.has {
   border-left-color: var(--teal);
 }
+.contracts .row-btns {
+  display: flex;
+  gap: 8px;
+}
+.licenses li.warn {
+  border-left-color: var(--alert);
+}
+.licenses.contracts b {
+  font-size: 17px;
+}
+.licenses small {
+  display: block;
+}
 .licenses li.next {
   border-left-color: var(--blue);
 }

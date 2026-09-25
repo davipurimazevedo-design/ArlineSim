@@ -78,7 +78,10 @@ export function Frota() {
                   <td>
                     <b>{p.reg}</b>
                     <small>
-                      {m.name} · {seatsOf(p, rules(g).seatFactor).y + seatsOf(p).j} assentos
+                      {m.name} ·{' '}
+                      {m.cargo
+                        ? `${fmtDec(m.cargo)} t de carga`
+                        : `${seatsOf(p, rules(g).seatFactor).y + seatsOf(p).j} assentos`}
                     </small>
                   </td>
                   <td>
@@ -185,6 +188,7 @@ function CabinCell({ p }: { p: Plane }) {
   const ask = useGame((s) => s.ask);
   const layouts = CABINS[p.model];
   const label = cabinLabel(seatsOf(p));
+  if (MODELS[p.model].cargo) return <span>cargueiro</span>;
   if (!layouts || license < 2) return <span className="num">{label}</span>;
   return (
     <select

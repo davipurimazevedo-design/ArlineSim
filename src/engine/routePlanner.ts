@@ -3,14 +3,14 @@
 import { AIRPORTS } from './data/airports';
 import { MODELS } from './data/aircraft';
 import { REGIONAL_MAX_KM } from './data/licenses';
-import { BUSINESS_MODELS } from './data/businessModels';
 import * as actions from './actions';
 import { baseDemand, dist, routeFair, runwayIssue } from './formulas';
 import { fmtInt, fmtMoney } from './format';
 import { findPlane } from './helpers';
-import { maxFreqFor, modelAllowed, slotCostFor, slotFeeFor } from './rules';
+import { maxFreqFor, slotCostFor, slotFeeFor } from './rules';
+import { cargoDemand, cargoFair, hasCargoDivision } from './cargo';
 import { routeProfit, simRoute } from './simRoute';
-import type { ActionResult, AirportCode, GameState, ModelKey } from './types';
+import type { ActionResult, AirportCode, GameState, ModelKey, RouteKind } from './types';
 
 export interface RoutePlanArgs {
   from: AirportCode;
@@ -19,14 +19,17 @@ export interface RoutePlanArgs {
   planeId: string | null;
   /** arrendar uma aeronave nova deste modelo junto com a rota */
   leaseModel?: ModelKey | null;
+  /** passageiros (padrão) ou carga */
+  kind?: RouteKind;
 }
 
 export interface RoutePlan {
   /** primeira validação que impede a criação (null = pode criar) */
   error: string | null;
   dist: number;
-  /** demanda total do par, pax/dia */
+  /** demanda total do par: pax/dia, ou t/dia na carga */
   demand: number;
+  /** tarifa de referência: por passageiro, ou por tonelada na carga */
   fair: number;
   /** slots que faltam comprar, com o preço de cada um */
   slots: { code: AirportCode; cost: number }[];
@@ -37,26 +40,29 @@ export interface RoutePlan {
   /** taxa diária dos slots novos */
   newSlotFees: number;
   /** previsão do primeiro dia de operação */
-  preview: { pax: number; share: number; profit: number; freq: number } | null;
+  preview: { pax: number; tons: number; share: number; profit: number; freq: number } | null;
 }
 
 function validate(s: GameState, a: RoutePlanArgs, d: number): string | null {
   const { from, to } = a;
+  const kind = a.kind ?? 'pax';
   if (!from || !to) return 'Escolha a origem e o destino.';
   if (from === to) return 'Escolha dois aeroportos diferentes.';
-  if (actions.routeExists(s, from, to)) return 'Essa rota já existe.';
+  if (kind === 'cargo' && !hasCargoDivision(s)) return 'Rotas de carga exigem a divisão Cargas.';
+  if (actions.routeExists(s, from, to, kind))
+    return kind === 'cargo' ? 'Essa rota de carga já existe.' : 'Essa rota já existe.';
   if ((AIRPORTS[from].intl || AIRPORTS[to].intl) && s.license < 2)
     return 'Destinos no exterior exigem a licença Internacional.';
   if (s.license === 0 && d > REGIONAL_MAX_KM) return 'A licença regional limita rotas a 1.500 km.';
   const model = a.leaseModel ?? (a.planeId ? findPlane(s, a.planeId)?.model : undefined);
   if (a.leaseModel) {
-    const m = MODELS[a.leaseModel];
-    if (!modelAllowed(s, a.leaseModel))
-      return `O modelo ${BUSINESS_MODELS[s.businessModel].name} não opera o ${m.name}.`;
-    if (m.tier > s.license) return `O ${m.name} exige uma licença maior.`;
+    const block = actions.acquireBlock(s, a.leaseModel);
+    if (block) return block;
   }
   if (model) {
     const m = MODELS[model];
+    const wrong = actions.kindMismatch(model, kind);
+    if (wrong) return wrong;
     if (d > m.range) return `Fora do alcance do ${m.name} (${fmtInt(m.range)} km).`;
     if (maxFreqFor(s, model, d) < 1) return `Rota longa demais para o ${m.name} num dia.`;
     const runway = runwayIssue(model, [from, to]);
@@ -75,8 +81,8 @@ export function planRoute(s: GameState, a: RoutePlanArgs): RoutePlan {
   const plan: RoutePlan = {
     error: validate(s, a, d),
     dist: d,
-    demand: d ? baseDemand(a.from, a.to) : 0,
-    fair: d ? routeFair(a.from, a.to, d) : 0,
+    demand: !d ? 0 : a.kind === 'cargo' ? cargoDemand(a.from, a.to, d) : baseDemand(a.from, a.to),
+    fair: !d ? 0 : a.kind === 'cargo' ? cargoFair(a.from, a.to, d) : routeFair(a.from, a.to, d),
     slots,
     deposit,
     total,
@@ -91,7 +97,13 @@ export function planRoute(s: GameState, a: RoutePlanArgs): RoutePlan {
     if (!execute(copy, a)) {
       const r = copy.routes[copy.routes.length - 1]!;
       const x = simRoute(copy, r);
-      plan.preview = { pax: x.pax + x.paxJ, share: x.share, profit: routeProfit(copy, r, x), freq: x.freq };
+      plan.preview = {
+        pax: x.pax + x.paxJ,
+        tons: x.tons,
+        share: x.share,
+        profit: routeProfit(copy, r, x),
+        freq: x.freq,
+      };
     }
   }
   return plan;
@@ -110,7 +122,7 @@ function execute(s: GameState, a: RoutePlanArgs): ActionResult {
     if (err) return err;
     planeId = s.fleet[s.fleet.length - 1]!.id;
   }
-  return actions.openRoute(s, { from: a.from, to: a.to, planeId });
+  return actions.openRoute(s, { from: a.from, to: a.to, planeId, kind: a.kind ?? 'pax' });
 }
 
 /** Cria a rota de uma vez. Se algo impedir, nada é comprado. */

@@ -8,11 +8,11 @@ import { createRoute } from '../../src/engine/routePlanner';
 import { hasRegionalCert, modelAllowed, rules } from '../../src/engine/rules';
 
 describe('aeronaves novas', () => {
-  it('12 modelos com dados completos', () => {
-    expect(MODEL_KEYS).toHaveLength(12);
+  it('17 modelos com dados completos (12 de passageiros e 5 cargueiros)', () => {
+    expect(MODEL_KEYS).toHaveLength(17);
     for (const k of MODEL_KEYS) {
       const m = MODELS[k];
-      expect(m.y, k).toBeGreaterThan(0);
+      expect(m.y + (m.cargo ?? 0), k).toBeGreaterThan(0);
       expect(m.range, k).toBeGreaterThan(1000);
       expect(m.minRunway, k).toBeGreaterThan(0);
       expect(m.lease, k).toBeLessThan(m.price / 100);

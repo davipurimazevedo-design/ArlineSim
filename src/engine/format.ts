@@ -29,6 +29,11 @@ export function fmtDate(day: number): string {
   return `${dd} de ${MONTHS[d.getUTCMonth()]} de ${d.getUTCFullYear()}`;
 }
 
+/** Reais sem abreviar: 4960 → "R$ 4.960" (frete por tonelada). */
+export function fmtReais(v: number): string {
+  return `R$ ${fmtInt(v)}`;
+}
+
 /** Decimal com vírgula: 1.5 → "1,5". */
 export function fmtDec(v: number, digits = 1): string {
   return v.toFixed(digits).replace('.', ',').replace('-', MINUS);

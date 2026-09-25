@@ -23,6 +23,8 @@ import { FINANCE_TERMS, financedBalance, financeLimit, financeQuote, type Financ
 import { CODESHARE_COST, CODESHARE_PARTNER, hasIntlDivision } from './international';
 import { COMPETITORS } from './data/competitors';
 import { DIVISIONS } from './data/divisions';
+import { breakContract, clientName, MAX_CONTRACTS } from './contracts';
+import { cargoCompetition, cargoFair, cargoRivals, hasCargoDivision } from './cargo';
 import { hubSetupCost, maintCostFor, maintDaysFor } from './hubs';
 import { randInt, uid } from './rng';
 import { BUSINESS_MODELS, REGIONAL_CERT_COST } from './data/businessModels';
@@ -35,6 +37,7 @@ import type {
   ModelKey,
   Plane,
   Route,
+  RouteKind,
   ServiceLevel,
 } from './types';
 
@@ -75,12 +78,21 @@ export function buyoutCost(p: Plane): number {
   return Math.round(MODELS[p.model].price * BUYOUT_FACTOR);
 }
 
-export function lease(s: GameState, model: ModelKey): ActionResult {
+/** Por que a companhia não pode ter essa aeronave (null = pode). */
+export function acquireBlock(s: GameState, model: ModelKey): string | null {
   const m = MODELS[model];
-  const dep = leaseDeposit(model);
+  if (m.cargo && !hasCargoDivision(s)) return 'Cargueiros exigem a divisão Cargas.';
   if (!modelAllowed(s, model))
     return `O modelo ${BUSINESS_MODELS[s.businessModel].name} não opera o ${m.name}.`;
   if (m.tier > s.license) return 'Licença insuficiente.';
+  return null;
+}
+
+export function lease(s: GameState, model: ModelKey): ActionResult {
+  const m = MODELS[model];
+  const dep = leaseDeposit(model);
+  const block = acquireBlock(s, model);
+  if (block) return block;
   if (s.cash < dep) return 'Caixa insuficiente para o depósito.';
   s.cash -= dep;
   const p = addPlane(s, model, false);
@@ -90,9 +102,8 @@ export function lease(s: GameState, model: ModelKey): ActionResult {
 
 export function buy(s: GameState, model: ModelKey): ActionResult {
   const m = MODELS[model];
-  if (!modelAllowed(s, model))
-    return `O modelo ${BUSINESS_MODELS[s.businessModel].name} não opera o ${m.name}.`;
-  if (m.tier > s.license) return 'Licença insuficiente.';
+  const block = acquireBlock(s, model);
+  if (block) return block;
   if (s.cash < m.price) return 'Caixa insuficiente.';
   s.cash -= m.price;
   const p = addPlane(s, model, true);
@@ -103,9 +114,8 @@ export function buy(s: GameState, model: ModelKey): ActionResult {
 /** Comprar com financiamento: entrada à vista e parcelas diárias pelo prazo escolhido. */
 export function finance(s: GameState, model: ModelKey, days: FinanceTerm): ActionResult {
   const m = MODELS[model];
-  if (!modelAllowed(s, model))
-    return `O modelo ${BUSINESS_MODELS[s.businessModel].name} não opera o ${m.name}.`;
-  if (m.tier > s.license) return 'Licença insuficiente.';
+  const block = acquireBlock(s, model);
+  if (block) return block;
   if (!FINANCE_TERMS.includes(days)) return 'Prazo inválido.';
   const q = financeQuote(model, days);
   if (financedBalance(s) + q.principal > financeLimit(s))
@@ -240,6 +250,8 @@ export function buyDivision(s: GameState, id: DivisionId): ActionResult {
   if (s.cash < d.cost) return 'Caixa insuficiente.';
   s.cash -= d.cost;
   s.divisions.push(id);
+  // primeira proposta de contrato de carga logo depois da abertura
+  if (id === 'cargas') s.nextCargoOffer = s.day + 10;
   addLog(s, `Divisão ${d.name} aberta.`, 'good');
   return null;
 }
@@ -263,6 +275,34 @@ export function cancelCodeshare(s: GameState): ActionResult {
   return null;
 }
 
+/** Aceita a proposta de contrato de carga. A capacidade tem de estar voando em até 7 dias. */
+export function acceptCargoOffer(s: GameState): ActionResult {
+  const o = s.cargoOffer;
+  if (!o) return 'Nenhuma proposta de contrato.';
+  if (s.contracts.length >= MAX_CONTRACTS) return `Limite de ${MAX_CONTRACTS} contratos ao mesmo tempo.`;
+  o.start = s.day;
+  o.miss = 0;
+  s.contracts.push(o);
+  s.cargoOffer = null;
+  addLog(s, `Contrato com a ${clientName(o)} assinado: ${o.from}–${o.to} por ${o.days} dias.`, 'good');
+  return null;
+}
+
+export function declineCargoOffer(s: GameState): ActionResult {
+  if (!s.cargoOffer) return 'Nenhuma proposta de contrato.';
+  addLog(s, `Proposta da ${clientName(s.cargoOffer)} recusada.`, 'info');
+  s.cargoOffer = null;
+  return null;
+}
+
+/** Encerra um contrato antes do fim, com a multa de rompimento. */
+export function cancelContract(s: GameState, id: string): ActionResult {
+  const c = s.contracts.find((k) => k.id === id);
+  if (!c) return 'Inválido.';
+  breakContract(s, c, 'encerrado pela companhia');
+  return null;
+}
+
 export function buyLicense(s: GameState, tier: LicenseTier): ActionResult {
   if (tier !== s.license + 1) return 'Inválido.';
   if (tier > rules(s).maxLicense)
@@ -279,50 +319,67 @@ export interface OpenRouteArgs {
   from: AirportCode;
   to: AirportCode;
   planeId: string | null;
+  /** passageiros (padrão) ou carga */
+  kind?: RouteKind;
 }
 
-export function routeExists(s: GameState, a: AirportCode, b: AirportCode): boolean {
-  return s.routes.some((r) => (r.from === a && r.to === b) || (r.from === b && r.to === a));
+export function routeExists(s: GameState, a: AirportCode, b: AirportCode, kind: RouteKind = 'pax'): boolean {
+  return s.routes.some(
+    (r) => r.kind === kind && ((r.from === a && r.to === b) || (r.from === b && r.to === a)),
+  );
 }
 
-export function openRoute(s: GameState, { from, to, planeId }: OpenRouteArgs): ActionResult {
+/** A aeronave serve para o tipo de rota? Cargueiro só na carga, avião de passageiros só na de passageiros. */
+export function kindMismatch(model: ModelKey, kind: RouteKind): string | null {
+  const m = MODELS[model];
+  if (kind === 'cargo' && !m.cargo) return `O ${m.name} não é cargueiro.`;
+  if (kind === 'pax' && m.cargo) return `O ${m.name} é cargueiro: só voa rota de carga.`;
+  return null;
+}
+
+export function openRoute(s: GameState, { from, to, planeId, kind = 'pax' }: OpenRouteArgs): ActionResult {
   if (from === to) return 'Escolha dois aeroportos diferentes.';
+  if (kind === 'cargo' && !hasCargoDivision(s)) return 'Rotas de carga exigem a divisão Cargas.';
   if (!s.slots.includes(from) || !s.slots.includes(to)) return 'Você precisa de slots nos dois aeroportos.';
-  if (routeExists(s, from, to)) return 'Rota já existe.';
+  if (routeExists(s, from, to, kind)) return 'Rota já existe.';
   const d = dist(from, to);
   // vale com ou sem aeronave (o protótipo só checava com aeronave)
   if (s.license === 0 && d > REGIONAL_MAX_KM) return 'Licença regional limita rotas a 1.500 km.';
   const p = findPlane(s, planeId);
   if (p) {
     const m = MODELS[p.model];
+    const wrong = kindMismatch(p.model, kind);
+    if (wrong) return wrong;
     if (d > m.range) return `Fora do alcance do ${m.name}.`;
     if (maxFreqFor(s, p.model, d) < 1) return 'Rota longa demais para a utilização diária da aeronave.';
     const runway = runwayIssue(p.model, [from, to]);
     if (runway) return runway;
     unassignPlane(s, p.id);
   }
+  const cargo = kind === 'cargo';
   const r: Route = {
     id: uid(s),
+    kind,
     from,
     to,
     dist: d,
     planes: p ? [{ id: p.id, freq: defaultFreq(s, p, d) }] : [],
-    price: routeFair(from, to, d),
-    priceJ: Math.round(routeFairJ(from, to, d) / 10) * 10,
+    price: cargo ? cargoFair(from, to, d) : routeFair(from, to, d),
+    priceJ: cargo ? 0 : Math.round(routeFairJ(from, to, d) / 10) * 10,
     service: rules(s).services[0]!,
-    ai: baseCompetition(from, to),
-    rivals: rivalsFor(from, to),
+    ai: cargo ? cargoCompetition(from, to) : baseCompetition(from, to),
+    rivals: cargo ? cargoRivals() : rivalsFor(from, to),
     opened: s.day,
     last: null,
   };
   s.routes.push(r);
-  addLog(s, `Nova rota ${from}–${to} (${fmtInt(d)} km).`, 'good');
+  addLog(s, `Nova rota ${cargo ? 'de carga ' : ''}${from}–${to} (${fmtInt(d)} km).`, 'good');
   return null;
 }
 
-/** Frequência padrão ao escalar uma aeronave: min(2, máximo). */
+/** Frequência padrão ao escalar uma aeronave: min(2, máximo); cargueiro começa com 1 (demanda menor). */
 export function defaultFreq(s: GameState, p: Plane, d: number): number {
-  return Math.min(2, maxFreqFor(s, p.model, d));
+  return Math.min(MODELS[p.model].cargo ? 1 : 2, maxFreqFor(s, p.model, d));
 }
 
 export interface RoutePatch {
@@ -352,6 +409,8 @@ export function assignPlane(s: GameState, routeId: string, planeId: string): Act
   if (!r || !p) return 'Inválido.';
   if (r.planes.some((x) => x.id === planeId)) return 'Aeronave já escalada nesta rota.';
   const m = MODELS[p.model];
+  const wrong = kindMismatch(p.model, r.kind);
+  if (wrong) return wrong;
   if (s.license === 0 && r.dist > REGIONAL_MAX_KM) return 'Licença regional limita rotas a 1.500 km.';
   if (r.dist > m.range) return `Fora do alcance do ${m.name}.`;
   if (maxFreqFor(s, p.model, r.dist) < 1) return 'Rota longa demais para essa aeronave.';

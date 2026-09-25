@@ -14,7 +14,14 @@ export * from './simRoute';
 export { routeOfPlane, routeFreq } from './helpers';
 export * from './tick';
 export * as actions from './actions';
-export { leaseDeposit, buyoutCost, routeExists, type RoutePatch } from './actions';
+export {
+  leaseDeposit,
+  buyoutCost,
+  routeExists,
+  acquireBlock,
+  kindMismatch,
+  type RoutePatch,
+} from './actions';
 export * from './events';
 export * from './offline';
 export * from './newGame';
@@ -23,6 +30,9 @@ export * from './routePlanner';
 export * from './hubs';
 export * from './finance';
 export * from './international';
+export * from './cargo';
+export * from './contracts';
+export { CARGO_CLIENTS, CARGO_CLIENTS_BY_ID, type CargoClient } from './data/cargoClients';
 export { DIVISIONS, DIVISION_IDS, type Division } from './data/divisions';
 export {
   BUSINESS_MODELS,

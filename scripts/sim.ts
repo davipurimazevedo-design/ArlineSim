@@ -100,6 +100,7 @@ function estimate(
   } else {
     route = {
       id: TMP_ROUTE,
+      kind: 'pax',
       from,
       to,
       dist: d,

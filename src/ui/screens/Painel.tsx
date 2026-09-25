@@ -3,6 +3,9 @@ import {
   actions,
   routeOfPlane,
   fmtInt,
+  fmtDec,
+  clientName,
+  CONTRACT_GRACE,
   fmtMoney,
   maintCostFor,
   MODELS,
@@ -93,6 +96,26 @@ export function Painel() {
         ),
       });
   }
+  if (g.cargoOffer)
+    alerts.push({
+      k: 'offer',
+      tone: 'info',
+      text: `Proposta de contrato de carga: ${clientName(g.cargoOffer)}`,
+      sub: `${fmtDec(g.cargoOffer.tons)} t/dia em ${g.cargoOffer.from}–${g.cargoOffer.to} · ${fmtMoney(g.cargoOffer.pay)}/dia`,
+      btn: (
+        <Btn small onClick={() => setTab('mercado')}>
+          Ver
+        </Btn>
+      ),
+    });
+  for (const c of g.contracts)
+    if (c.miss > 0)
+      alerts.push({
+        k: 'ct' + c.id,
+        tone: 'bad',
+        text: `Contrato com a ${clientName(c)} sem capacidade`,
+        sub: `${c.miss} de ${CONTRACT_GRACE} dias · ${c.from}–${c.to}`,
+      });
   for (const r of g.routes) {
     if (!r.planes.length)
       alerts.push({
@@ -120,6 +143,7 @@ export function Painel() {
         <div>
           <small>Passageiros/dia</small>
           <b className="num">{d ? fmtInt(d.pax) : 0}</b>
+          {d && d.tons > 0 && <small>{fmtDec(d.tons)} t de carga</small>}
         </div>
         <div>
           <small>Frota</small>

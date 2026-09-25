@@ -41,6 +41,7 @@ export function addTestRoute(
   const d = dist(from, to);
   const r: Route = {
     id: 'r' + ++n,
+    kind: 'pax',
     from,
     to,
     dist: d,
@@ -53,7 +54,7 @@ export function addTestRoute(
     opened: s.day,
     last: null,
     ...extra,
-  };
+  } as Route;
   s.routes.push(r);
   for (const c of [from, to]) if (!s.slots.includes(c)) s.slots.push(c);
   return r;

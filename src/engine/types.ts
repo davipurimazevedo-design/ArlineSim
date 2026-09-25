@@ -34,7 +34,8 @@ export interface Airport {
 // prettier-ignore
 export type ModelKey =
   | 'AT7' | 'E295' | 'A20N' | 'B38M' | 'A339'
-  | 'C208' | 'PC12' | 'DHC6' | 'C408' | 'L410' | 'AT4' | 'E175';
+  | 'C208' | 'PC12' | 'DHC6' | 'C408' | 'L410' | 'AT4' | 'E175'
+  | 'C208F' | 'C408F' | 'AT7F' | 'B73F' | 'B763F';
 export type LicenseTier = 0 | 1 | 2;
 export type ServiceLevel = 0 | 1 | 2;
 
@@ -65,6 +66,8 @@ export interface AircraftModel {
   minRunway: number;
   /** opera em pista não pavimentada */
   unpaved: boolean;
+  /** cargueiro: capacidade em toneladas (y e j ficam 0) */
+  cargo?: number;
 }
 
 export interface License {
@@ -143,13 +146,18 @@ export interface RoutePlane {
   freq: number;
 }
 
+/** rota de passageiros ou de carga (divisão Cargas) */
+export type RouteKind = 'pax' | 'cargo';
+
 export interface Route {
   id: string;
+  kind: RouteKind;
   from: AirportCode;
   to: AirportCode;
   dist: number;
   /** aeronaves escaladas (capacidade e frequência somam) */
   planes: RoutePlane[];
+  /** tarifa da econômica; na rota de carga, R$ por tonelada */
   price: number;
   priceJ: number;
   service: ServiceLevel;
@@ -169,6 +177,12 @@ export interface DayReport {
   lease: number;
   /** parcelas de aeronaves financiadas */
   loans: number;
+  /** receita de carga (fretes) */
+  cargo: number;
+  /** receita fixa dos contratos de carga */
+  contracts: number;
+  /** toneladas transportadas */
+  tons: number;
   fees: number;
   svc: number;
   slots: number;
@@ -221,6 +235,12 @@ export interface GameState {
   fxIdx: number;
   /** acordo de codeshare com a parceira estrangeira (divisão Base internacional) */
   codeshare: boolean;
+  /** contratos de carga em vigor */
+  contracts: CargoContract[];
+  /** proposta de contrato aguardando resposta */
+  cargoOffer: CargoContract | null;
+  /** dia da próxima proposta de contrato (divisão Cargas) */
+  nextCargoOffer: number;
   license: LicenseTier;
   slots: AirportCode[];
   fleet: Plane[];
@@ -241,9 +261,34 @@ export interface GameState {
   gameOver: boolean;
 }
 
+/** Contrato de carga: receita fixa por dia enquanto houver capacidade no par. */
+export interface CargoContract {
+  id: string;
+  /** cliente (data/cargoClients.ts) */
+  client: string;
+  from: AirportCode;
+  to: AirportCode;
+  /** capacidade exigida, t/dia num sentido */
+  tons: number;
+  /** pagamento fixo, R$/dia */
+  pay: number;
+  /** duração em dias */
+  days: number;
+  /** dia do aceite (0 enquanto é proposta) */
+  start: number;
+  /** último dia para aceitar a proposta */
+  expires: number;
+  /** dias seguidos sem cumprir */
+  miss: number;
+  /** condição média mínima dos cargueiros no par */
+  minCond: number;
+}
+
 export interface SimResult {
   id: string;
   pax: number;
+  /** toneladas transportadas (rota de carga) */
+  tons: number;
   paxJ: number;
   rev: number;
   fuel: number;

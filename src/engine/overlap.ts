@@ -23,7 +23,7 @@ function otherEnd(r: Route, code: AirportCode): AirportCode {
 export function overlapsOf(s: GameState, r: Route): Overlap[] {
   const out: Overlap[] = [];
   for (const o of s.routes) {
-    if (o.id === r.id || !o.planes.length) continue;
+    if (o.id === r.id || o.kind !== r.kind || !o.planes.length) continue;
     const shared = [r.from, r.to].find((c) => c === o.from || c === o.to);
     if (!shared) continue;
     const w = 1 - dist(otherEnd(r, shared), otherEnd(o, shared)) / OVERLAP_RADIUS_KM;

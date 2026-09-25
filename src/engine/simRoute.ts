@@ -22,12 +22,14 @@ import { rules } from './rules';
 import { connectionFactor, crewFactor } from './hubs';
 import { codeshareAiFactor, fxFeeFactor, fxRevenueFactor } from './international';
 import { overlapFactor } from './overlap';
+import { CARGO_ELASTICITY, CARGO_HANDLING, cargoDemand, cargoFair } from './cargo';
 import type { GameState, Plane, Route, SimResult } from './types';
 
 function emptyResult(r: Route, reason: string): SimResult {
   return {
     id: r.id,
     pax: 0,
+    tons: 0,
     paxJ: 0,
     rev: 0,
     fuel: 0,
@@ -55,6 +57,30 @@ export function routePlanes(s: GameState, r: Route): { p: Plane; freq: number }[
   return out;
 }
 
+type Active = { p: Plane; freq: number }[];
+
+/** Horas, combustível e tripulação das aeronaves que voam a rota hoje. */
+function flightCosts(s: GameState, r: Route, active: Active) {
+  let hours = 0;
+  let fuel = 0;
+  let crew = 0;
+  const planeHours: Record<string, number> = {};
+  for (const { p, freq: f } of active) {
+    const m = MODELS[p.model];
+    const h = f * 2 * blockHours(m, r.dist);
+    planeHours[p.id] = h;
+    hours += h;
+    fuel += m.fuelKm * r.dist * f * 2;
+    crew += m.crewH * h;
+  }
+  return {
+    hours,
+    planeHours,
+    fuel: fuel * s.fuelIdx * modVal(s, 'fuel'),
+    crew: crew * modVal(s, 'salary') * crewFactor(s, r),
+  };
+}
+
 /** Simula um dia de operação de uma rota. Não altera o estado. */
 export function simRoute(s: GameState, r: Route): SimResult {
   const assigned = routePlanes(s, r);
@@ -62,6 +88,7 @@ export function simRoute(s: GameState, r: Route): SimResult {
   const active = assigned.filter((x) => x.p.maint === 0);
   if (!active.length) return emptyResult(r, 'Em manutenção');
   if (opsHalted(s)) return emptyResult(r, 'Operações suspensas');
+  if (r.kind === 'cargo') return simCargo(s, r, active);
 
   const d = r.dist;
   const fp = routeFair(r.from, r.to, d);
@@ -111,33 +138,63 @@ export function simRoute(s: GameState, r: Route): SimResult {
   rev += pax * price;
   rev *= fxRevenueFactor(s, r);
 
-  let hours = 0;
-  let fuel = 0;
-  let crew = 0;
-  const planeHours: Record<string, number> = {};
-  for (const { p, freq: f } of active) {
-    const m = MODELS[p.model];
-    const h = f * 2 * blockHours(m, d);
-    planeHours[p.id] = h;
-    hours += h;
-    fuel += m.fuelKm * d * f * 2;
-    crew += m.crewH * h;
-  }
+  const fc = flightCosts(s, r, active);
 
   return {
     ...emptyResult(r, ''),
     pax,
     paxJ,
     rev,
-    fuel: fuel * s.fuelIdx * modVal(s, 'fuel'),
-    crew: crew * modVal(s, 'salary') * crewFactor(s, r),
+    fuel: fc.fuel,
+    crew: fc.crew,
     fees: (pax + paxJ) * (intl ? FEE_INTL : FEE_DOMESTIC) * fxFeeFactor(s, r),
     svc: pax * svc.cost + paxJ * svc.cost * SERVICE_J_MULT,
     share,
     lf: (pax + paxJ) / (capY + capJ),
     flying: true,
-    hours,
-    planeHours,
+    hours: fc.hours,
+    planeHours: fc.planeHours,
+    freq,
+    overlap,
+  };
+}
+
+/**
+ * Rota de carga: demanda em toneladas, sem reputação nem serviço de bordo.
+ * Pesam a tarifa, a pontualidade (condição dos cargueiros) e a frequência.
+ */
+function simCargo(s: GameState, r: Route, active: Active): SimResult {
+  let freq = 0;
+  let cap = 0;
+  let condW = 0;
+  for (const { p, freq: f } of active) {
+    const t = (MODELS[p.model].cargo ?? 0) * f * 2;
+    freq += f;
+    cap += t;
+    condW += t * p.condition;
+  }
+  if (cap <= 0) return emptyResult(r, 'Sem cargueiro');
+  const overlap = overlapFactor(s, r);
+  const demand = cargoDemand(r.from, r.to, r.dist) * modVal(s, 'demand') * seasonality(s.day) * overlap;
+  const fair = cargoFair(r.from, r.to, r.dist);
+  const price = r.price * modVal(s, 'fare');
+  const q = 0.8 + 0.4 * (condW / cap / 100);
+  const A = Math.pow(fair / price, CARGO_ELASTICITY) * q * freqFactor(freq);
+  const share = A / (A + r.ai);
+  const tons = Math.round(Math.min(cap, demand * share) * 10) / 10;
+  const fc = flightCosts(s, r, active);
+  return {
+    ...emptyResult(r, ''),
+    tons,
+    rev: tons * price * fxRevenueFactor(s, r),
+    fuel: fc.fuel,
+    crew: fc.crew,
+    fees: tons * CARGO_HANDLING * fxFeeFactor(s, r),
+    share,
+    lf: tons / cap,
+    flying: true,
+    hours: fc.hours,
+    planeHours: fc.planeHours,
     freq,
     overlap,
   };

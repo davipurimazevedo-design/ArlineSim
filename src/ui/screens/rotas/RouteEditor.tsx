@@ -3,6 +3,9 @@ import {
   actions,
   routeFair,
   routeFairJ,
+  cargoFair,
+  fmtDec,
+  fmtReais,
   fmtInt,
   fmtMoney,
   maxFreqFor,
@@ -43,7 +46,9 @@ export function RouteEditor({ r }: { r: Route }) {
   const [adding, setAdding] = useState<string | null>(null);
 
   const assigned = routePlanes(g, r);
-  const fp = routeFair(r.from, r.to, r.dist);
+  const cargo = r.kind === 'cargo';
+  const fp = cargo ? cargoFair(r.from, r.to, r.dist) : routeFair(r.from, r.to, r.dist);
+  const step = cargo ? 10 : 5;
   // previsão ao vivo: simRoute sobre o estado atual
   const prev = assigned.length ? simRoute(g, r) : null;
   const prevProfit = prev?.flying ? routeProfit(g, r, prev) : null;
@@ -96,6 +101,7 @@ export function RouteEditor({ r }: { r: Route }) {
             dist={r.dist}
             airports={[r.from, r.to]}
             exclude={assigned.map(({ p }) => p.id)}
+            kind={r.kind}
             emptyLabel={assigned.length ? 'Escalar mais uma aeronave…' : 'Escolha uma aeronave…'}
             onChange={setAdding}
           />
@@ -113,28 +119,31 @@ export function RouteEditor({ r }: { r: Route }) {
       </div>
       <label className="field wide" htmlFor={uid + 'price'}>
         <span>
-          Tarifa econômica <b className="num">{fmtMoney(r.price)}</b>{' '}
-          <small>referência de mercado {fmtMoney(fp)}</small>
+          {cargo ? 'Frete por tonelada' : 'Tarifa econômica'}{' '}
+          <b className="num">{cargo ? fmtReais(r.price) : fmtMoney(r.price)}</b>{' '}
+          <small>referência de mercado {cargo ? fmtReais(fp) : fmtMoney(fp)}</small>
         </span>
         <input
           id={uid + 'price'}
           type="range"
-          min={Math.round((fp * 0.5) / 5) * 5}
-          max={Math.round((fp * 1.6) / 5) * 5}
-          step={5}
+          min={Math.round((fp * 0.5) / step) * step}
+          max={Math.round((fp * 1.6) / step) * step}
+          step={step}
           value={r.price}
           onChange={(e) => upd({ price: +e.target.value })}
         />
       </label>
-      <div className="field">
-        <span>Serviço de bordo</span>
-        <Segmented
-          label="Serviço de bordo"
-          value={r.service}
-          options={services}
-          onChange={(v) => upd({ service: v })}
-        />
-      </div>
+      {!cargo && (
+        <div className="field">
+          <span>Serviço de bordo</span>
+          <Segmented
+            label="Serviço de bordo"
+            value={r.service}
+            options={services}
+            onChange={(v) => upd({ service: v })}
+          />
+        </div>
+      )}
       {hasJ && (
         <label className="field wide" htmlFor={uid + 'priceJ'}>
           <span>
@@ -153,15 +162,19 @@ export function RouteEditor({ r }: { r: Route }) {
         </label>
       )}
       <p className="note full hub-note">
-        {routeTouchesHub(g, r)
-          ? `Rota de hub: conexões +${Math.round((connectionFactor(g, r) - 1) * 100)}% de demanda e manutenção na base.`
-          : g.businessModel === 'lowcost'
-            ? 'Rota ponto a ponto, sem pernoite (Low-cost).'
-            : 'Rota ponto a ponto: sem conexões e com pernoite (tripulação +20%). Abra um hub numa das pontas para evitar.'}
+        {cargo
+          ? routeTouchesHub(g, r)
+            ? 'Rota de carga saindo de hub: manutenção na base. Carga não faz conexão; pesam a frequência e a condição dos cargueiros.'
+            : `Rota de carga ponto a ponto${g.businessModel === 'lowcost' ? '' : ': pernoite da tripulação (+20%)'}. Carga não faz conexão; pesam a frequência e a condição dos cargueiros.`
+          : routeTouchesHub(g, r)
+            ? `Rota de hub: conexões +${Math.round((connectionFactor(g, r) - 1) * 100)}% de demanda e manutenção na base.`
+            : g.businessModel === 'lowcost'
+              ? 'Rota ponto a ponto, sem pernoite (Low-cost).'
+              : 'Rota ponto a ponto: sem conexões e com pernoite (tripulação +20%). Abra um hub numa das pontas para evitar.'}
       </p>
       {prev?.flying && prev.overlap < 0.995 && (
         <p className="warn-line full" role="note">
-          Divide passageiros com {overlapNames(overlapsOf(g, r))}: demanda −
+          Divide {cargo ? 'carga' : 'passageiros'} com {overlapNames(overlapsOf(g, r))}: demanda −
           {Math.round((1 - prev.overlap) * 100)}%.
         </p>
       )}
@@ -198,7 +211,8 @@ export function RouteEditor({ r }: { r: Route }) {
             <div>
               <small>Previsão</small>
               <b className="num">
-                {fmtInt(prev.pax + prev.paxJ)} pax · {Math.round(prev.share * 100)}% do mercado
+                {cargo ? `${fmtDec(prev.tons)} t` : `${fmtInt(prev.pax + prev.paxJ)} pax`} ·{' '}
+                {Math.round(prev.share * 100)}% do mercado
               </b>
             </div>
             <div>

@@ -4,23 +4,29 @@ import {
   AIRPORTS,
   BUSINESS_MODELS,
   createRoute,
+  acquireBlock,
+  fmtDec,
+  fmtReais,
+  hasCargoDivision,
+  isFreighter,
   fmtInt,
   fmtMoney,
   MODEL_KEYS,
   MODELS,
   maxFreqFor,
-  modelAllowed,
   overlapsOf,
   planRoute,
   routeOfPlane,
   runwayIssue,
   type AirportCode,
   type ModelKey,
+  type RouteKind,
 } from '../../../engine';
 import { useGame, useGameState } from '../../../store/gameStore';
 import { AirportPicker } from '../../components/AirportPicker';
 import { Btn } from '../../components/Btn';
 import { Money } from '../../components/Money';
+import { Segmented } from '../../components/Segmented';
 import { overlapNames } from './overlapText';
 
 /** Aeronave escolhida: da frota ("p:<id>") ou arrendar nova ("m:<modelo>"). */
@@ -32,17 +38,30 @@ export function NewRoute({ onDone }: { onDone: () => void }) {
   const act = useGame((s) => s.act);
   const [from, setFrom] = useState<AirportCode | ''>(g.hub);
   const [to, setTo] = useState<AirportCode | ''>('');
-  const idle = g.fleet.find((p) => !routeOfPlane(g, p.id));
-  const [choice, setChoice] = useState<PlaneChoice>(idle ? `p:${idle.id}` : 'm:AT7');
+  const [kind, setKindState] = useState<RouteKind>('pax');
+  const cargo = kind === 'cargo';
+  const fits = (model: ModelKey) => isFreighter(model) === cargo;
+  const firstChoice = (k: RouteKind): PlaneChoice => {
+    const idle = g.fleet.find((p) => !routeOfPlane(g, p.id) && isFreighter(p.model) === (k === 'cargo'));
+    if (idle) return `p:${idle.id}`;
+    const m = MODEL_KEYS.find((x) => isFreighter(x) === (k === 'cargo') && !acquireBlock(g, x));
+    return m ? `m:${m}` : '';
+  };
+  const [choice, setChoice] = useState<PlaneChoice>(() => firstChoice('pax'));
+  const setKind = (k: RouteKind) => {
+    setKindState(k);
+    setChoice(firstChoice(k));
+  };
 
   const planeId = choice.startsWith('p:') ? choice.slice(2) : null;
   const leaseModel = choice.startsWith('m:') ? (choice.slice(2) as ModelKey) : null;
-  const args = from && to ? { from, to, planeId, leaseModel } : null;
+  const args = from && to ? { from, to, planeId, leaseModel, kind } : null;
   const plan = args ? planRoute(g, args) : null;
   const overlaps =
     plan && plan.dist && from && to
       ? overlapsOf(g, {
           id: '',
+          kind,
           from,
           to,
           dist: plan.dist,
@@ -57,10 +76,22 @@ export function NewRoute({ onDone }: { onDone: () => void }) {
         })
       : [];
 
-  const leasable = MODEL_KEYS.filter((k) => modelAllowed(g, k) && MODELS[k].tier <= g.license);
+  const leasable = MODEL_KEYS.filter((k) => fits(k) && !acquireBlock(g, k));
+  const fleet = g.fleet.filter((p) => fits(p.model));
 
   return (
     <div className="panel route-creator">
+      {hasCargoDivision(g) && (
+        <Segmented
+          label="Tipo de rota"
+          value={kind}
+          options={[
+            ['pax', 'Passageiros'],
+            ['cargo', 'Carga'],
+          ]}
+          onChange={setKind}
+        />
+      )}
       <div className="rc-grid">
         <AirportPicker label="Origem" value={from} onChange={setFrom} owned={g.slots} />
         <AirportPicker
@@ -73,9 +104,10 @@ export function NewRoute({ onDone }: { onDone: () => void }) {
         <div className="field">
           <label htmlFor="rc-plane">Aeronave</label>
           <select id="rc-plane" value={choice} onChange={(e) => setChoice(e.target.value as PlaneChoice)}>
-            {g.fleet.length > 0 && (
+            {choice === '' && <option value="">Nenhuma aeronave disponível</option>}
+            {fleet.length > 0 && (
               <optgroup label="Da sua frota">
-                {g.fleet.map((p) => {
+                {fleet.map((p) => {
                   const m = MODELS[p.model];
                   const used = routeOfPlane(g, p.id);
                   const ok =
@@ -112,19 +144,21 @@ export function NewRoute({ onDone }: { onDone: () => void }) {
             </div>
             <div>
               <small>Demanda total</small>
-              <b className="num">{fmtInt(plan.demand)} pax/dia</b>
+              <b className="num">
+                {cargo ? `${fmtDec(plan.demand)} t/dia` : `${fmtInt(plan.demand)} pax/dia`}
+              </b>
             </div>
             <div>
-              <small>Tarifa de mercado</small>
-              <b className="num">{fmtMoney(plan.fair)}</b>
+              <small>{cargo ? 'Frete de mercado' : 'Tarifa de mercado'}</small>
+              <b className="num">{cargo ? `${fmtReais(plan.fair)}/t` : fmtMoney(plan.fair)}</b>
             </div>
             {plan.preview && (
               <div>
                 <small>Resultado estimado</small>
                 <Money v={plan.preview.profit} signed />
                 <small>
-                  {fmtInt(plan.preview.pax)} pax · {Math.round(plan.preview.share * 100)}% do mercado ·{' '}
-                  {plan.preview.freq}× por dia
+                  {cargo ? `${fmtDec(plan.preview.tons)} t` : `${fmtInt(plan.preview.pax)} pax`} ·{' '}
+                  {Math.round(plan.preview.share * 100)}% do mercado · {plan.preview.freq}× por dia
                 </small>
               </div>
             )}
@@ -173,7 +207,7 @@ export function NewRoute({ onDone }: { onDone: () => void }) {
       ) : (
         overlaps.length > 0 && (
           <p className="warn-line" role="note">
-            Vai disputar passageiros com {overlapNames(overlaps)}.
+            Vai disputar {cargo ? 'carga' : 'passageiros'} com {overlapNames(overlaps)}.
           </p>
         )
       )}
