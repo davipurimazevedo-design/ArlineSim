@@ -483,4 +483,9 @@ Plano em `docs/fase4-plano.md`, aprovado com estas escolhas:
   - **Primeiros passos** viram um cartão flutuante em todas as telas (`ui/screens/Onboarding.tsx`). O destaque segue o contexto: aba → Nova rota → Criar rota (com o formulário aberto) → linha da rota → tarifa → velocidade → Frota → manutenção automática. A carta de evento é o último passo, porque depende do jogo.
   - **Sons de interface:** um toque curto ao passar o mouse (só mouse, não toque) e ao clicar.
   - **Música de fundo** gerada ao vivo (`ui/music.ts`): acordes lentos, baixo e notas pentatônicas com eco, a 64 bpm. Ligada por padrão em volume baixo, com controle próprio no menu. Silencia com a aba oculta.
+- **Mapa das rotas** (página Rotas, `ui/screens/rotas/RouteMap.tsx`):
+  - **Desenho:** SVG próprio com os contornos reais dos países (Natural Earth 110m, domínio público, via `world-atlas` sob licença ISC), gerados por `scripts/mapdata.ts` em `src/ui/map/world.ts`. São ~19 KB comprimidos, funcionam offline e não usam Tailwind nem biblioteca.
+  - **Vistas:** Brasil, com os vizinhos em tom mais fraco. A vista Mundo aparece com a divisão Base internacional.
+  - **Rotas em reta.** Na vista Brasil, as rotas para o exterior saem pela borda com o código do destino.
+  - **Por que não o mapcn:** ele exige Tailwind e shadcn/ui, que contrariam a seção 3; os tiles vêm da CARTO e o motor baixa um arquivo do unpkg, então o mapa não funcionaria offline; e o MapLibre soma ~250 KB comprimidos. Decisão do usuário em 2026-09-25.
 
