@@ -5,7 +5,7 @@ import { START_CASH_BY_DIFFICULTY } from './formulas';
 import { toSeed } from './rng';
 import type { AirportCode, BusinessModelId, GameState } from './types';
 
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 export const FIRST_EVENT_DAY = 25;
 
 export function newGame(
@@ -28,6 +28,8 @@ export function newGame(
     debt: 0,
     reputation: 50,
     fuelIdx: 1,
+    fxIdx: 1,
+    codeshare: false,
     license: 0,
     slots: [hub],
     fleet: [],

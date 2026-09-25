@@ -3,6 +3,7 @@ import { AIRPORTS } from './data/airports';
 import { MODELS } from './data/aircraft';
 import { BUSINESS_MODELS, type Rules } from './data/businessModels';
 import { blockHours, slotCost, slotFee } from './formulas';
+import { FOREIGN_HUB_FEE_FACTOR, fxCost } from './international';
 import type { AirportCode, GameState, ModelKey } from './types';
 
 export function rules(s: GameState): Rules {
@@ -28,9 +29,12 @@ export function modelAllowed(s: GameState, model: ModelKey): boolean {
 }
 
 export function slotCostFor(s: GameState, code: AirportCode): number {
-  return Math.round(slotCost(code) * rules(s).slotCostFactor(AIRPORTS[code]));
+  return Math.round(fxCost(s, code, slotCost(code) * rules(s).slotCostFactor(AIRPORTS[code])));
 }
 
 export function slotFeeFor(s: GameState, code: AirportCode): number {
-  return Math.round(slotFee(code) * rules(s).slotFeeFactor(AIRPORTS[code]));
+  const a = AIRPORTS[code];
+  // hub da companhia no exterior (divisão Base internacional) paga metade
+  const hub = a.intl && s.hubs.includes(code) ? FOREIGN_HUB_FEE_FACTOR : 1;
+  return Math.round(fxCost(s, code, slotFee(code) * rules(s).slotFeeFactor(a) * hub));
 }

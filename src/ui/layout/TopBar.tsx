@@ -54,6 +54,12 @@ export function TopBar() {
           <small>QAV</small>
           <b className={g.fuelIdx > 1.1 ? 'neg' : ''}>{(g.fuelIdx * 100).toFixed(0)}</b>
         </div>
+        {g.license >= 2 && (
+          <div className="stat hide-s" title="Câmbio do dólar (100 = normal)">
+            <small>US$</small>
+            <b className={g.fxIdx > 1.1 ? 'neg' : ''}>{(g.fxIdx * 100).toFixed(0)}</b>
+          </div>
+        )}
       </div>
       <div className="speed" role="group" aria-label="Velocidade">
         {SPEEDS.map((v) => (

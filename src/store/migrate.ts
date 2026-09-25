@@ -49,6 +49,12 @@ const MIGRATIONS: Record<number, (g: Raw) => Raw> = {
     ...g,
     lastDay: g.lastDay && typeof g.lastDay === 'object' ? { loans: 0, ...(g.lastDay as Raw) } : null,
   }),
+  // v8 → v9: câmbio e codeshare (Base internacional)
+  8: (g) => ({
+    ...g,
+    fxIdx: typeof g.fxIdx === 'number' ? g.fxIdx : 1,
+    codeshare: g.codeshare === true,
+  }),
 };
 
 /** Valida e migra um save cru. Devolve null se não for aproveitável. */

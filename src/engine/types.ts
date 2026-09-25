@@ -217,6 +217,10 @@ export interface GameState {
   debt: number;
   reputation: number;
   fuelIdx: number;
+  /** câmbio do dólar (1 = neutro); anda depois da licença Internacional */
+  fxIdx: number;
+  /** acordo de codeshare com a parceira estrangeira (divisão Base internacional) */
+  codeshare: boolean;
   license: LicenseTier;
   slots: AirportCode[];
   fleet: Plane[];

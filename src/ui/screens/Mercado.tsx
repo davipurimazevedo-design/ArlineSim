@@ -31,6 +31,16 @@ import {
   financedBalance,
   financeLimit,
   type FinanceTerm,
+  DIVISIONS,
+  DIVISION_IDS,
+  hasIntlDivision,
+  COMPETITORS,
+  CODESHARE_AI_CUT,
+  CODESHARE_COST,
+  CODESHARE_DAILY,
+  CODESHARE_PARTNER,
+  FOREIGN_HUB_FEE_FACTOR,
+  fmtDec,
 } from '../../engine';
 import { useGame, useGameState } from '../../store/gameStore';
 import { Bar, CellBar } from '../components/Bar';
@@ -39,11 +49,12 @@ import { Empty } from '../components/Empty';
 import { Pill } from '../components/Pill';
 import { Segmented } from '../components/Segmented';
 
-type Sub = 'avioes' | 'slots' | 'hubs' | 'licencas';
+type Sub = 'avioes' | 'slots' | 'hubs' | 'divisoes' | 'licencas';
 const SUBS = [
   ['avioes', 'Aeronaves'],
   ['slots', 'Slots'],
   ['hubs', 'Hubs'],
+  ['divisoes', 'Divisões'],
   ['licencas', 'Licenças'],
 ] as const;
 
@@ -61,6 +72,8 @@ export function Mercado() {
         <Slots />
       ) : sub === 'hubs' ? (
         <Hubs />
+      ) : sub === 'divisoes' ? (
+        <Divisoes />
       ) : (
         <Licencas />
       )}
@@ -280,7 +293,8 @@ function Hubs() {
   const g = useGameState();
   const act = useGame((s) => s.act);
   const ask = useGame((s) => s.ask);
-  const candidates = g.slots.filter((c) => !AIRPORTS[c].intl && !g.hubs.includes(c));
+  const intlDiv = hasIntlDivision(g);
+  const candidates = g.slots.filter((c) => (intlDiv || !AIRPORTS[c].intl) && !g.hubs.includes(c));
   const bonus = (c: AirportCode) => Math.min(CONN_MAX, CONN_PER_ROUTE * Math.max(0, routesAt(g, c) - 1));
   return (
     <div className="hubs-tab">
@@ -296,6 +310,12 @@ function Hubs() {
         <li>
           <b>Pernoite:</b> rotas que não tocam nenhum hub pagam 20% a mais de tripulação
           {g.businessModel === 'lowcost' ? ' (a Low-cost é isenta)' : ''}.
+        </li>
+        <li>
+          <b>Exterior:</b>{' '}
+          {intlDiv
+            ? `hubs fora do Brasil pagam ${Math.round(FOREIGN_HUB_FEE_FACTOR * 100)}% da taxa diária de slot; implantação e estrutura são cotadas em dólar.`
+            : 'hubs fora do Brasil chegam com a divisão Base internacional.'}
         </li>
       </ul>
       <div className="table-wrap">
@@ -314,7 +334,12 @@ function Hubs() {
                 <td>
                   <b>{c}</b>
                   <small>
-                    {AIRPORTS[c].city} · {c === g.hub ? 'hub da fundação' : 'hub adicional'}
+                    {AIRPORTS[c].city} ·{' '}
+                    {c === g.hub
+                      ? 'hub da fundação'
+                      : AIRPORTS[c].intl
+                        ? 'base no exterior'
+                        : 'hub adicional'}
                   </small>
                 </td>
                 <td className="c num">{routesAt(g, c)}</td>
@@ -334,7 +359,9 @@ function Hubs() {
       </div>
       <h2 className="hub-open-title">Abrir hub</h2>
       {candidates.length === 0 ? (
-        <Empty>Abra rotas ou compre slots numa cidade do Brasil para poder transformá-la em hub.</Empty>
+        <Empty>
+          Abra rotas ou compre slots numa cidade {intlDiv ? '' : 'do Brasil '}para poder transformá-la em hub.
+        </Empty>
       ) : (
         <div className="table-wrap">
           <table className="tbl">
@@ -350,13 +377,14 @@ function Hubs() {
             </thead>
             <tbody>
               {candidates.map((c, i) => {
-                const cost = hubSetupCost(c);
+                const cost = hubSetupCost(c, g.fxIdx);
                 return (
                   <tr key={c} className={`row${i % 2 ? ' zebra' : ''}`}>
                     <td>
                       <b>{c}</b>
                       <small>
                         {AIRPORTS[c].city} · porte {AIRPORTS[c].size}
+                        {AIRPORTS[c].intl ? ` · ${AIRPORTS[c].uf}` : ''}
                       </small>
                     </td>
                     <td className="c num">{routesAt(g, c)}</td>
@@ -385,6 +413,112 @@ function Hubs() {
         </div>
       )}
     </div>
+  );
+}
+
+function Divisoes() {
+  const g = useGameState();
+  const act = useGame((s) => s.act);
+  const ask = useGame((s) => s.ask);
+  const partner = COMPETITORS[CODESHARE_PARTNER].name;
+  return (
+    <>
+      <ol className="licenses">
+        {DIVISION_IDS.map((id) => {
+          const d = DIVISIONS[id];
+          const has = g.divisions.includes(id);
+          const blocked = g.license < d.license;
+          return (
+            <li key={id} className={has ? 'has' : !d.soon && !blocked ? 'next' : ''}>
+              <div>
+                <b>{d.name}</b>
+                <small>{d.desc}</small>
+              </div>
+              {has ? (
+                <Pill tone="ok">Aberta</Pill>
+              ) : d.soon ? (
+                <small>Em breve</small>
+              ) : blocked ? (
+                <small>Requer a licença {LICENSES[d.license].name}</small>
+              ) : (
+                <div className="lic-buy">
+                  <Bar
+                    v={(Math.max(0, g.cash) / d.cost) * 100}
+                    tone="teal"
+                    label={`Caixa até ${fmtMoney(d.cost)}`}
+                  />
+                  <Btn
+                    kind="primary"
+                    small
+                    disabled={g.cash < d.cost}
+                    onClick={() =>
+                      ask({
+                        text: `Abrir a divisão ${d.name} por ${fmtMoney(d.cost)}?`,
+                        okLabel: 'Abrir divisão',
+                        onOk: () => act((s) => actions.buyDivision(s, id)),
+                      })
+                    }
+                  >
+                    Abrir {fmtMoney(d.cost)}
+                  </Btn>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+      {hasIntlDivision(g) && (
+        <>
+          <h2 className="hub-open-title">Base internacional</h2>
+          <ul className="hub-rules">
+            <li>
+              <b>Câmbio:</b> dólar a {fmtDec(g.fxIdx, 2)}× o normal. Taxas no exterior, slots e hubs fora do
+              Brasil sobem com ele; metade da receita das rotas internacionais também.
+            </li>
+            <li>
+              <b>Hubs no exterior:</b> abra na aba Hubs, numa cidade estrangeira onde você tenha slot.
+            </li>
+          </ul>
+          <ol className="licenses">
+            <li className={g.codeshare ? 'has' : 'next'}>
+              <div>
+                <b>Codeshare com a {partner}</b>
+                <small>
+                  A {partner} deixa de disputar {Math.round(CODESHARE_AI_CUT * 100)}% da força dela nas suas
+                  rotas internacionais. Adesão de {fmtMoney(CODESHARE_COST)} e{' '}
+                  {fmtMoney(CODESHARE_DAILY * g.fxIdx)}/dia (em dólar).
+                </small>
+              </div>
+              {g.codeshare ? (
+                <Btn
+                  small
+                  kind="ghost danger"
+                  onClick={() =>
+                    ask({
+                      text: `Encerrar o codeshare com a ${partner}? A adesão não é devolvida.`,
+                      okLabel: 'Encerrar',
+                      danger: true,
+                      onOk: () => act((s) => actions.cancelCodeshare(s)),
+                    })
+                  }
+                >
+                  Encerrar acordo
+                </Btn>
+              ) : (
+                <Btn
+                  kind="primary"
+                  small
+                  disabled={g.cash < CODESHARE_COST}
+                  onClick={() => act((s) => actions.signCodeshare(s))}
+                >
+                  Assinar {fmtMoney(CODESHARE_COST)}
+                </Btn>
+              )}
+            </li>
+          </ol>
+        </>
+      )}
+    </>
   );
 }
 

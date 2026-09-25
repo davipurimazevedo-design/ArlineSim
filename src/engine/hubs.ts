@@ -2,6 +2,7 @@
 import { AIRPORTS } from './data/airports';
 import { maintCost, maintDays } from './formulas';
 import { routeOfPlane } from './helpers';
+import { isForeign } from './international';
 import { rules } from './rules';
 import type { AirportCode, GameState, Plane, Route } from './types';
 
@@ -69,12 +70,14 @@ export function maintDaysFor(s: GameState, p: Plane): number {
   return planeAtHub(s, p) ? Math.max(2, d - HUB_MAINT_DAYS_OFF) : d;
 }
 
-export function hubSetupCost(code: AirportCode): number {
-  return AIRPORTS[code].size ** 2 * HUB_SETUP_PER_SIZE2;
+/** Implantação de hub; no exterior, cotada em dólar (`fx` = câmbio atual). */
+export function hubSetupCost(code: AirportCode, fx = 1): number {
+  return AIRPORTS[code].size ** 2 * HUB_SETUP_PER_SIZE2 * (isForeign(code) ? fx : 1);
 }
 
 export function hubDailyCost(s: GameState, code: AirportCode): number {
-  return AIRPORTS[code].size * HUB_DAILY_PER_SIZE * rules(s).overheadFactor;
+  const c = AIRPORTS[code].size * HUB_DAILY_PER_SIZE * rules(s).overheadFactor;
+  return isForeign(code) ? c * s.fxIdx : c;
 }
 
 /** Estrutura diária de todos os hubs adicionais (o da fundação já está na estrutura básica). */

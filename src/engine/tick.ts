@@ -2,6 +2,7 @@ import { MODELS } from './data/aircraft';
 import { EVENT_GAP_MIN, EVENT_GAP_SPREAD, pickEvent } from './events';
 import { checkGoals } from './goals';
 import { payInstallment } from './finance';
+import { codeshareDailyCost, driftFx } from './international';
 import { extraHubsDailyCost, maintCostFor, maintDaysFor } from './hubs';
 import { BANKRUPTCY_CASH, clamp, dailyInterest, baseCompetition, modVal } from './formulas';
 import { addLog, changeRep, routeOfPlane } from './helpers';
@@ -45,6 +46,7 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
 
   // 2. querosene: passeio aleatório com reversão à média
   s.fuelIdx = clamp(s.fuelIdx + (1 - s.fuelIdx) * 0.02 + randRange(s, -0.0125, 0.0125), 0.7, 1.6);
+  driftFx(s);
 
   // 3–4. rotas e reação da IA
   const byRoute = new Map<string, SimResult>();
@@ -109,7 +111,8 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
 
   // 7. custos fixos
   day.slots = s.slots.reduce((a, c) => a + slotFeeFor(s, c), 0);
-  day.overhead = (8000 + 2500 * s.fleet.length) * rules(s).overheadFactor + extraHubsDailyCost(s);
+  day.overhead =
+    (8000 + 2500 * s.fleet.length) * rules(s).overheadFactor + extraHubsDailyCost(s) + codeshareDailyCost(s);
   day.interest = dailyInterest(s.debt);
 
   // 8. relatório do dia

@@ -15,6 +15,8 @@ import {
   connectionFactor,
   overlapsOf,
   rivalShares,
+  CODESHARE_PARTNER,
+  isIntlPair,
   seatsOf,
   SERVICE,
   simRoute,
@@ -178,7 +180,11 @@ export function RouteEditor({ r }: { r: Route }) {
               <li key={x.id}>
                 <div>
                   <b>{x.name}</b>
-                  <small>{x.style}</small>
+                  <small>
+                    {g.codeshare && x.id === CODESHARE_PARTNER && isIntlPair(r.from, r.to)
+                      ? 'parceira de codeshare'
+                      : x.style}
+                  </small>
                 </div>
                 <CellBar v={x.share * 100} tone="mid" label={`Share de ${x.name}`} />
               </li>

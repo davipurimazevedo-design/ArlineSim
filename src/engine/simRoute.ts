@@ -20,6 +20,7 @@ import { AIRPORTS } from './data/airports';
 import { findPlane } from './helpers';
 import { rules } from './rules';
 import { connectionFactor, crewFactor } from './hubs';
+import { codeshareAiFactor, fxFeeFactor, fxRevenueFactor } from './international';
 import { overlapFactor } from './overlap';
 import type { GameState, Plane, Route, SimResult } from './types';
 
@@ -95,7 +96,7 @@ export function simRoute(s: GameState, r: Route): SimResult {
   const q = 0.75 + 0.5 * (s.reputation / 100) + svc.q - 0.1 * (worn / (capY + capJ));
   const freqF = freqFactor(freq);
   const A = priceF * q * freqF * modVal(s, 'share');
-  const share = A / (A + r.ai);
+  const share = A / (A + r.ai * codeshareAiFactor(s, r));
   const pax = Math.round(Math.min(capY, demand * share));
 
   let paxJ = 0;
@@ -108,6 +109,7 @@ export function simRoute(s: GameState, r: Route): SimResult {
     rev += paxJ * pj;
   }
   rev += pax * price;
+  rev *= fxRevenueFactor(s, r);
 
   let hours = 0;
   let fuel = 0;
@@ -129,7 +131,7 @@ export function simRoute(s: GameState, r: Route): SimResult {
     rev,
     fuel: fuel * s.fuelIdx * modVal(s, 'fuel'),
     crew: crew * modVal(s, 'salary') * crewFactor(s, r),
-    fees: (pax + paxJ) * (intl ? FEE_INTL : FEE_DOMESTIC),
+    fees: (pax + paxJ) * (intl ? FEE_INTL : FEE_DOMESTIC) * fxFeeFactor(s, r),
     svc: pax * svc.cost + paxJ * svc.cost * SERVICE_J_MULT,
     share,
     lf: (pax + paxJ) / (capY + capJ),

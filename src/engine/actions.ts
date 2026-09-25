@@ -20,12 +20,16 @@ import { addLog, changeRep, findPlane, setFlag, unassignPlane } from './helpers'
 import { rivalsFor } from './rivals';
 import { hasRegionalCert, maxFreqFor, modelAllowed, rules, slotCostFor } from './rules';
 import { FINANCE_TERMS, financedBalance, financeLimit, financeQuote, type FinanceTerm } from './finance';
+import { CODESHARE_COST, CODESHARE_PARTNER, hasIntlDivision } from './international';
+import { COMPETITORS } from './data/competitors';
+import { DIVISIONS } from './data/divisions';
 import { hubSetupCost, maintCostFor, maintDaysFor } from './hubs';
 import { randInt, uid } from './rng';
 import { BUSINESS_MODELS, REGIONAL_CERT_COST } from './data/businessModels';
 import type {
   ActionResult,
   AirportCode,
+  DivisionId,
   GameState,
   LicenseTier,
   ModelKey,
@@ -217,13 +221,45 @@ export function buyRegionalCert(s: GameState): ActionResult {
 export function openHub(s: GameState, code: AirportCode): ActionResult {
   const a = AIRPORTS[code];
   if (s.hubs.includes(code)) return `${a.city} já é hub.`;
-  if (a.intl) return 'Hubs no exterior chegam com a divisão Base internacional.';
+  if (a.intl && !hasIntlDivision(s)) return 'Hubs no exterior chegam com a divisão Base internacional.';
   if (!s.slots.includes(code)) return `Compre slots em ${a.city} antes de abrir um hub.`;
-  const cost = hubSetupCost(code);
+  const cost = hubSetupCost(code, s.fxIdx);
   if (s.cash < cost) return 'Caixa insuficiente.';
   s.cash -= cost;
   s.hubs.push(code);
   addLog(s, `Hub aberto em ${a.city}: base de manutenção, tripulações e conexões.`, 'good');
+  return null;
+}
+
+/** Abre uma divisão (expansão do negócio). */
+export function buyDivision(s: GameState, id: DivisionId): ActionResult {
+  const d = DIVISIONS[id];
+  if (!d || d.soon) return 'Divisão ainda não disponível.';
+  if (s.divisions.includes(id)) return `A divisão ${d.name} já está aberta.`;
+  if (s.license < d.license) return `Requer a licença ${LICENSES[d.license].name}.`;
+  if (s.cash < d.cost) return 'Caixa insuficiente.';
+  s.cash -= d.cost;
+  s.divisions.push(id);
+  addLog(s, `Divisão ${d.name} aberta.`, 'good');
+  return null;
+}
+
+/** Codeshare com a parceira estrangeira: menos concorrência dela nas rotas internacionais. */
+export function signCodeshare(s: GameState): ActionResult {
+  const name = COMPETITORS[CODESHARE_PARTNER].name;
+  if (!hasIntlDivision(s)) return 'Requer a divisão Base internacional.';
+  if (s.codeshare) return `O acordo com a ${name} já está ativo.`;
+  if (s.cash < CODESHARE_COST) return 'Caixa insuficiente.';
+  s.cash -= CODESHARE_COST;
+  s.codeshare = true;
+  addLog(s, `Acordo de codeshare assinado com a ${name}.`, 'good');
+  return null;
+}
+
+export function cancelCodeshare(s: GameState): ActionResult {
+  if (!s.codeshare) return 'Nenhum acordo ativo.';
+  s.codeshare = false;
+  addLog(s, `Codeshare com a ${COMPETITORS[CODESHARE_PARTNER].name} encerrado.`, 'warn');
   return null;
 }
 
