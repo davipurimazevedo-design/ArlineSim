@@ -460,3 +460,11 @@ Decisões de 2026-09-24 (segunda rodada):
   - **Mantidos:** o prêmio de tarifa remota (sustenta o Pequeno porte; cortar pela metade causou falência), o financiamento (a economia diária não compensa a entrada maior) e CGH/SDU (a demanda compartilhada já corta cerca de 32% de cada rota).
   - **Simulação:** a esperta e a expansão usam todas as aeronaves do modelo, exceto as de até 19 lugares fora do Pequeno porte, e escolhem o avião de maior lucro por destino. O critério é o lucro diário menos o investimento amortizado em 2 anos. A expansão abre a divisão Cargas e opera rotas de carga. Nova opção `--divisoes nao`.
   - **Metas cumpridas (esperta, dia 1.000, ±25% do Tradicional):** Low-cost 0,89–1,09×; Regional 1,12–1,19×. O Pequeno porte, pela expansão, vai de R$ 5 mi a R$ 0,3–2,1 bi sem falências. A divisão Cargas acrescenta +1% a +18%. A básica fica em R$ 184–191 mi no dia 600, contra a referência de R$ 160–170 mi.
+
+## 19. Decisões da Fase 4 (2026-09-24)
+
+Plano em `docs/fase4-plano.md`, aprovado com estas escolhas:
+- **PWA sem dependência nova:** manifesto e service worker escritos no projeto, com um plugin pequeno no build do Vite.
+- **Sons:** sintetizados com Web Audio, **ligados por padrão em volume baixo**; liga, desliga e volume no menu "Jogo".
+- **Onboarding** como proposto: roteiro de 6 passos no Painel que se marca sozinho, destaque pulsante no passo atual, dicas de primeira vez, pular e refazer.
+- **Pendentes que entram na Fase 4:** idade dos aviões e mercado de usados, revisão da força da expansão no fim de jogo e carga no porão das rotas de passageiros. Os três mexem na economia, então a fase termina com um novo rebalanceamento.

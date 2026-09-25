@@ -20,6 +20,9 @@ const PATHS: Record<IconName, string> = {
   rep: 'M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z',
   ops: 'M12 2a10 10 0 100 20 10 10 0 000-20zM12 6v6l4 2',
   moon: 'M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z',
+  gear: 'M12 9a3 3 0 100 6 3 3 0 000-6zM19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1z',
+  download: 'M12 3v12M7 10l5 5 5-5M4 21h16',
+  upload: 'M12 21V9M7 14l5-5 5 5M4 3h16',
   grid: 'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',
   route:
     'M5 19a2 2 0 100-4 2 2 0 000 4zM19 9a2 2 0 100-4 2 2 0 000 4zM5 15V9a4 4 0 014-4h4M19 9v6a4 4 0 01-4 4h-4',
@@ -51,7 +54,8 @@ const PATHS: Record<IconName, string> = {
 // prettier-ignore
 export type IconName =
   | EventIcon
-  | 'plane' | 'wrench' | 'cash' | 'rep' | 'ops' | 'moon' | 'grid' | 'route' | 'store' | 'chart';
+  | 'plane' | 'wrench' | 'cash' | 'rep' | 'ops' | 'moon' | 'grid' | 'route' | 'store' | 'chart'
+  | 'gear' | 'download' | 'upload';
 
 const FILLED = new Set<IconName>(['plane']);
 

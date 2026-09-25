@@ -6,6 +6,7 @@ import { Footer } from './ui/layout/Footer';
 import { Tabs } from './ui/layout/Tabs';
 import { TopBar } from './ui/layout/TopBar';
 import { EventCard } from './ui/overlays/EventCard';
+import { GameMenu } from './ui/overlays/GameMenu';
 import { GameOver } from './ui/overlays/GameOver';
 import { OfflineSummary } from './ui/overlays/OfflineSummary';
 import { ResultCard } from './ui/overlays/ResultCard';
@@ -51,6 +52,7 @@ export function App() {
       <ResultCard />
       <OfflineSummary />
       <GameOver />
+      <GameMenu />
       <ConfirmDialog />
       <Toast />
     </div>

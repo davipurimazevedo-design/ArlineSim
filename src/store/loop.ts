@@ -1,6 +1,6 @@
 // Game loop: requestAnimationFrame acumulando tempo real; um tick a cada 1000/speed ms,
 // no máximo 8 por frame. Pausa com a aba oculta, com carta pendente ou de resultado aberta,
-// com o resumo offline aberto, com uma confirmação aberta e em fim de jogo.
+// com o resumo offline aberto, com uma confirmação ou o menu "Jogo" aberto e em fim de jogo.
 import { useGame } from './gameStore';
 
 const MAX_TICKS_PER_FRAME = 8;
@@ -22,6 +22,7 @@ export function startLoop(): () => void {
       !st.result &&
       !st.offline &&
       !st.confirm &&
+      !st.menu &&
       g.speed > 0 &&
       !document.hidden;
     if (running) {

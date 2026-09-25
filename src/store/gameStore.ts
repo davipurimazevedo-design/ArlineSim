@@ -42,6 +42,8 @@ interface Store {
   result: string | null;
   confirm: ConfirmRequest | null;
   theme: Theme | null;
+  /** menu "Jogo" aberto (pausa o jogo) */
+  menu: boolean;
 
   boot: () => Promise<void>;
   start: (name: string, hub: AirportCode, model?: BusinessModelId) => void;
@@ -62,6 +64,9 @@ interface Store {
   closeConfirm: () => void;
   reset: () => void;
   setTheme: (t: Theme) => void;
+  setMenu: (open: boolean) => void;
+  /** Substitui o jogo atual por um save importado (já validado e migrado). */
+  importGame: (g: GameState) => void;
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
@@ -81,6 +86,7 @@ export const useGame = create<Store>()(
     result: null,
     confirm: null,
     theme: loadTheme(),
+    menu: false,
 
     boot: async () => {
       const g = await loadGame();
@@ -186,6 +192,16 @@ export const useGame = create<Store>()(
     reset: () => {
       clearSave();
       set({ game: null, offline: null, result: null, confirm: null, tab: 'painel' });
+    },
+
+    setMenu: (open) => set({ menu: open }),
+
+    importGame: (g) => {
+      // o tempo fora não conta para um save importado: ele volta exatamente como foi exportado
+      g.savedAt = Date.now();
+      set({ game: g, tab: 'painel', offline: null, result: null, confirm: null, menu: false });
+      get().save();
+      get().notify(`Save de ${g.name} carregado (dia ${g.day}).`);
     },
 
     setTheme: (t) => {

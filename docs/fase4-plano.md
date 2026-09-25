@@ -1,6 +1,6 @@
 # Fase 4 — Polimento: plano para aprovação
 
-Rascunho de 2026-09-24. Nada disto está implementado.
+Aprovado em 2026-09-24: PWA sem dependência nova; sons ligados por padrão em volume baixo; onboarding como proposto; os três pendentes da seção 6 entram (ver CLAUDE.md, seção 19).
 
 O CLAUDE.md prevê quatro itens: PWA instalável com funcionamento offline, exportar e importar o save em arquivo, onboarding mais guiado e sons opcionais. Proponho também um menu "Jogo" para reunir essas opções, e listo no fim os pendentes das fases anteriores que podem entrar aqui.
 

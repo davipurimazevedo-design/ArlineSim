@@ -19,6 +19,7 @@ export function TopBar() {
   const setSpeed = useGame((s) => s.setSpeed);
   const theme = useGame((s) => s.theme);
   const setTheme = useGame((s) => s.setTheme);
+  const setMenu = useGame((s) => s.setMenu);
   const sysDark = useSyncExternalStore(subscribeScheme, systemDark);
   const dark = (theme ?? (sysDark ? 'dark' : 'light')) === 'dark';
   const d = g.lastDay;
@@ -79,6 +80,9 @@ export function TopBar() {
           aria-label={dark ? 'Usar tema claro' : 'Usar tema escuro'}
         >
           <Icon n={dark ? 'sun' : 'moon'} size={15} />
+        </button>
+        <button type="button" onClick={() => setMenu(true)} aria-label="Menu do jogo" title="Jogo">
+          <Icon n="gear" size={15} />
         </button>
       </div>
     </header>
