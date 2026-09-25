@@ -19,6 +19,7 @@ import { Money } from '../../components/Money';
 import { Segmented } from '../../components/Segmented';
 import { NewRoute } from './NewRoute';
 import { RouteEditor } from './RouteEditor';
+import { RouteMap } from './RouteMap';
 
 export function Rotas() {
   const g = useGameState();
@@ -57,6 +58,7 @@ export function Rotas() {
         </Btn>
       </div>
       {adding && <NewRoute onDone={() => setAdding(false)} />}
+      <RouteMap routes={routes} />
       {g.routes.length === 0 && !adding && (
         <Empty>Nenhuma rota. Você precisa de uma aeronave e de slots em dois aeroportos.</Empty>
       )}
@@ -85,6 +87,7 @@ export function Rotas() {
                 return (
                   <Fragment key={r.id}>
                     <tr
+                      id={`rota-${r.id}`}
                       data-tut-target={i === 0 ? 'rota-linha' : undefined}
                       className={`row s-${st}${i % 2 ? ' zebra' : ''}${isOpen ? ' open' : ''}`}
                       onClick={() => toggle(r.id)}
