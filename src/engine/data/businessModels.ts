@@ -117,8 +117,8 @@ export const BUSINESS_MODELS: Record<BusinessModelId, BusinessModel> = {
     name: 'Regional',
     tagline: 'Cidades médias e pequenas, onde os grandes não chegam.',
     gains: [
-      'Slots e taxas pela metade em aeroportos de porte ≤ 6',
-      '+15% de demanda em rotas que tocam esses aeroportos',
+      'Slots e taxas 20% mais baratos em aeroportos de porte ≤ 6',
+      '+5% de demanda em rotas que tocam esses aeroportos',
     ],
     losses: [
       'Slots e taxas 25% mais caros em aeroportos de porte ≥ 9',
@@ -128,11 +128,11 @@ export const BUSINESS_MODELS: Record<BusinessModelId, BusinessModel> = {
     available: true,
     rules: {
       ...NEUTRAL,
-      models: ['AT7', 'E295'],
+      models: ['AT7', 'AT4', 'E295', 'E175'],
       maxLicense: 1,
-      slotCostFactor: (a) => (a.size <= REGIONAL_SIZE ? 0.5 : a.size >= BIG_SIZE ? 1.25 : 1),
-      slotFeeFactor: (a) => (a.size <= REGIONAL_SIZE ? 0.5 : a.size >= BIG_SIZE ? 1.25 : 1),
-      demandFactor: (a, b) => (Math.min(a.size, b.size) <= REGIONAL_SIZE ? 1.15 : 1),
+      slotCostFactor: (a) => (a.size <= REGIONAL_SIZE ? 0.8 : a.size >= BIG_SIZE ? 1.25 : 1),
+      slotFeeFactor: (a) => (a.size <= REGIONAL_SIZE ? 0.8 : a.size >= BIG_SIZE ? 1.25 : 1),
+      demandFactor: (a, b) => (Math.min(a.size, b.size) <= REGIONAL_SIZE ? 1.05 : 1),
     },
   },
   pequeno: {

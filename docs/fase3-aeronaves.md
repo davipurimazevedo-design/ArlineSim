@@ -84,13 +84,15 @@ Mesmo método de conversão da Parte 1 (âncora ATR 72-600: 2,44 R$ por US$ de v
 | Pista de terra | não confirmado pela Cessna → **não** | **sim** (fabricante: grama molhada, areia, neve) | não | não |
 | Consumo | ~0,93 kg/km (**estimativa**, 2 × PT6A-65SC) | ~0,8 kg/km (**estimativa**) | **802 kg em 300 nm** (ficha oficial) → 1,44 kg/km | ~2,3 kg/km (**estimativa**) |
 | Preço real | **US$ 7,7 mi** equipado (2023) | ~**US$ 6–7 mi** (2023) | preço de lista **US$ 20–22 mi**; valor de mercado ~US$ 18 mi (**estimativa**) | leasing **~US$ 120 mil/mês** (6 anos de uso); valor ~US$ 20 mi (**estimativa**) |
-| **No jogo: preço** | R$ 18,9 mi | R$ 15,9 mi | R$ 44 mi | R$ 48,8 mi |
-| **No jogo: leasing/dia** | R$ 12,7 mil (*) | R$ 10,7 mil (*) | R$ 22,5 mil (*) | R$ 25,7 mil (inclui +30% dos jatos da Fase 2) |
+| **No jogo: preço** | R$ 18,9 mi | R$ 15,9 mi | R$ 44 mi | R$ 68 mi (rebalanceamento; era R$ 48,8 mi) |
+| **No jogo: leasing/dia** | R$ 12,7 mil (*) | R$ 10,7 mil (*) | R$ 22,5 mil (*) | R$ 40 mil (rebalanceamento; era R$ 25,7 mil) |
 | **No jogo: combustível/km** | R$ 4,10 | R$ 3,50 | R$ 6,40 | R$ 10,20 |
 | **No jogo: pista mínima** | 1.100 m | 700 m (e pista de terra) | 1.000 m | 1.300 m |
 | Licença | Táxi aéreo | Táxi aéreo | Regional | Nacional |
 
 (*) estimativa pela regra de ~1% do valor por mês (no ATR 42, pela proporção do ATR 72: 0,76% ao mês).
+
+**E175 no rebalanceamento da Fase 3:** o valor e o leasing acima vinham de um avião com 6 anos de uso, enquanto os demais usam avião novo. Com isso o E175 saía mais barato que um ATR 72 e dominava a expansão. Passou a valor de avião novo (~US$ 28 mi → R$ 68 mi) e leasing de R$ 40 mil/dia, já com os +30% dos jatos.
 
 **Onde cada um entra:**
 - **SkyCourier e L-410:** o degrau entre o Caravan (12) e o ATR (48–70) no modelo Pequeno porte.

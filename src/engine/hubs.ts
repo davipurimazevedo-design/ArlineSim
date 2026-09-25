@@ -7,9 +7,9 @@ import { rules } from './rules';
 import type { AirportCode, GameState, Plane, Route } from './types';
 
 /** demanda extra por outra rota da companhia no mesmo hub */
-export const CONN_PER_ROUTE = 0.02;
+export const CONN_PER_ROUTE = 0.01;
 /** teto da demanda extra por conexões */
-export const CONN_MAX = 0.3;
+export const CONN_MAX = 0.1;
 /** custo de tripulação em rota ponto a ponto (pernoite fora da base) */
 export const PERNOITE_FACTOR = 1.2;
 /** manutenção de avião baseado num hub */

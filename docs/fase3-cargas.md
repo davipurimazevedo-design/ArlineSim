@@ -110,4 +110,4 @@ Com a divisão aberta, as rotas de **passageiros** também levariam um pouco de 
     | Caravan EX Manaus–Tefé: R$ 8 mil | Caravan Cargo: R$ 7 mil; SkyCourier cargueiro: R$ 16 mil |
     | ATR 72 GRU–CNF, 2 voos: R$ 40 mil | ATR 72-600F VCP–CNF, 2 voos: R$ 30 mil |
 
-- **Pendente para o rebalanceamento:** o 767-300F é barato demais para comprar (R$ 12 mi, com manutenção proporcional ao preço); os robôs da simulação ainda não operam carga.
+- **Rebalanceamento:** o 767-300F continua custando R$ 12 mi, mas a manutenção passou a ser calculada sobre R$ 60 mi (`maintBase`, valor de um widebody de meia-vida). Os robôs da expansão abrem a divisão e operam carga; ela rende de +1% (BSB) a +18% (GRU) no dia 1.000. A carga no porão continua fora.

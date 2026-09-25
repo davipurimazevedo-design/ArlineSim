@@ -120,3 +120,16 @@ describe('objetivos por modelo e divisão', () => {
     expect(checkGoals(s)).toContain('in_continentes');
   });
 });
+
+describe('escala do custo dos eventos', () => {
+  it('avião pequeno conta pela capacidade; ATR 72 e maiores contam 1', async () => {
+    const { scaleCost } = await import('../../src/engine/helpers');
+    const s = makeGame();
+    expect(scaleCost(s)).toBe(1); // mínimo 1
+    for (let i = 0; i < 12; i++) addTestPlane(s, 'C208');
+    expect(scaleCost(s)).toBeCloseTo((12 * 12) / 70);
+    const t = makeGame();
+    for (const m of ['AT7', 'A20N', 'A339', 'B73F'] as const) addTestPlane(t, m);
+    expect(scaleCost(t)).toBe(4); // frota do protótipo: igual à contagem de aviões
+  });
+});

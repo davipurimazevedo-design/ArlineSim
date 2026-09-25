@@ -107,7 +107,7 @@ export function maxFreq(m: AircraftModel, d: number): number {
 
 export function maintCost(p: Plane): number {
   const m = MODELS[p.model];
-  return Math.round((m.price * 0.00015 * (100 - p.condition)) / 1000) * 1000;
+  return Math.round(((m.maintBase ?? m.price) * 0.00015 * (100 - p.condition)) / 1000) * 1000;
 }
 
 export function maintDays(p: Plane): number {

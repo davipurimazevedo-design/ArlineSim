@@ -63,15 +63,15 @@ describe('modelos de negócio', () => {
   });
 
   describe('Regional', () => {
-    it('slots e taxas pela metade em aeroportos pequenos e mais caros nos grandes', () => {
+    it('slots e taxas 20% mais baratos em aeroportos pequenos e mais caros nos grandes', () => {
       const s = game('regional');
-      expect(slotCostFor(s, 'GYN')).toBe(slotCost('GYN') * 0.5);
-      expect(slotFeeFor(s, 'GYN')).toBe(slotFee('GYN') * 0.5);
+      expect(slotCostFor(s, 'GYN')).toBe(slotCost('GYN') * 0.8);
+      expect(slotFeeFor(s, 'GYN')).toBe(slotFee('GYN') * 0.8);
       expect(slotCostFor(s, 'GRU')).toBe(slotCost('GRU') * 1.25);
       expect(slotCostFor(s, 'CNF')).toBe(slotCost('CNF'));
     });
 
-    it('+15% de demanda em rotas que tocam aeroportos pequenos', () => {
+    it('+5% de demanda em rotas que tocam aeroportos pequenos', () => {
       const trad = game('tradicional');
       const reg = game('regional');
       for (const s of [trad, reg]) {
@@ -80,13 +80,15 @@ describe('modelos de negócio', () => {
       }
       const a = simRoute(trad, trad.routes[0]!).pax;
       const b = simRoute(reg, reg.routes[0]!).pax;
-      expect(b / a).toBeCloseTo(1.15, 1);
+      expect(b / a).toBeCloseTo(1.05, 1);
     });
 
     it('só ATR e E-Jets, sem licença Internacional', () => {
       const s = game('regional');
       s.license = 1;
       expect(actions.lease(s, 'E295')).toBeNull();
+      expect(actions.lease(s, 'E175')).toBeNull();
+      expect(actions.lease(s, 'AT4')).toBeNull();
       expect(actions.lease(s, 'A20N')).toBe('O modelo Regional não opera o Airbus A320neo.');
       s.cash = 1e9;
       expect(actions.buyLicense(s, 2)).toBe('O modelo Regional não opera com a licença Internacional.');

@@ -1,4 +1,5 @@
 // Pequenas mutações compartilhadas por ações, eventos e tick.
+import { MODELS } from './data/aircraft';
 import { clamp } from './formulas';
 import { rules } from './rules';
 import type { GameState, ModType, Plane, Route, Tone } from './types';
@@ -21,9 +22,23 @@ export function hitFleet(s: GameState, n: number): void {
   for (const p of s.fleet) if (!p.maint) p.condition = clamp(p.condition + n, 0, 100);
 }
 
-/** Custos de eventos escalam com o tamanho da empresa. */
+/** a partir desta capacidade (ATR 72) o avião conta inteiro na escala dos eventos */
+export const SCALE_FULL_SEATS = 70;
+/** uma tonelada de carga equivale a 10 assentos */
+const SEATS_PER_TON = 10;
+
+/**
+ * Custos de eventos escalam com o tamanho da empresa: cada avião conta pela capacidade,
+ * até 1 a partir de 70 lugares. Um Caravan conta 0,17, um ATR 72 ou maior conta 1
+ * (frotas só de aviões do protótipo continuam como antes).
+ */
 export function scaleCost(s: GameState): number {
-  return Math.max(1, s.fleet.length);
+  const size = s.fleet.reduce((a, p) => {
+    const m = MODELS[p.model];
+    const seats = m.y + m.j + (m.cargo ?? 0) * SEATS_PER_TON;
+    return a + Math.min(1, seats / SCALE_FULL_SEATS);
+  }, 0);
+  return Math.max(1, size);
 }
 
 export function findPlane(s: GameState, id: string | null): Plane | undefined {

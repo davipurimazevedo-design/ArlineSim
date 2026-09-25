@@ -68,6 +68,8 @@ export interface AircraftModel {
   unpaved: boolean;
   /** cargueiro: capacidade em toneladas (y e j ficam 0) */
   cargo?: number;
+  /** base do custo de manutenção quando difere do preço (avião convertido e antigo, que custa pouco e gasta muito) */
+  maintBase?: number;
 }
 
 export interface License {

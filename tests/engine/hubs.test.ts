@@ -19,7 +19,7 @@ describe('hubs', () => {
     expect(newGame('x', 'REC', 1).hubs).toEqual(['REC']);
   });
 
-  it('conexões: +2% por outra rota no hub, até +30%', () => {
+  it('conexões: +1% por outra rota no hub, até +10%', () => {
     const s = makeGame('BSB');
     const dests = [
       'CNF',
@@ -42,9 +42,9 @@ describe('hubs', () => {
       'VIX',
     ] as const;
     const routes = dests.map((d) => addTestRoute(s, 'BSB', d, addTestPlane(s, 'AT7').id));
-    expect(connectionFactor(s, routes[0]!)).toBeCloseTo(1.3); // 17 outras rotas: 34%, limitado a 30%
+    expect(connectionFactor(s, routes[0]!)).toBeCloseTo(1.1); // 17 outras rotas: 17%, limitado a 10%
     s.routes = routes.slice(0, 4);
-    expect(connectionFactor(s, routes[0]!)).toBeCloseTo(1.06);
+    expect(connectionFactor(s, routes[0]!)).toBeCloseTo(1.03);
   });
 
   it('rota que não toca hub: sem conexão e com pernoite (Low-cost isenta)', () => {

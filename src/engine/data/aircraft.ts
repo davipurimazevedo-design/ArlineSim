@@ -15,13 +15,13 @@ export const MODELS: Record<ModelKey, AircraftModel> = {
   C408: { name: 'Cessna SkyCourier', kind: 'Bimotor turboélice', tier: 0, y: 19, j: 0, range: 1704, speed: 389, fuelKm: 4.1, crewH: 900, lease: 12700, price: 18.9e6, wearH: 0.08, util: 12, minRunway: 1100, unpaved: false },
   L410: { name: 'Let L-410 NG', kind: 'Bimotor turboélice', tier: 0, y: 19, j: 0, range: 2630, speed: 417, fuelKm: 3.5, crewH: 900, lease: 10700, price: 15.9e6, wearH: 0.09, util: 12, minRunway: 700, unpaved: true },
   AT4: { name: 'ATR 42-600', kind: 'Turboélice', tier: 0, y: 48, j: 0, range: 1302, speed: 540, fuelKm: 6.4, crewH: 1500, lease: 22500, price: 44e6, wearH: 0.08, util: 15, minRunway: 1000, unpaved: false },
-  E175: { name: 'Embraer E175', kind: 'Jato regional', tier: 1, y: 80, j: 0, range: 3151, speed: 800, fuelKm: 10.2, crewH: 2600, lease: 25700, price: 48.8e6, wearH: 0.07, util: 16, minRunway: 1300, unpaved: false },
+  E175: { name: 'Embraer E175', kind: 'Jato regional', tier: 1, y: 80, j: 0, range: 3151, speed: 800, fuelKm: 10.2, crewH: 2600, lease: 40000, price: 68e6, wearH: 0.07, util: 16, minRunway: 1300, unpaved: false },
   // Cargueiros (divisão Cargas): capacidade em toneladas; docs/fase3-cargas.md
   C208F: { name: 'Cessna Caravan Cargo', kind: 'Cargueiro monomotor', tier: 0, y: 0, j: 0, cargo: 1.4, range: 1300, speed: 343, fuelKm: 2.8, crewH: 500, lease: 4400, price: 6.5e6, wearH: 0.09, util: 11, minRunway: 700, unpaved: true },
   C408F: { name: 'Cessna SkyCourier cargueiro', kind: 'Cargueiro bimotor', tier: 0, y: 0, j: 0, cargo: 3, range: 1400, speed: 389, fuelKm: 4.1, crewH: 800, lease: 12700, price: 18.9e6, wearH: 0.08, util: 12, minRunway: 900, unpaved: false },
   AT7F: { name: 'ATR 72-600F', kind: 'Cargueiro turboélice', tier: 0, y: 0, j: 0, cargo: 9.2, range: 1900, speed: 510, fuelKm: 7, crewH: 1200, lease: 29600, price: 59e6, wearH: 0.08, util: 14, minRunway: 1000, unpaved: false },
   B73F: { name: 'Boeing 737-800BCF', kind: 'Cargueiro narrowbody', tier: 1, y: 0, j: 0, cargo: 24, range: 3700, speed: 840, fuelKm: 13.3, crewH: 2600, lease: 24700, price: 37e6, wearH: 0.075, util: 15, minRunway: 1600, unpaved: false },
-  B763F: { name: 'Boeing 767-300F', kind: 'Cargueiro widebody', tier: 2, y: 0, j: 0, cargo: 57, range: 7000, speed: 850, fuelKm: 28, crewH: 5000, lease: 14800, price: 12e6, wearH: 0.09, util: 18, minRunway: 2200, unpaved: false },
+  B763F: { name: 'Boeing 767-300F', kind: 'Cargueiro widebody', tier: 2, y: 0, j: 0, cargo: 57, range: 7000, speed: 850, fuelKm: 28, crewH: 5000, lease: 14800, price: 12e6, maintBase: 60e6, wearH: 0.09, util: 18, minRunway: 2200, unpaved: false },
 };
 
 /** Aeronaves de pequeno porte (licença Táxi aéreo). */

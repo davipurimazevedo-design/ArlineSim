@@ -2,19 +2,26 @@
 //   npm run sim                         → estratégia básica (referência da seção 11) + resumo de todas
 //   npm run sim -- --strategy expansao  → só uma estratégia, com detalhe por hub
 //   opções: --seed 2026 --days 600 --seeds 10 --strategy basica|esperta|expansao|todas
-//           --model tradicional|lowcost|regional|pequeno --hubs BSB,GRU,SLZ
+//           --model tradicional|lowcost|regional|pequeno --hubs BSB,GRU,SLZ --divisoes nao
 //
 // Estratégias:
 // - basica   (seção 11 do CLAUDE.md): ATR, destino de maior demanda base entre 350 e 1.500 km do hub,
 //            novo slot + ATR quando o caixa passa de R$ 8 mi, manutenção abaixo de 45, eventos ao acaso.
 // - esperta  como um jogador atento: escolhe destino e frequência pelo lucro estimado (simRoute),
 //            evita rotas que canibalizam as próprias e escala mais aviões em rotas lotadas.
-// - expansao esperta + licenças Nacional e Internacional, jatos e rotas internacionais.
+// - expansao esperta + licenças Nacional e Internacional, jatos, rotas internacionais e a divisão Cargas
+//            (rotas de carga a partir do hub com cargueiros).
+// Os robôs esperta e expansao consideram todas as aeronaves que o modelo de negócio opera.
 // Todas usam RNG com semente (o do jogo e um próprio para as decisões), então são reproduzíveis.
 import {
   actions,
   AIRPORT_CODES,
   baseDemand,
+  cargoCompetition,
+  cargoFair,
+  cargoRivals,
+  hasCargoDivision,
+  isFreighter,
   dist,
   routeFair,
   routeFairJ,
@@ -24,6 +31,8 @@ import {
   modelAllowed,
   runwayIssue,
   MODEL_KEYS,
+  SMALL_FREIGHTERS,
+  SMALL_MODELS,
   MODELS,
   newGame,
   resolveEvent,
@@ -39,6 +48,7 @@ import {
   type ModelKey,
   type Plane,
   type Route,
+  type RouteKind,
 } from '../src/engine/index.ts';
 import { rand, type Seeded } from '../src/engine/rng.ts';
 
@@ -56,6 +66,8 @@ const SEEDS = Number(arg('seeds') ?? 10);
 const ONLY = (arg('strategy') ?? 'todas') as StrategyId | 'todas';
 const MODEL = (arg('model') ?? 'tradicional') as BusinessModelId;
 const HUB_LIST = arg('hubs')?.split(',') as AirportCode[] | undefined;
+/** --divisoes nao: a expansão não abre divisões (para medir o ganho delas) */
+const DIVISIONS = arg('divisoes') !== 'nao';
 
 // ---------------------------------------------------------------- avaliação de rotas hipotéticas
 
@@ -71,6 +83,7 @@ function estimate(
   to: AirportCode,
   model: ModelKey,
   existing?: Route,
+  kind: RouteKind = 'pax',
 ): { profit: number; freq: number } | null {
   const m = MODELS[model];
   const d = dist(from, to);
@@ -98,9 +111,10 @@ function estimate(
     route = existing;
     base = routeProfit(s, route, simRoute(s, route));
   } else {
+    const cargo = kind === 'cargo';
     route = {
       id: TMP_ROUTE,
-      kind: 'pax',
+      kind,
       from,
       to,
       dist: d,
@@ -108,13 +122,13 @@ function estimate(
       price: 0,
       priceJ: 0,
       service: 1,
-      ai: 1.2,
-      rivals: [],
+      ai: cargo ? cargoCompetition(from, to) : 1.2,
+      rivals: cargo ? cargoRivals() : [],
       opened: s.day,
       last: null,
     };
-    route.price = routeFair(from, to, d);
-    route.priceJ = Math.round(routeFairJ(from, to, d) / 10) * 10;
+    route.price = cargo ? cargoFair(from, to, d) : routeFair(from, to, d);
+    route.priceJ = cargo ? 0 : Math.round(routeFairJ(from, to, d) / 10) * 10;
     s.routes.push(route);
   }
   let best: { profit: number; freq: number } | null = null;
@@ -122,7 +136,7 @@ function estimate(
     route.planes.push({ id: TMP_PLANE, freq: f });
     const x = simRoute(s, route);
     // 2.500/dia de estrutura por avião + manutenção preventiva (condição gasta × custo por ponto)
-    const upkeep = 2500 + (x.planeHours[TMP_PLANE] ?? 0) * m.wearH * m.price * 0.00015;
+    const upkeep = 2500 + (x.planeHours[TMP_PLANE] ?? 0) * m.wearH * (m.maintBase ?? m.price) * 0.00015;
     // share acima de 55% faz a concorrência endurecer a cada 30 dias: o jogador atento evita
     const profit = routeProfit(s, route, x) - base - upkeep - (x.share > AI_SHARE_LIMIT ? 1e9 : 0);
     route.planes.pop();
@@ -135,12 +149,19 @@ function estimate(
 }
 
 /**
- * Aeronaves que o robô considera. Fora do Pequeno porte, só as 5 do protótipo, para a linha de base
- * continuar comparável (o robô ainda não sabe combinar aviões pequenos e grandes; revisão no fim da Fase 3).
+ * Aeronaves que o robô pode ter agora (cargueiros só com a divisão Cargas). Fora do Pequeno porte,
+ * sem os aviões de até 19 lugares: o robô não sabe trocar de avião quando a rota cresce, e prenderia
+ * cidades médias num Caravan.
  */
 function modelsAvailable(s: GameState): ModelKey[] {
-  const pool = s.businessModel === 'pequeno' ? MODEL_KEYS : MODEL_KEYS.slice(0, 5);
-  return pool.filter((k) => MODELS[k].tier <= s.license && modelAllowed(s, k));
+  const small = new Set<ModelKey>([...SMALL_MODELS, ...SMALL_FREIGHTERS]);
+  return MODEL_KEYS.filter(
+    (k) =>
+      MODELS[k].tier <= s.license &&
+      modelAllowed(s, k) &&
+      (!isFreighter(k) || hasCargoDivision(s)) &&
+      (s.businessModel === 'pequeno' || !small.has(k)),
+  );
 }
 
 // ---------------------------------------------------------------- estratégias
@@ -165,34 +186,49 @@ function basica(s: GameState): void {
   actions.openRoute(s, { from: s.hub, to, planeId: s.fleet.at(-1)!.id });
 }
 
-/** Melhor oportunidade: nova rota a partir do hub ou mais um avião numa rota existente. */
+/**
+ * Melhor oportunidade: nova rota a partir do hub ou mais um avião numa rota existente.
+ * Para cada destino (ou rota), o robô escolhe o avião de maior lucro; entre os destinos,
+ * compara o lucro diário menos o investimento amortizado em 2 anos. Assim não ocupa uma cidade
+ * grande com um avião pequeno nem troca lucro grande por retorno alto sobre pouco dinheiro.
+ */
 function bestMove(s: GameState, bot: Bot) {
   type Move = {
     kind: 'new' | 'add';
+    routeKind: RouteKind;
     to: AirportCode;
     model: ModelKey;
     freq: number;
-    score: number;
+    profit: number;
+    cost: number;
     route?: Route;
   };
-  let best: Move | null = null;
+  const byTarget = new Map<string, Move>();
+  const offer = (key: string, m: Move) => {
+    const cur = byTarget.get(key);
+    if (!cur || m.profit > cur.profit) byTarget.set(key, m);
+  };
   for (const model of modelsAvailable(s)) {
     const deposit = MODELS[model].lease * 10;
+    const routeKind: RouteKind = isFreighter(model) ? 'cargo' : 'pax';
     for (const to of AIRPORT_CODES) {
-      if (to === s.hub || s.slots.includes(to) || !slotAllowed(s, to)) continue;
+      if (to === s.hub || !slotAllowed(s, to)) continue;
+      // passageiros: só cidades novas; carga: também onde já há slot, se ainda não houver rota de carga
+      const owned = s.slots.includes(to);
+      if (routeKind === 'pax' && owned) continue;
+      if (routeKind === 'cargo' && actions.routeExists(s, s.hub, to, 'cargo')) continue;
       if (s.license === 0 && dist(s.hub, to) > 1500) continue;
-      const cost = slotCostFor(s, to) + deposit;
+      const cost = (owned ? 0 : slotCostFor(s, to)) + deposit;
       if (s.cash - cost < bot.reserve) continue;
-      const e = estimate(s, s.hub, to, model);
+      const e = estimate(s, s.hub, to, model, undefined, routeKind);
       if (!e) continue;
-      const profit = e.profit - slotFeeFor(s, to);
+      const profit = e.profit - (owned ? 0 : slotFeeFor(s, to));
       // lucro proporcional ao avião (35% do leasing diário) e que pague slot + depósito em até 2 anos
       if (profit <= 0.35 * MODELS[model].lease || profit * 730 < cost) continue;
-      const score = profit / Math.sqrt(cost); // lucro diário, com peso para o investimento
-      if (!best || score > best.score) best = { kind: 'new', to, model, freq: e.freq, score };
+      offer(`${routeKind}:${to}`, { kind: 'new', routeKind, to, model, freq: e.freq, profit, cost });
     }
     for (const r of s.routes) {
-      if (!r.last?.flying || r.last.lf < 0.9) continue;
+      if (r.kind !== routeKind || !r.last?.flying || r.last.lf < 0.9) continue;
       // só escala outro avião quando os atuais já voam o máximo
       const saturated = r.planes.every((x) => {
         const p = s.fleet.find((f) => f.id === x.id);
@@ -203,8 +239,25 @@ function bestMove(s: GameState, bot: Bot) {
       const to = r.from === s.hub ? r.to : r.from;
       const e = estimate(s, r.from, r.to, model, r);
       if (!e || e.profit <= 0.35 * MODELS[model].lease || e.profit * 730 < deposit) continue;
-      const score = e.profit / Math.sqrt(deposit);
-      if (!best || score > best.score) best = { kind: 'add', to, model, freq: e.freq, score, route: r };
+      offer(`add:${r.id}`, {
+        kind: 'add',
+        routeKind,
+        to,
+        model,
+        freq: e.freq,
+        profit: e.profit,
+        cost: deposit,
+        route: r,
+      });
+    }
+  }
+  let best: Move | null = null;
+  let bestScore = -Infinity;
+  for (const m of byTarget.values()) {
+    const score = m.profit - m.cost / 730; // lucro diário menos o investimento amortizado em 2 anos
+    if (score > bestScore) {
+      best = m;
+      bestScore = score;
     }
   }
   return best;
@@ -234,7 +287,7 @@ function tuneFreq(s: GameState): void {
       for (let f = 1; f <= maxFreqFor(s, p.model, r.dist); f++) {
         x.freq = f;
         const sim = simRoute(s, r);
-        const upkeep = (sim.planeHours[p.id] ?? 0) * m.wearH * m.price * 0.00015;
+        const upkeep = (sim.planeHours[p.id] ?? 0) * m.wearH * (m.maintBase ?? m.price) * 0.00015;
         const v = routeProfit(s, r, sim) - upkeep - (sim.share > AI_SHARE_LIMIT ? 1e9 : 0);
         if (v > best.v) best = { f, v };
       }
@@ -252,8 +305,8 @@ function esperta(s: GameState, bot: Bot): void {
   if (actions.lease(s, move.model)) return;
   const plane = s.fleet.at(-1)!;
   if (move.kind === 'new') {
-    if (actions.buySlot(s, move.to)) return;
-    if (actions.openRoute(s, { from: s.hub, to: move.to, planeId: plane.id })) return;
+    if (!s.slots.includes(move.to) && actions.buySlot(s, move.to)) return;
+    if (actions.openRoute(s, { from: s.hub, to: move.to, planeId: plane.id, kind: move.routeKind })) return;
     const r = s.routes.at(-1)!;
     actions.setPlaneFreq(s, r.id, plane.id, move.freq);
   } else if (move.route) {
@@ -265,6 +318,9 @@ function esperta(s: GameState, bot: Bot): void {
 function expansao(s: GameState, bot: Bot): void {
   // Pequeno porte: certificação regional quando sobra caixa
   if (s.businessModel === 'pequeno' && !s.flags.cert_regional && s.cash > 20e6) actions.buyRegionalCert(s);
+  // divisão Cargas quando a malha de passageiros já tem corpo
+  if (DIVISIONS && !hasCargoDivision(s) && s.routes.length >= 4 && s.cash > 25e6)
+    actions.buyDivision(s, 'cargas');
   // licenças quando sobra caixa além da reserva
   const next = LICENSES[s.license + 1];
   if (next && s.cash > next.cost + 15e6 && s.routes.length >= 4) {

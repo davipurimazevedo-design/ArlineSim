@@ -28,7 +28,7 @@ O jogo atual, sem mudanças. Serve de referência para o balanceamento.
 - **Jeito de jogar:** tarifa abaixo da referência, muitos voos, custo baixo.
 
 ### Regional
-- **Ganha:** slots e taxas pela metade em aeroportos de porte ≤ 6; +15% de demanda em rotas que tocam esses aeroportos; concorrência ainda menor em mercados pequenos.
+- **Ganha:** slots e taxas 20% mais baratos em aeroportos de porte ≤ 6; +5% de demanda em rotas que tocam esses aeroportos (valores do rebalanceamento; a proposta original era metade e +15%); concorrência ainda menor em mercados pequenos.
 - **Perde:** slots 25% mais caros nos aeroportos grandes (porte ≥ 9); com a licença Nacional, só jatos regionais (E-Jets), sem A320/737; sem licença Internacional.
 - **Jeito de jogar:** malha capilar, muitas cidades médias e pequenas, turboélices e E-Jets.
 
