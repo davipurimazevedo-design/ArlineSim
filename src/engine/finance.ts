@@ -31,7 +31,11 @@ export function installment(principal: number, days: number, rate = FINANCE_RATE
 }
 
 export function financeQuote(model: ModelKey, days: FinanceTerm): FinanceQuote {
-  const price = MODELS[model].price;
+  return financeQuoteFor(MODELS[model].price, days);
+}
+
+/** Cotação para um preço qualquer (aviões usados). */
+export function financeQuoteFor(price: number, days: FinanceTerm): FinanceQuote {
   const down = Math.round(price * FINANCE_DOWN);
   const principal = price - down;
   const payment = Math.round(installment(principal, days));

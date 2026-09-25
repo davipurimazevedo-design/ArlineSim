@@ -100,6 +100,7 @@ function estimate(
     cabin: model === 'A20N' || model === 'B38M' ? (s.license >= 2 ? 1 : 0) : 0,
     hours: 0,
     since: s.day,
+    built: s.day,
   };
   s.fleet.push(plane);
   // estima em condições normais: sem modificadores temporários (feriado, Carnaval, greve...)

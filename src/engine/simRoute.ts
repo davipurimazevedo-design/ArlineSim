@@ -22,7 +22,7 @@ import { rules } from './rules';
 import { connectionFactor, crewFactor } from './hubs';
 import { codeshareAiFactor, fxFeeFactor, fxRevenueFactor } from './international';
 import { overlapFactor } from './overlap';
-import { CARGO_ELASTICITY, CARGO_HANDLING, cargoDemand, cargoFair } from './cargo';
+import { CARGO_ELASTICITY, CARGO_HANDLING, cargoDemand, cargoFair, hasCargoDivision } from './cargo';
 import type { GameState, Plane, Route, SimResult } from './types';
 
 function emptyResult(r: Route, reason: string): SimResult {
@@ -30,6 +30,7 @@ function emptyResult(r: Route, reason: string): SimResult {
     id: r.id,
     pax: 0,
     tons: 0,
+    cargoRev: 0,
     paxJ: 0,
     rev: 0,
     fuel: 0,
@@ -138,6 +139,10 @@ export function simRoute(s: GameState, r: Route): SimResult {
   rev += pax * price;
   rev *= fxRevenueFactor(s, r);
 
+  // carga no porão (divisão Cargas): parte da demanda de carga do par, pela participação da rota
+  const belly = hasCargoDivision(s) ? bellyCargo(s, r, active, share) : { tons: 0, rev: 0 };
+  rev += belly.rev;
+
   const fc = flightCosts(s, r, active);
 
   return {
@@ -147,7 +152,9 @@ export function simRoute(s: GameState, r: Route): SimResult {
     rev,
     fuel: fc.fuel,
     crew: fc.crew,
-    fees: (pax + paxJ) * (intl ? FEE_INTL : FEE_DOMESTIC) * fxFeeFactor(s, r),
+    tons: belly.tons,
+    cargoRev: belly.rev,
+    fees: ((pax + paxJ) * (intl ? FEE_INTL : FEE_DOMESTIC) + belly.tons * CARGO_HANDLING) * fxFeeFactor(s, r),
     svc: pax * svc.cost + paxJ * svc.cost * SERVICE_J_MULT,
     share,
     lf: (pax + paxJ) / (capY + capJ),
@@ -157,6 +164,22 @@ export function simRoute(s: GameState, r: Route): SimResult {
     freq,
     overlap,
   };
+}
+
+/** fração da demanda de carga do par que vai no porão (o resto: cargueiros e concorrência) */
+export const BELLY_DEMAND_SHARE = 0.5;
+/** o frete do porão sai mais barato que o do cargueiro */
+export const BELLY_FARE_FACTOR = 0.8;
+
+/** Carga no porão de uma rota de passageiros: toneladas e receita do dia. */
+function bellyCargo(s: GameState, r: Route, active: Active, share: number): { tons: number; rev: number } {
+  let cap = 0;
+  for (const { p, freq } of active) cap += (MODELS[p.model].belly ?? 0) * freq * 2;
+  if (cap <= 0) return { tons: 0, rev: 0 };
+  const demand =
+    cargoDemand(r.from, r.to, r.dist) * BELLY_DEMAND_SHARE * share * modVal(s, 'cargo') * seasonality(s.day);
+  const tons = Math.round(Math.min(cap, demand) * 10) / 10;
+  return { tons, rev: tons * cargoFair(r.from, r.to, r.dist) * BELLY_FARE_FACTOR * fxRevenueFactor(s, r) };
 }
 
 /**
@@ -192,6 +215,7 @@ function simCargo(s: GameState, r: Route, active: Active): SimResult {
     ...emptyResult(r, ''),
     tons,
     rev: tons * price * fxRevenueFactor(s, r),
+    cargoRev: tons * price * fxRevenueFactor(s, r),
     fuel: fc.fuel,
     crew: fc.crew,
     fees: tons * CARGO_HANDLING * fxFeeFactor(s, r),

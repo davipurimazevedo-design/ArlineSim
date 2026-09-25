@@ -67,6 +67,13 @@ const MIGRATIONS: Record<number, (g: Raw) => Raw> = {
         ? { cargo: 0, contracts: 0, tons: 0, ...(g.lastDay as Raw) }
         : null,
   }),
+  // v10 → v11: idade dos aviões (conta do dia em que entraram na frota) e mercado de usados
+  10: (g) => ({
+    ...g,
+    fleet: list(g.fleet).map((p) => ({ ...p, built: typeof p.built === 'number' ? p.built : p.since })),
+    usedMarket: Array.isArray(g.usedMarket) ? g.usedMarket : [],
+    nextUsedMarket: typeof g.nextUsedMarket === 'number' ? g.nextUsedMarket : 0,
+  }),
 };
 
 /** Valida e migra um save cru. Devolve null se não for aproveitável. */

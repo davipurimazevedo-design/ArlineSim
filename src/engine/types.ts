@@ -70,6 +70,8 @@ export interface AircraftModel {
   cargo?: number;
   /** base do custo de manutenção quando difere do preço (avião convertido e antigo, que custa pouco e gasta muito) */
   maintBase?: number;
+  /** carga no porão por voo e sentido, em toneladas (rotas de passageiros com a divisão Cargas) */
+  belly?: number;
 }
 
 export interface License {
@@ -111,6 +113,10 @@ export interface Plane {
   hours: number;
   /** dia em que entrou na frota */
   since: number;
+  /** dia de fabricação (negativo para usados fabricados antes do começo do jogo) */
+  built: number;
+  /** leasing diário próprio (arrendamento de usado); sem ele, vale o do modelo */
+  lease?: number;
   /** financiamento em aberto (só em aeronave própria) */
   loan?: PlaneLoan;
 }
@@ -239,6 +245,10 @@ export interface GameState {
   codeshare: boolean;
   /** contratos de carga em vigor */
   contracts: CargoContract[];
+  /** aviões usados à venda (lista renovada a cada 30 dias) */
+  usedMarket: UsedOffer[];
+  /** dia da próxima lista de usados */
+  nextUsedMarket: number;
   /** proposta de contrato aguardando resposta */
   cargoOffer: CargoContract | null;
   /** dia da próxima proposta de contrato (divisão Cargas) */
@@ -261,6 +271,18 @@ export interface GameState {
   speed: Speed;
   savedAt: number;
   gameOver: boolean;
+}
+
+/** Avião usado à venda no Mercado. */
+export interface UsedOffer {
+  id: string;
+  model: ModelKey;
+  /** dia de fabricação */
+  built: number;
+  condition: number;
+  price: number;
+  /** leasing diário do usado */
+  lease: number;
 }
 
 /** Contrato de carga: receita fixa por dia enquanto houver capacidade no par. */
@@ -289,8 +311,10 @@ export interface CargoContract {
 export interface SimResult {
   id: string;
   pax: number;
-  /** toneladas transportadas (rota de carga) */
+  /** toneladas transportadas (rota de carga ou porão) */
   tons: number;
+  /** parte da receita que é frete (rota de carga inteira; porão numa rota de passageiros) */
+  cargoRev: number;
   paxJ: number;
   rev: number;
   fuel: number;

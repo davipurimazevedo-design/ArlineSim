@@ -8,7 +8,7 @@ import {
   CONTRACT_GRACE,
   fmtMoney,
   maintCostFor,
-  MODELS,
+  planeLease,
   type ModType,
   type Tone,
 } from '../../engine';
@@ -90,7 +90,7 @@ export function Painel() {
         k: 'i' + p.id,
         tone: 'bad',
         text: `${p.reg} parado sem rota`,
-        sub: p.owned ? 'avião ocioso' : `leasing de ${fmtMoney(MODELS[p.model].lease)}/dia sem voar`,
+        sub: p.owned ? 'avião ocioso' : `leasing de ${fmtMoney(planeLease(p))}/dia sem voar`,
         btn: (
           <Btn small onClick={() => setTab('rotas')}>
             Escalar

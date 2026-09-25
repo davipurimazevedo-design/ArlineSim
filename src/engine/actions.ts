@@ -19,7 +19,15 @@ import {
 import { addLog, changeRep, findPlane, setFlag, unassignPlane } from './helpers';
 import { rivalsFor } from './rivals';
 import { hasRegionalCert, maxFreqFor, modelAllowed, rules, slotCostFor } from './rules';
-import { FINANCE_TERMS, financedBalance, financeLimit, financeQuote, type FinanceTerm } from './finance';
+import {
+  FINANCE_TERMS,
+  financedBalance,
+  financeLimit,
+  financeQuote,
+  financeQuoteFor,
+  type FinanceTerm,
+} from './finance';
+import { ageValueFactor, ageYears } from './aging';
 import { CODESHARE_COST, CODESHARE_PARTNER, hasIntlDivision } from './international';
 import { COMPETITORS } from './data/competitors';
 import { DIVISIONS } from './data/divisions';
@@ -39,6 +47,7 @@ import type {
   Route,
   RouteKind,
   ServiceLevel,
+  UsedOffer,
 } from './types';
 
 const REG_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // sem I e O
@@ -53,19 +62,21 @@ export function newReg(s: GameState): string {
   return r;
 }
 
-function addPlane(s: GameState, model: ModelKey, owned: boolean): Plane {
+function addPlane(s: GameState, model: ModelKey, owned: boolean, used?: UsedOffer): Plane {
   const p: Plane = {
     id: uid(s),
     reg: newReg(s),
     model,
     owned,
-    condition: 100,
+    condition: used?.condition ?? 100,
     maint: 0,
     restore: true,
     cabin: 0,
     hours: 0,
     since: s.day,
+    built: used?.built ?? s.day,
   };
+  if (used && !owned) p.lease = used.lease;
   s.fleet.push(p);
   return p;
 }
@@ -74,8 +85,9 @@ export function leaseDeposit(model: ModelKey): number {
   return MODELS[model].lease * LEASE_DEPOSIT_DAYS;
 }
 
-export function buyoutCost(p: Plane): number {
-  return Math.round(MODELS[p.model].price * BUYOUT_FACTOR);
+/** Compra de um arrendado: 90% do preço do novo, descontada a idade (usado arrendado sai mais barato). */
+export function buyoutCost(p: Plane, day = p.built): number {
+  return Math.round(MODELS[p.model].price * BUYOUT_FACTOR * ageValueFactor(ageYears(p, day)));
 }
 
 /** Por que a companhia não pode ter essa aeronave (null = pode). */
@@ -132,6 +144,64 @@ export function finance(s: GameState, model: ModelKey, days: FinanceTerm): Actio
   return null;
 }
 
+// ---------------------------------------------------------------- usados
+
+function takeUsed(s: GameState, offerId: string): UsedOffer | string {
+  const o = s.usedMarket.find((x) => x.id === offerId);
+  if (!o) return 'Essa oferta não está mais disponível.';
+  return acquireBlock(s, o.model) ?? o;
+}
+
+function usedLabel(s: GameState, o: UsedOffer): string {
+  return `${MODELS[o.model].name} usado (${Math.round(ageYears(o, s.day))} anos)`;
+}
+
+export function usedDeposit(o: UsedOffer): number {
+  return o.lease * LEASE_DEPOSIT_DAYS;
+}
+
+export function buyUsed(s: GameState, offerId: string): ActionResult {
+  const o = takeUsed(s, offerId);
+  if (typeof o === 'string') return o;
+  if (s.cash < o.price) return 'Caixa insuficiente.';
+  s.cash -= o.price;
+  const p = addPlane(s, o.model, true, o);
+  s.usedMarket = s.usedMarket.filter((x) => x.id !== o.id);
+  addLog(s, `${usedLabel(s, o)} ${p.reg} comprado.`, 'good');
+  return null;
+}
+
+export function leaseUsed(s: GameState, offerId: string): ActionResult {
+  const o = takeUsed(s, offerId);
+  if (typeof o === 'string') return o;
+  const dep = usedDeposit(o);
+  if (s.cash < dep) return 'Caixa insuficiente para o depósito.';
+  s.cash -= dep;
+  const p = addPlane(s, o.model, false, o);
+  s.usedMarket = s.usedMarket.filter((x) => x.id !== o.id);
+  addLog(s, `${usedLabel(s, o)} ${p.reg} arrendado.`, 'info');
+  return null;
+}
+
+/** Usado financiado: só em 3 ou 5 anos. */
+export const USED_FINANCE_TERMS: FinanceTerm[] = [1095, 1825];
+
+export function financeUsed(s: GameState, offerId: string, days: FinanceTerm): ActionResult {
+  const o = takeUsed(s, offerId);
+  if (typeof o === 'string') return o;
+  if (!USED_FINANCE_TERMS.includes(days)) return 'Usados financiam em 3 ou 5 anos.';
+  const q = financeQuoteFor(o.price, days);
+  if (financedBalance(s) + q.principal > financeLimit(s))
+    return `Limite de financiamento atingido (${fmtMoney(financeLimit(s))}).`;
+  if (s.cash < q.down) return 'Caixa insuficiente para a entrada.';
+  s.cash -= q.down;
+  const p = addPlane(s, o.model, true, o);
+  p.loan = { balance: q.principal, payment: q.payment, left: days };
+  s.usedMarket = s.usedMarket.filter((x) => x.id !== o.id);
+  addLog(s, `${usedLabel(s, o)} ${p.reg} financiado em ${Math.round(days / 365)} anos.`, 'good');
+  return null;
+}
+
 /** Quitar o saldo devedor de um avião financiado. */
 export function payoffLoan(s: GameState, id: string): ActionResult {
   const p = findPlane(s, id);
@@ -148,10 +218,11 @@ export function payoffLoan(s: GameState, id: string): ActionResult {
 export function buyOut(s: GameState, id: string): ActionResult {
   const p = findPlane(s, id);
   if (!p || p.owned) return 'Inválido.';
-  const cost = buyoutCost(p);
+  const cost = buyoutCost(p, s.day);
   if (s.cash < cost) return 'Caixa insuficiente.';
   s.cash -= cost;
   p.owned = true;
+  delete p.lease;
   addLog(s, `${p.reg} agora é próprio.`, 'good');
   return null;
 }
@@ -161,7 +232,7 @@ export function release(s: GameState, id: string): ActionResult {
   const p = findPlane(s, id);
   if (!p) return 'Inválido.';
   // avião financiado: a venda quita o saldo primeiro
-  const net = p.owned ? planeValue(p) - (p.loan?.balance ?? 0) : 0;
+  const net = p.owned ? planeValue(p, s.day) - (p.loan?.balance ?? 0) : 0;
   if (s.cash + net < 0) return 'A venda não cobre o saldo do financiamento.';
   s.cash += net;
   unassignPlane(s, id);

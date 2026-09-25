@@ -8,6 +8,8 @@ import {
   maintDaysFor,
   MODELS,
   planeValue,
+  ageYears,
+  planeLease,
   seatsOf,
   rules,
   CABINS,
@@ -71,14 +73,15 @@ export function Frota() {
               const m = MODELS[p.model];
               const r = routeOfPlane(g, p.id);
               const st = p.maint > 0 ? 'mid' : p.condition < 40 ? 'bad' : !r ? 'bad' : 'good';
-              const buyout = buyoutCost(p);
-              const value = planeValue(p);
+              const buyout = buyoutCost(p, g.day);
+              const value = planeValue(p, g.day);
+              const years = Math.floor(ageYears(p, g.day));
               return (
                 <tr key={p.id} className={`row s-${st}${i % 2 ? ' zebra' : ''}`}>
                   <td>
                     <b>{p.reg}</b>
                     <small>
-                      {m.name} ·{' '}
+                      {m.name} · {years} {years === 1 ? 'ano' : 'anos'} ·{' '}
                       {m.cargo
                         ? `${fmtDec(m.cargo)} t de carga`
                         : `${seatsOf(p, rules(g).seatFactor).y + seatsOf(p).j} assentos`}
@@ -118,8 +121,8 @@ export function Frota() {
                       </>
                     ) : (
                       <>
-                        <b className="num">{fmtMoney(m.lease)}/dia</b>
-                        <small>leasing</small>
+                        <b className="num">{fmtMoney(planeLease(p))}/dia</b>
+                        <small>leasing{p.lease ? ' de usado' : ''}</small>
                       </>
                     )}
                   </td>

@@ -1,4 +1,6 @@
-import { MODELS } from './data/aircraft';
+import { MODEL_KEYS, MODELS } from './data/aircraft';
+import { acquireBlock } from './actions';
+import { ageWearFactor, generateUsedMarket, planeLease, USED_REFRESH_DAYS } from './aging';
 import { EVENT_GAP_MIN, EVENT_GAP_SPREAD, pickEvent } from './events';
 import { checkGoals } from './goals';
 import { payInstallment } from './finance';
@@ -57,8 +59,8 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
   for (const r of s.routes) {
     const x = simRoute(s, r);
     byRoute.set(r.id, x);
-    if (r.kind === 'cargo') day.cargo += x.rev;
-    else day.rev += x.rev;
+    day.cargo += x.cargoRev;
+    day.rev += x.rev - x.cargoRev;
     day.tons += x.tons;
     day.fuel += x.fuel;
     day.crew += x.crew;
@@ -86,7 +88,7 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
   // 5–6. frota: leasing, manutenção, desgaste, panes
   for (const p of s.fleet) {
     const m = MODELS[p.model];
-    if (!p.owned) day.lease += m.lease;
+    if (!p.owned) day.lease += planeLease(p);
     if (p.loan) {
       day.loans += payInstallment(p);
       if (!p.loan) addLog(s, `Financiamento do ${p.reg} quitado.`, 'good');
@@ -102,7 +104,7 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
     const r = routeOfPlane(s, p.id);
     const h = (r && byRoute.get(r.id)?.planeHours[p.id]) ?? 0;
     if (h > 0) {
-      p.condition = clamp(p.condition - h * m.wearH * modVal(s, 'wear'), 0, 100);
+      p.condition = clamp(p.condition - h * m.wearH * modVal(s, 'wear') * ageWearFactor(p, s.day), 0, 100);
       p.hours += h;
     }
     if (p.condition < 25 && chance(s, 0.06)) {
@@ -115,8 +117,15 @@ export function tick(s: GameState, opts: TickOptions = {}): void {
     }
   }
 
-  // 6b. contratos de carga
+  // 6b. contratos de carga e lista de usados
   day.contracts = processContracts(s);
+  if (s.day >= s.nextUsedMarket) {
+    s.usedMarket = generateUsedMarket(
+      s,
+      MODEL_KEYS.filter((k) => !acquireBlock(s, k)),
+    );
+    s.nextUsedMarket = s.day + USED_REFRESH_DAYS;
+  }
 
   // 7. custos fixos
   day.slots = s.slots.reduce((a, c) => a + slotFeeFor(s, c), 0);

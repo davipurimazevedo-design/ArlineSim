@@ -17,6 +17,8 @@ export * as actions from './actions';
 export {
   leaseDeposit,
   buyoutCost,
+  usedDeposit,
+  USED_FINANCE_TERMS,
   routeExists,
   acquireBlock,
   kindMismatch,
@@ -33,6 +35,7 @@ export * from './international';
 export * from './cargo';
 export * from './contracts';
 export * from './onboarding';
+export * from './aging';
 export { CARGO_CLIENTS, CARGO_CLIENTS_BY_ID, type CargoClient } from './data/cargoClients';
 export { DIVISIONS, DIVISION_IDS, type Division } from './data/divisions';
 export {

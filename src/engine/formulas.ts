@@ -1,6 +1,7 @@
 import { AIRPORTS } from './data/airports';
 import { MODELS } from './data/aircraft';
 import { CABINS } from './data/cabins';
+import { ageValueFactor, ageYears, planeLease } from './aging';
 import { fmtInt } from './format';
 import type { AircraftModel, AirportCode, GameState, ModType, ModelKey, Plane } from './types';
 
@@ -114,20 +115,21 @@ export function maintDays(p: Plane): number {
   return 2 + Math.ceil((100 - p.condition) / 20);
 }
 
-/** Valor de revenda. */
-export function planeValue(p: Plane): number {
-  return MODELS[p.model].price * 0.6 * (0.5 + p.condition / 200);
+/** Valor de revenda. Com o dia, desconta a idade (Fase 4); sem ele, vale o avião como novo. */
+export function planeValue(p: Plane, day?: number): number {
+  const age = day === undefined ? 1 : ageValueFactor(ageYears(p, day));
+  return MODELS[p.model].price * 0.6 * (0.5 + p.condition / 200) * age;
 }
 
 export function leaseCost(p: Plane): number {
-  return p.owned ? 0 : MODELS[p.model].lease;
+  return p.owned ? 0 : planeLease(p);
 }
 
 export function creditLimit(s: GameState): number {
   // só conta o que já é da companhia: valor do avião menos o saldo financiado
   const owned = s.fleet
     .filter((p) => p.owned)
-    .reduce((a, p) => a + Math.max(0, planeValue(p) - (p.loan?.balance ?? 0)), 0);
+    .reduce((a, p) => a + Math.max(0, planeValue(p, s.day) - (p.loan?.balance ?? 0)), 0);
   return Math.round((10e6 + owned * 0.5) / 1e6) * 1e6;
 }
 

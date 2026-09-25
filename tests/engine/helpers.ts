@@ -25,6 +25,7 @@ export function addTestPlane(s: GameState, model: ModelKey = 'AT7', extra: Parti
     cabin: 0,
     hours: 0,
     since: s.day,
+    built: s.day,
     ...extra,
   };
   s.fleet.push(p);

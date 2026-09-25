@@ -3,6 +3,7 @@ import { AIRPORTS } from './data/airports';
 import { maintCost, maintDays } from './formulas';
 import { routeOfPlane } from './helpers';
 import { isForeign } from './international';
+import { ageMaintFactor } from './aging';
 import { rules } from './rules';
 import type { AirportCode, GameState, Plane, Route } from './types';
 
@@ -61,7 +62,7 @@ export function planeAtHub(s: GameState, p: Plane): boolean {
 
 /** Custo de manutenção, com desconto na base. */
 export function maintCostFor(s: GameState, p: Plane): number {
-  const c = maintCost(p);
+  const c = Math.round((maintCost(p) * ageMaintFactor(p, s.day)) / 1000) * 1000;
   return planeAtHub(s, p) ? Math.round((c * HUB_MAINT_COST_FACTOR) / 1000) * 1000 : c;
 }
 
