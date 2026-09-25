@@ -1,5 +1,6 @@
 import { useRef, useSyncExternalStore } from 'react';
 import { useGame, useGameState } from '../../store/gameStore';
+import { applyUpdate } from '../../store/pwa';
 import { parseSaveFile, saveFileName, serializeSave } from '../../store/saveFile';
 import { Btn } from '../components/Btn';
 import { Icon } from '../components/Icon';
@@ -27,6 +28,7 @@ function Panel() {
   const notify = useGame((s) => s.notify);
   const importGame = useGame((s) => s.importGame);
   const reset = useGame((s) => s.reset);
+  const updateReady = useGame((s) => s.updateReady);
   const theme = useGame((s) => s.theme);
   const setTheme = useGame((s) => s.setTheme);
   const sysDark = useSyncExternalStore(subscribeScheme, systemDark);
@@ -129,6 +131,19 @@ function Panel() {
           >
             Fundar outra companhia
           </Btn>
+        </section>
+
+        <section>
+          <h4>Instalar e jogar offline</h4>
+          <p className="note">
+            No celular, use "Adicionar à tela inicial" no menu do navegador; no computador, o ícone de
+            instalar na barra de endereço. Depois da primeira visita, o jogo abre sem internet.
+          </p>
+          {updateReady && (
+            <Btn kind="primary" onClick={applyUpdate}>
+              Atualizar para a versão nova
+            </Btn>
+          )}
         </section>
 
         <p className="menu-version">Asa Norte · versão {__APP_VERSION__}</p>

@@ -5,6 +5,7 @@ import { Toast } from './ui/components/Toast';
 import { Footer } from './ui/layout/Footer';
 import { Tabs } from './ui/layout/Tabs';
 import { TopBar } from './ui/layout/TopBar';
+import { UpdateBanner } from './ui/layout/UpdateBanner';
 import { EventCard } from './ui/overlays/EventCard';
 import { GameMenu } from './ui/overlays/GameMenu';
 import { GameOver } from './ui/overlays/GameOver';
@@ -48,6 +49,7 @@ export function App() {
         <View />
       </main>
       <Footer />
+      <UpdateBanner />
       <EventCard />
       <ResultCard />
       <OfflineSummary />

@@ -15,6 +15,7 @@ import './ui/overlays/overlays.css';
 import { App } from './App';
 import { useGame } from './store/gameStore';
 import { startLoop } from './store/loop';
+import { registerServiceWorker } from './store/pwa';
 
 // depuração: acesso ao store pelo console apenas em desenvolvimento
 if (import.meta.env.DEV) (window as unknown as { __store: typeof useGame }).__store = useGame;
@@ -30,3 +31,5 @@ createRoot(document.getElementById('root')!).render(
 
 void useGame.getState().boot();
 startLoop();
+// o service worker só existe no build; no `npm run dev` atrapalharia a recarga dos módulos
+if (import.meta.env.PROD) registerServiceWorker();

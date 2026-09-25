@@ -44,6 +44,8 @@ interface Store {
   theme: Theme | null;
   /** menu "Jogo" aberto (pausa o jogo) */
   menu: boolean;
+  /** há uma versão nova do jogo instalada, esperando o jogador atualizar (PWA) */
+  updateReady: boolean;
 
   boot: () => Promise<void>;
   start: (name: string, hub: AirportCode, model?: BusinessModelId) => void;
@@ -87,6 +89,7 @@ export const useGame = create<Store>()(
     confirm: null,
     theme: loadTheme(),
     menu: false,
+    updateReady: false,
 
     boot: async () => {
       const g = await loadGame();
