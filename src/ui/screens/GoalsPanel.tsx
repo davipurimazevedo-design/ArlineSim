@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { fmtInt, fmtMoney, GOALS, pendingGoals, type Progress } from '../../engine';
+import { fmtInt, fmtMoney, pendingGoals, visibleGoals, type Progress } from '../../engine';
 import { useGameState } from '../../store/gameStore';
 import { Bar } from '../components/Bar';
 import { Empty } from '../components/Empty';
@@ -18,16 +18,17 @@ export function GoalsPanel() {
   const g = useGameState();
   const [showDone, setShowDone] = useState(false);
   const next = pendingGoals(g).slice(0, NEXT);
-  const done = GOALS.filter((x) => g.achievements[x.id] !== undefined).sort(
-    (a, b) => g.achievements[b.id]! - g.achievements[a.id]!,
-  );
+  const goals = visibleGoals(g);
+  const done = goals
+    .filter((x) => g.achievements[x.id] !== undefined)
+    .sort((a, b) => g.achievements[b.id]! - g.achievements[a.id]!);
 
   return (
     <div className="panel span2">
       <div className="goals-head">
         <h2>Objetivos</h2>
         <small>
-          {done.length} de {GOALS.length} conquistas
+          {done.length} de {goals.length} conquistas
         </small>
         {done.length > 0 && (
           <button

@@ -6,7 +6,7 @@ import { CARGO_CLIENTS, CARGO_CLIENTS_BY_ID, type CargoClient } from './data/car
 import { REGIONAL_MAX_KM } from './data/licenses';
 import { fmtDec, fmtMoney } from './format';
 import { dist } from './formulas';
-import { addLog, changeRep } from './helpers';
+import { addLog, changeRep, setFlag } from './helpers';
 import { randInt, randRange, uid } from './rng';
 import { rules } from './rules';
 import type { AirportCode, CargoContract, GameState } from './types';
@@ -144,6 +144,7 @@ export function processContracts(s: GameState): number {
     if (s.day >= contractEnd(c)) {
       s.contracts = s.contracts.filter((k) => k.id !== c.id);
       changeRep(s, CONTRACT_DONE_REP);
+      setFlag(s, 'contrato_cumprido');
       addLog(s, `Contrato com a ${clientName(c)} cumprido.`, 'good');
     }
   }

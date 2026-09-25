@@ -19,6 +19,7 @@ export function EventCard() {
 function Card({ e }: { e: GameEvent }) {
   const decide = useGame((s) => s.decide);
   const day = useGame((s) => s.game?.day ?? 1);
+  const text = useGame((s) => (s.game && e.textFor ? e.textFor(s.game) : e.text));
   const [dx, setDx] = useState(0);
   const [drag, setDrag] = useState(false);
   const start = useRef(0);
@@ -84,7 +85,7 @@ function Card({ e }: { e: GameEvent }) {
             <h3 id="ev-title">{e.title}</h3>
           </div>
         </div>
-        <p id="ev-text">{e.text}</p>
+        <p id="ev-text">{text}</p>
         <div className="perf" />
         <div className="ticket-stub">
           <div className={side === 'L' ? 'hot' : ''}>

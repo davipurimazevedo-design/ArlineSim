@@ -175,7 +175,12 @@ function simCargo(s: GameState, r: Route, active: Active): SimResult {
   }
   if (cap <= 0) return emptyResult(r, 'Sem cargueiro');
   const overlap = overlapFactor(s, r);
-  const demand = cargoDemand(r.from, r.to, r.dist) * modVal(s, 'demand') * seasonality(s.day) * overlap;
+  const demand =
+    cargoDemand(r.from, r.to, r.dist) *
+    modVal(s, 'demand') *
+    modVal(s, 'cargo') *
+    seasonality(s.day) *
+    overlap;
   const fair = cargoFair(r.from, r.to, r.dist);
   const price = r.price * modVal(s, 'fare');
   const q = 0.8 + 0.4 * (condW / cap / 100);

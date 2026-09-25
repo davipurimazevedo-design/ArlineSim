@@ -39,9 +39,9 @@ function run(id: string, side: Side, seed = 1) {
 const mod = (s: GameState, type: string) => s.mods.find((m) => m.type === type);
 
 describe('catálogo', () => {
-  it('tem 30 eventos com ids únicos, começando pelos 12 do protótipo', () => {
-    expect(EVENTS).toHaveLength(30);
-    expect(new Set(EVENTS.map((e) => e.id)).size).toBe(30);
+  it('tem 50 eventos com ids únicos, começando pelos 12 do protótipo', () => {
+    expect(EVENTS).toHaveLength(50);
+    expect(new Set(EVENTS.map((e) => e.id)).size).toBe(50);
     expect(EVENTS.slice(0, 12).map((e) => e.id)).toEqual([
       'greve',
       'querosene',

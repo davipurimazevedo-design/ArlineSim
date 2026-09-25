@@ -9,9 +9,10 @@ const prog = (id: string, s: Parameters<(typeof GOALS)[number]['progress']>[0]) 
   GOALS_BY_ID[id]!.progress(s);
 
 describe('objetivos', () => {
-  it('18 objetivos com ids únicos e prêmio só em reputação (1 a 4)', () => {
-    expect(GOALS).toHaveLength(18);
-    expect(new Set(GOALS.map((g) => g.id)).size).toBe(18);
+  it('34 objetivos (18 gerais e 16 por modelo ou divisão) com ids únicos e prêmio só em reputação (1 a 4)', () => {
+    expect(GOALS).toHaveLength(34);
+    expect(GOALS.filter((g) => !g.show)).toHaveLength(18);
+    expect(new Set(GOALS.map((g) => g.id)).size).toBe(34);
     for (const g of GOALS) {
       expect(g.rep).toBeGreaterThanOrEqual(1);
       expect(g.rep).toBeLessThanOrEqual(4);

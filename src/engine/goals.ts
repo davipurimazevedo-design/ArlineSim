@@ -6,9 +6,14 @@ export function isDone(p: Progress): boolean {
   return p.cur >= p.target;
 }
 
+/** Objetivos que valem para a companhia (modelo e divisões) ou que ela já cumpriu. */
+export function visibleGoals(s: GameState): Goal[] {
+  return GOALS.filter((g) => !g.show || g.show(s) || s.achievements[g.id] !== undefined);
+}
+
 /** Objetivos ainda não cumpridos, na ordem de progressão. */
 export function pendingGoals(s: GameState): Goal[] {
-  return GOALS.filter((g) => s.achievements[g.id] === undefined);
+  return visibleGoals(s).filter((g) => s.achievements[g.id] === undefined);
 }
 
 /**

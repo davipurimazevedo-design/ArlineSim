@@ -1,6 +1,6 @@
-# Eventos e objetivos da Fase 3 — rascunho para revisão
+# Eventos e objetivos da Fase 3 — aprovados em 2026-09-24 (implementados em src/engine/data/modelEvents.ts e data/goals.ts)
 
-Rascunho de 2026-09-24. Nada disto está implementado. Pode editar este arquivo direto: rótulos, textos, desfechos e efeitos.
+Aprovados sem mudanças. Detalhes da implementação: a cidade de {cidade} é a mais próxima do hub que cumpre o porte (a mesma no texto e no efeito); "Pista alagada" só sai com rota voando para um aeroporto de pista não pavimentada; "Cliente fiel" usa a marca `contrato_cumprido`.
 
 São 20 eventos novos (4 por modelo de negócio e 4 por divisão) e 16 objetivos novos. Cada evento **só pode sair** para quem tem aquele modelo ou divisão, então nenhuma companhia vê todos. Seguem a mesma regra de hoje: aleatórios, com intervalo entre eventos e sem repetir o mesmo evento em pouco tempo.
 

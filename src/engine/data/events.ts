@@ -6,6 +6,7 @@ import { slotCostFor } from '../rules';
 import { addMod, changeRep, hitFleet, scaleCost, setFlag } from '../helpers';
 import { chance } from '../rng';
 import { MORE_EVENTS } from './moreEvents';
+import { MODEL_EVENTS } from './modelEvents';
 import type { AirportCode, GameEvent, GameState, Plane } from '../types';
 
 const firstAvailable = (s: GameState): Plane | undefined => s.fleet.find((p) => !p.maint);
@@ -327,6 +328,6 @@ const BASE_EVENTS: GameEvent[] = [
   },
 ];
 
-export const EVENTS: GameEvent[] = [...BASE_EVENTS, ...MORE_EVENTS];
+export const EVENTS: GameEvent[] = [...BASE_EVENTS, ...MORE_EVENTS, ...MODEL_EVENTS];
 
 export const EVENTS_BY_ID: Record<string, GameEvent> = Object.fromEntries(EVENTS.map((e) => [e.id, e]));

@@ -27,6 +27,7 @@ const MOD_LABEL: Record<ModType, string> = {
   halt: 'Operações suspensas',
   wear: 'Desgaste',
   fare: 'Tarifas',
+  cargo: 'Demanda de carga',
 };
 
 const TONE_DOT: Record<Tone, string> = {

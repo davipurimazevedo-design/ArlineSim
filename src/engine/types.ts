@@ -83,8 +83,8 @@ export interface Service {
   q: number;
 }
 
-/** fare: multiplica as tarifas cobradas (as definidas pelo jogador não mudam) */
-export type ModType = 'fuel' | 'demand' | 'salary' | 'share' | 'halt' | 'wear' | 'fare';
+/** fare: multiplica as tarifas cobradas (as definidas pelo jogador não mudam); cargo: demanda das rotas de carga */
+export type ModType = 'fuel' | 'demand' | 'salary' | 'share' | 'halt' | 'wear' | 'fare' | 'cargo';
 
 export interface Modifier {
   type: ModType;
@@ -334,6 +334,8 @@ export interface GameEvent {
   icon: EventIcon;
   title: string;
   text: string;
+  /** texto que depende do estado (por exemplo, o nome de uma cidade); sem ele, vale `text` */
+  textFor?: (s: GameState) => string;
   need?: (s: GameState) => boolean;
   /** evento sazonal: só elegível entre estes dias do ano (1–365, inclusive) */
   window?: [number, number];
