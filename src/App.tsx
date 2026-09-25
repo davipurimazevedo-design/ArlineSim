@@ -39,6 +39,7 @@ export function App() {
     return (
       <>
         <NewGame />
+        <UpdateBanner />
         <Toast />
       </>
     );
