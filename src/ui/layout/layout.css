@@ -226,3 +226,24 @@
   width: max-content;
   max-width: calc(100% - 32px);
 }
+
+/* tutorial: destaque pulsante no passo atual (body[data-tut] = alvo) */
+body[data-tut='rotas'] [data-tut-target='rotas'],
+body[data-tut='frota'] [data-tut-target='frota'],
+body[data-tut='nova-rota'] [data-tut-target='nova-rota'],
+body[data-tut='velocidade'] [data-tut-target='velocidade'] {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+  animation: tut-pulse 1.6s ease-in-out infinite;
+}
+@keyframes tut-pulse {
+  50% {
+    outline-color: transparent;
+    outline-offset: 5px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-tut] [data-tut-target] {
+    animation: none;
+  }
+}

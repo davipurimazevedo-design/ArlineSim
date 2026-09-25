@@ -178,6 +178,7 @@ export function maintain(s: GameState, id: string): ActionResult {
   s.cash -= c;
   p.maint = maintDaysFor(s, p);
   p.restore = true;
+  setFlag(s, 'tut_manut');
   addLog(s, `${p.reg} entrou em manutenção por ${p.maint} dias.`, 'warn');
   return null;
 }
@@ -392,6 +393,7 @@ export interface RoutePatch {
 export function updateRoute(s: GameState, id: string, patch: RoutePatch): ActionResult {
   const r = s.routes.find((r) => r.id === id);
   if (!r) return 'Inválido.';
+  if (patch.price !== undefined || patch.priceJ !== undefined) setFlag(s, 'tut_ajuste');
   if (patch.price !== undefined) r.price = clamp(Math.round(patch.price), 50, 50000);
   if (patch.priceJ !== undefined) r.priceJ = clamp(Math.round(patch.priceJ), 100, 150000);
   if (patch.service !== undefined) {
@@ -436,6 +438,7 @@ export function setPlaneFreq(s: GameState, routeId: string, planeId: string, fre
   const p = findPlane(s, planeId);
   if (!r || !x || !p) return 'Inválido.';
   x.freq = clamp(Math.round(freq), 1, Math.max(1, maxFreqFor(s, p.model, r.dist)));
+  setFlag(s, 'tut_ajuste');
   return null;
 }
 

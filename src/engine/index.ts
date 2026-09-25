@@ -32,6 +32,7 @@ export * from './finance';
 export * from './international';
 export * from './cargo';
 export * from './contracts';
+export * from './onboarding';
 export { CARGO_CLIENTS, CARGO_CLIENTS_BY_ID, type CargoClient } from './data/cargoClients';
 export { DIVISIONS, DIVISION_IDS, type Division } from './data/divisions';
 export {

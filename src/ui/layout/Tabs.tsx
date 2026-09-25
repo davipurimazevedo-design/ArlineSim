@@ -17,7 +17,13 @@ export function Tabs() {
   return (
     <nav className="tabs" aria-label="Seções">
       {TABS.map(([k, label, icon]) => (
-        <button key={k} type="button" aria-current={tab === k ? 'page' : undefined} onClick={() => setTab(k)}>
+        <button
+          key={k}
+          type="button"
+          aria-current={tab === k ? 'page' : undefined}
+          onClick={() => setTab(k)}
+          data-tut-target={k}
+        >
           <Icon n={icon} size={18} />
           <span>{label}</span>
           {k === 'frota' && alerts > 0 && <em aria-label={`${alerts} com condição baixa`}>{alerts}</em>}

@@ -45,7 +45,12 @@ export function Rotas() {
             onChange={setFilter}
           />
         )}
-        <Btn kind="primary" onClick={() => setAdding(!adding)} aria-expanded={adding}>
+        <Btn
+          kind="primary"
+          onClick={() => setAdding(!adding)}
+          aria-expanded={adding}
+          data-tut-target="nova-rota"
+        >
           {adding ? 'Cancelar' : 'Nova rota'}
         </Btn>
       </div>

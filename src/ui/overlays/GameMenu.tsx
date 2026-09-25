@@ -1,4 +1,5 @@
 import { useRef, useSyncExternalStore } from 'react';
+import { restartTutorial } from '../../engine';
 import { useGame, useGameState } from '../../store/gameStore';
 import { applyUpdate } from '../../store/pwa';
 import { parseSaveFile, saveFileName, serializeSave } from '../../store/saveFile';
@@ -29,6 +30,8 @@ function Panel() {
   const importGame = useGame((s) => s.importGame);
   const reset = useGame((s) => s.reset);
   const updateReady = useGame((s) => s.updateReady);
+  const act = useGame((s) => s.act);
+  const setTab = useGame((s) => s.setTab);
   const theme = useGame((s) => s.theme);
   const setTheme = useGame((s) => s.setTheme);
   const sysDark = useSyncExternalStore(subscribeScheme, systemDark);
@@ -112,6 +115,20 @@ function Panel() {
             ]}
             onChange={setTheme}
           />
+        </section>
+
+        <section>
+          <h4>Tutorial</h4>
+          <p className="note">Mostra de novo o roteiro de primeiros passos no Painel.</p>
+          <Btn
+            onClick={() => {
+              act((s) => restartTutorial(s));
+              setTab('painel');
+              close();
+            }}
+          >
+            Refazer o tutorial
+          </Btn>
         </section>
 
         <section>

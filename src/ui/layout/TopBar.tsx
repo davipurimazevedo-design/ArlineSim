@@ -62,7 +62,7 @@ export function TopBar() {
           </div>
         )}
       </div>
-      <div className="speed" role="group" aria-label="Velocidade">
+      <div className="speed" role="group" aria-label="Velocidade" data-tut-target="velocidade">
         {SPEEDS.map((v) => (
           <button
             key={v}

@@ -817,3 +817,27 @@
 .editor .hub-note {
   margin: 0;
 }
+
+/* primeiros passos */
+.tut ol {
+  display: grid;
+  gap: 6px;
+}
+.tut li small {
+  display: block;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.tut li.now b {
+  color: var(--teal-t);
+}
+.tut-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.tut > .btn {
+  justify-self: start;
+  margin-top: 8px;
+}

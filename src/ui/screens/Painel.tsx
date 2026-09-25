@@ -18,6 +18,7 @@ import { CashChart } from '../components/CashChart';
 import { Empty } from '../components/Empty';
 import { Money } from '../components/Money';
 import { GoalsPanel } from './GoalsPanel';
+import { Onboarding } from './Onboarding';
 
 const MOD_LABEL: Record<ModType, string> = {
   fuel: 'Combustível',
@@ -156,24 +157,7 @@ export function Painel() {
         </div>
       </div>
 
-      {g.routes.length === 0 && (
-        <div className="panel start">
-          <h2>Primeiro voo</h2>
-          <ol>
-            <li className={g.routes.length ? 'done' : ''}>
-              Em{' '}
-              <button type="button" className="link" onClick={() => setTab('rotas')}>
-                Rotas
-              </button>
-              , toque em Nova rota e escolha um destino até 1.500 km do hub
-            </li>
-            <li>
-              Escolha a aeronave: da frota ou arrendada na hora. Os slots que faltam são comprados junto
-            </li>
-            <li>Ajuste tarifa, frequência e serviço de bordo no editor da rota</li>
-          </ol>
-        </div>
-      )}
+      <Onboarding />
 
       <div className="panel">
         <h2>Caixa · últimos {g.history.length} dias</h2>

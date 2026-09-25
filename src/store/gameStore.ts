@@ -5,6 +5,7 @@ import {
   GOALS,
   newGame,
   resolveEvent,
+  takeTip,
   tick,
   type ActionResult,
   type AirportCode,
@@ -61,7 +62,8 @@ interface Store {
   decide: (side: Side) => void;
   closeResult: () => void;
   closeOffline: () => void;
-  notify: (text: string, tone?: ToastTone) => void;
+  /** Toast; `ms` = tempo na tela (padrão 2,6 s). */
+  notify: (text: string, tone?: ToastTone, ms?: number) => void;
   ask: (req: ConfirmRequest) => void;
   closeConfirm: () => void;
   reset: () => void;
@@ -135,6 +137,14 @@ export const useGame = create<Store>()(
       const won = GOALS.filter((x) => g.achievements[x.id] !== undefined && !had.has(x.id));
       const last = won[won.length - 1];
       if (last) get().notify(`Conquista: ${last.title}. Reputação +${last.rep}.`);
+      else {
+        // dica de primeira vez (uma por vez; fica mais tempo na tela)
+        let tip: string | null = null;
+        set((st) => {
+          if (st.game) tip = takeTip(st.game)?.text ?? null;
+        });
+        if (tip) get().notify(tip, 'info', 7000);
+      }
       // autosave a cada 5 dias, ao surgir evento e na falência
       const crossed5 = Math.floor(g.day / 5) > Math.floor(before / 5);
       if (crossed5 || g.pendingEvent || g.gameOver) get().save();
@@ -183,10 +193,10 @@ export const useGame = create<Store>()(
     closeResult: () => set({ result: null }),
     closeOffline: () => set({ offline: null }),
 
-    notify: (text, tone = 'info') => {
+    notify: (text, tone = 'info', ms = 2600) => {
       clearTimeout(toastTimer);
       set({ toast: { id: Date.now(), text, tone } });
-      toastTimer = setTimeout(() => set({ toast: null }), 2600);
+      toastTimer = setTimeout(() => set({ toast: null }), ms);
     },
 
     ask: (req) => set({ confirm: req }),
