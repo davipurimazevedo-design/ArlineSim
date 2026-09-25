@@ -7,6 +7,7 @@ import { Btn } from '../components/Btn';
 import { Icon } from '../components/Icon';
 import { Segmented } from '../components/Segmented';
 import { useDialog } from '../components/useDialog';
+import { play, setSoundPrefs, unlockAudio, useSoundPrefs } from '../sound';
 
 function subscribeScheme(cb: () => void) {
   const mq = matchMedia('(prefers-color-scheme: dark)');
@@ -31,6 +32,7 @@ function Panel() {
   const reset = useGame((s) => s.reset);
   const updateReady = useGame((s) => s.updateReady);
   const act = useGame((s) => s.act);
+  const sound = useSoundPrefs();
   const setTab = useGame((s) => s.setTab);
   const theme = useGame((s) => s.theme);
   const setTheme = useGame((s) => s.setTheme);
@@ -115,6 +117,41 @@ function Panel() {
             ]}
             onChange={setTheme}
           />
+        </section>
+
+        <section>
+          <h4>Sons</h4>
+          <div className="sound-row">
+            <Segmented
+              label="Sons"
+              value={sound.on ? 'on' : 'off'}
+              options={[
+                ['on', 'Ligados'],
+                ['off', 'Desligados'],
+              ]}
+              onChange={(v) => setSoundPrefs({ on: v === 'on' })}
+            />
+            <label className="volume">
+              <span>Volume</span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={sound.volume}
+                disabled={!sound.on}
+                onChange={(e) => setSoundPrefs({ volume: +e.target.value })}
+                onPointerUp={() => {
+                  unlockAudio();
+                  play('cash');
+                }}
+                onKeyUp={() => {
+                  unlockAudio();
+                  play('cash');
+                }}
+              />
+            </label>
+          </div>
         </section>
 
         <section>

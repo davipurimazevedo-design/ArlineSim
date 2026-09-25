@@ -1,5 +1,6 @@
 import { useEffect, type ComponentType } from 'react';
 import { tutorialTarget } from './engine';
+import { useSoundEffects } from './ui/useSoundEffects';
 import { useGame, type Tab } from './store/gameStore';
 import { ConfirmDialog } from './ui/components/ConfirmDialog';
 import { Toast } from './ui/components/Toast';
@@ -31,6 +32,7 @@ export function App() {
   const loaded = useGame((s) => s.loaded);
   const hasGame = useGame((s) => !!s.game);
   const tab = useGame((s) => s.tab);
+  useSoundEffects();
   // destaque do passo atual do tutorial: fora da aba Rotas, o botão Nova rota vira a aba Rotas
   const tut = useGame((s) => (s.game ? tutorialTarget(s.game) : null));
   const target =
