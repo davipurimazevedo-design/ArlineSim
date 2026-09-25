@@ -3,6 +3,8 @@
 import { useGame } from './gameStore';
 
 let waiting: ServiceWorker | null = null;
+/** o jogador tocou em "Atualizar": só então a troca de service worker recarrega a página */
+let updating = false;
 
 function offer(sw: ServiceWorker | null): void {
   if (!sw || !navigator.serviceWorker.controller) return; // primeira instalação: nada a atualizar
@@ -32,10 +34,11 @@ export function registerServiceWorker(): void {
       .catch(() => {
         /* sem service worker o jogo funciona normalmente, só não abre offline */
       });
-    let reloading = false;
+    // na primeira visita o service worker assume a página (clients.claim) sem nada a recarregar;
+    // só recarrega quando a troca veio de um "Atualizar"
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (reloading) return;
-      reloading = true;
+      if (!updating) return;
+      updating = false;
       location.reload();
     });
   });
@@ -44,6 +47,7 @@ export function registerServiceWorker(): void {
 /** Salva o jogo e troca para a versão nova (a página recarrega em seguida). */
 export function applyUpdate(): void {
   useGame.getState().save();
+  updating = true;
   if (waiting) waiting.postMessage('SKIP_WAITING');
   else location.reload();
 }
