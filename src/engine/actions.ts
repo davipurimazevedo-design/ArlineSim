@@ -74,7 +74,8 @@ function addPlane(s: GameState, model: ModelKey, owned: boolean, used?: UsedOffe
     cabin: 0,
     hours: 0,
     since: s.day,
-    built: used?.built ?? s.day,
+    // cargueiro convertido já chega com a idade do avião de origem
+    built: used?.built ?? s.day - (MODELS[model].deliveryAge ?? 0) * 365,
   };
   if (used && !owned) p.lease = used.lease;
   s.fleet.push(p);

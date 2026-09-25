@@ -41,12 +41,13 @@ export function isIntlPair(a: AirportCode, b: AirportCode): boolean {
 
 /** Tarifa de referência da econômica, múltiplo de R$ 5. */
 export function fairPrice(d: number): number {
-  // Até 1.500 km, igual ao protótipo. Acima, cresce mais devagar (protótipo: 0,45/km até 3.500 e 0,25 depois),
+  // Até 1.500 km, igual ao protótipo. Acima, cresce mais devagar (protótipo: 0,45/km até 3.500 e 0,25 depois;
+  // Fase 2: 0,30 e 0,20; Fase 4: 0,22 e 0,12),
   // para jatos em rotas longas e voos internacionais não dispararem o fim de jogo.
   const a = Math.min(d, 1500);
   const b = clamp(d - 1500, 0, 2000);
   const c = Math.max(0, d - 3500);
-  return Math.round((150 + 0.45 * a + 0.3 * b + 0.2 * c) / 5) * 5;
+  return Math.round((150 + 0.45 * a + 0.22 * b + 0.12 * c) / 5) * 5;
 }
 
 /** Tarifa de referência da executiva (sem arredondamento, como no simulador). */

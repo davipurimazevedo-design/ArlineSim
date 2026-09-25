@@ -22,7 +22,14 @@ import { rules } from './rules';
 import { connectionFactor, crewFactor } from './hubs';
 import { codeshareAiFactor, fxFeeFactor, fxRevenueFactor } from './international';
 import { overlapFactor } from './overlap';
-import { CARGO_ELASTICITY, CARGO_HANDLING, cargoDemand, cargoFair, hasCargoDivision } from './cargo';
+import {
+  CARGO_ELASTICITY,
+  CARGO_HANDLING,
+  CARGO_MAX_LF,
+  cargoDemand,
+  cargoFair,
+  hasCargoDivision,
+} from './cargo';
 import type { GameState, Plane, Route, SimResult } from './types';
 
 function emptyResult(r: Route, reason: string): SimResult {
@@ -167,7 +174,7 @@ export function simRoute(s: GameState, r: Route): SimResult {
 }
 
 /** fração da demanda de carga do par que vai no porão (o resto: cargueiros e concorrência) */
-export const BELLY_DEMAND_SHARE = 0.5;
+export const BELLY_DEMAND_SHARE = 0.2;
 /** o frete do porão sai mais barato que o do cargueiro */
 export const BELLY_FARE_FACTOR = 0.8;
 
@@ -209,7 +216,7 @@ function simCargo(s: GameState, r: Route, active: Active): SimResult {
   const q = 0.8 + 0.4 * (condW / cap / 100);
   const A = Math.pow(fair / price, CARGO_ELASTICITY) * q * freqFactor(freq);
   const share = A / (A + r.ai);
-  const tons = Math.round(Math.min(cap, demand * share) * 10) / 10;
+  const tons = Math.round(Math.min(cap * CARGO_MAX_LF, demand * share) * 10) / 10;
   const fc = flightCosts(s, r, active);
   return {
     ...emptyResult(r, ''),

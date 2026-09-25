@@ -6,7 +6,7 @@ import { baseCompetition, clamp, dist, opsHalted, remoteFareFactor } from './for
 import type { AirportCode, GameState, Route, RouteRival } from './types';
 
 /** escala da demanda de carga, t/dia */
-export const CARGO_DEMAND_K = 0.3;
+export const CARGO_DEMAND_K = 0.2;
 /** tarifa de referência: fixo + por km, R$ por tonelada */
 export const CARGO_FARE_BASE = 2000;
 export const CARGO_FARE_KM = 2;
@@ -14,6 +14,11 @@ export const CARGO_FARE_KM = 2;
 export const CARGO_HANDLING = 120;
 /** sensibilidade a preço (menor que a de passageiros) */
 export const CARGO_ELASTICITY = 1.8;
+/**
+ * ocupação média máxima de um cargueiro: a carga tem sentido dominante,
+ * então o avião enche na ida e volta parcialmente vazio
+ */
+export const CARGO_MAX_LF = 0.75;
 /** a concorrência na carga é mais rala que na de passageiros */
 export const CARGO_AI_FACTOR = 0.7;
 

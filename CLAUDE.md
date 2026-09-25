@@ -468,3 +468,12 @@ Plano em `docs/fase4-plano.md`, aprovado com estas escolhas:
 - **Sons:** sintetizados com Web Audio, **ligados por padrão em volume baixo**; liga, desliga e volume no menu "Jogo".
 - **Onboarding** como proposto: roteiro de 6 passos no Painel que se marca sozinho, destaque pulsante no passo atual, dicas de primeira vez, pular e refazer.
 - **Pendentes que entram na Fase 4:** idade dos aviões e mercado de usados, revisão da força da expansão no fim de jogo e carga no porão das rotas de passageiros. Os três mexem na economia, então a fase termina com um novo rebalanceamento.
+- **Etapa 5 (idade, usados, porão), calibração final:**
+  - idade na entrega dos cargueiros convertidos (BCF 15 anos, 767F 20);
+  - ocupação máxima de cargueiro 75%;
+  - leasing dos cargueiros a jato +30%;
+  - demanda de carga 0,2;
+  - porão 20% da demanda;
+  - tarifa acima de 1.500 km a R$ 0,22/km e acima de 3.500 km a R$ 0,12/km.
+  - Tabela e motivos em `docs/fase4-pendentes.md`, seção 6.
+

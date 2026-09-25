@@ -72,6 +72,8 @@ export interface AircraftModel {
   maintBase?: number;
   /** carga no porão por voo e sentido, em toneladas (rotas de passageiros com a divisão Cargas) */
   belly?: number;
+  /** idade na entrega, em anos (cargueiro convertido de um avião de passageiros antigo) */
+  deliveryAge?: number;
 }
 
 export interface License {

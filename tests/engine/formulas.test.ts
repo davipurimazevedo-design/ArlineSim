@@ -44,8 +44,8 @@ describe('fairPrice', () => {
     expect(fairPrice(0)).toBe(150);
     expect(fairPrice(1000)).toBe(600);
     expect(fairPrice(1500)).toBe(825);
-    expect(fairPrice(3500)).toBe(1425); // 825 + 0,30 × 2.000
-    expect(fairPrice(5500)).toBe(1825); // 1.425 + 0,20 × 2.000
+    expect(fairPrice(3500)).toBe(1265); // 825 + 0,22 × 2.000 (rebalanceamento da Fase 4)
+    expect(fairPrice(5500)).toBe(1505); // 1.265 + 0,12 × 2.000
     expect(fairPrice(333) % 5).toBe(0);
   });
   it('é idêntica ao protótipo até 1.500 km e menor acima (balanceamento da Fase 2)', () => {
